@@ -1,18 +1,18 @@
-# cd ./docker-template/standard_worker && set -a && source .env && docker-compose -f dist/debian/docker-compose-standard_worker.yaml build
+# docker-compose -f ./docker/docker-compose-standard_worker.yaml up -d --build 
 version: '2.4'
 services:
   standard_worker:
     build:
       # only necessary if rebuilding image
-      context: ../../
-      dockerfile: ./dist/debian/standard_worker.Dockerfile
+      context: .
+      dockerfile: ./standard_worker.Dockerfile
       args:
         - PY_VER
         - DEPLOY_KEY
         - WORKER_BASE_HASH
         - REPO_OWNER
         - REPO_NAME
-    image: registry.vathes.com/sciops/standard_${REPO_NAME}:py${PY_VER}-debian-${WORKFLOW_VERSION}
+    image: registry.vathes.com/sciops/standard_${REPO_NAME}:py${PY_VER}-${DIST}-${WORKFLOW_VERSION}
     environment:
       - CONTAINER_USER
       - DJ_HOST
