@@ -4,7 +4,7 @@ from datajoint_utilities.dj_notification.notifier.slack_notifier import SlackWeb
 from datajoint_utilities.dj_notification.loghandler import PopulateHandler
 
 from workflow import db_prefix
-from workflow.pipeline import session, scan, imaging, model, train, fbe as facemap
+from workflow.pipeline import session, ephys, scan, imaging, model, train
 
 __all__ = ['logger']
 logger = dj.logger
@@ -21,7 +21,12 @@ if notifiers:
                                         full_table_names=[scan.ScanInfo.full_table_name,
                                                         imaging.ProcessingTask.full_table_name,
                                                         imaging.Processing.full_table_name,
-                                                        imaging.Activity.full_table_name],
+                                                        imaging.Activity.full_table_name,
+                                                        ephys.ProbeInsertion.full_table_name,
+                                                        ephys.EphysRecording.full_table_name,
+                                                        ephys.Clustering.full_table_name,
+                                                        ephys.CuratedClustering.full_table_name,
+                                                        ephys.WaveformSet.full_table_name],
                                         on_start=True, on_success=True, on_error=True)
 
     verbose_handler.setLevel('DEBUG')
