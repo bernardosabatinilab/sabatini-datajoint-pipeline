@@ -32,12 +32,12 @@ class SkullReference(dj.Lookup):
 lab.SkullReference = SkullReference
 
 
-# ------------- Activate "subject", "session" schema -------------
+# ------------- Activate "subject" schema -------------
 
 subject.activate(db_prefix + 'subject', linking_module=__name__)
 
 
-# ------------- Activate "lab", "subject", "session" schema -------------
+# ------------- Activate "session" schema -------------
 
 Subject = subject.Subject
 Experimenter = lab.User
