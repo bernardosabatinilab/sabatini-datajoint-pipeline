@@ -51,7 +51,7 @@ standard_worker(ephys.CuratedClustering, max_calls=5)
 
 standard_worker(ephys.WaveformSet, max_calls=5)
 
-standard_worker(ephys.LFP, max_calls=1)
+standard_worker(ephys.LFP, max_calls=5)
 
 
 # spike_sorting process for GPU required jobs
