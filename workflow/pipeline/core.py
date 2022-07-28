@@ -37,7 +37,7 @@ lab.SkullReference = SkullReference
 subject.activate(db_prefix + 'subject', linking_module=__name__)
 
 
-# ------------- Activate "lab", "subject", "session" schema -------------
+# ------------- Activate "session" schema -------------
 
 Subject = subject.Subject
 Experimenter = lab.User
