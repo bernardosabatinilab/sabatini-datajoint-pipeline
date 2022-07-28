@@ -47,7 +47,7 @@ standard_worker(ephys.EphysRecording, max_calls=5)
 
 standard_worker(auto_generate_clustering_tasks)
 
-standard_worker(ephys.CuratedClustering, max_calls=10)
+standard_worker(ephys.CuratedClustering, max_calls=5)
 
 standard_worker(ephys.WaveformSet, max_calls=5)
 
