@@ -43,7 +43,7 @@ standard_worker = DataJointWorker('standard_worker',
 
 standard_worker(auto_generate_probe_insertions)
 
-standard_worker(ephys.EphysRecording, max_calls=10)
+standard_worker(ephys.EphysRecording, max_calls=5)
 
 standard_worker(auto_generate_clustering_tasks)
 
