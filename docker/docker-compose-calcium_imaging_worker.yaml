@@ -23,12 +23,12 @@ services:
       - IMAGING_ROOT_DATA_DIR=/home/${CONTAINER_USER}/inbox
       - IMAGING_PROCESSED_DATA_DIR=/home/${CONTAINER_USER}/outbox
     volumes:
-      - ${ROOT_DATA_DIR}:/home/${CONTAINER_USER}/inbox
-      - ${PROCESSED_DATA_DIR}:/home/${CONTAINER_USER}/outbox
+      - ${IMAGING_ROOT_DATA_DIR}:/home/${CONTAINER_USER}/inbox
+      - ${IMAGING_PROCESSED_DATA_DIR}:/home/${CONTAINER_USER}/outbox
     scale: ${WORKER_COUNT:-1}
     command:
       - /bin/bash
       - -c
       - |
-        run_workflow analysis_worker &
+        run_workflow calcium_imaging_worker &
         tail -f /dev/null
