@@ -50,18 +50,6 @@ def get_scan_image_files(scan_key):
     else:
         raise FileNotFoundError(f"No tiff file found in {sess_dir}")
 
-def get_imaging_session_directory(session_key):
-    data_dir = get_imaging_root_data_dir()
-
-    from workflow.pipeline import session
-
-    if not (session.SessionDirectory & session_key):
-        raise FileNotFoundError(f"No session data directory defined for {session_key}")
-
-    sess_dir = data_dir / (session.SessionDirectory & session_key).fetch1("session_dir")
-
-    return sess_dir.as_posix()
-
 
 def get_dlc_root_data_dir():
     return get_imaging_root_data_dir()
