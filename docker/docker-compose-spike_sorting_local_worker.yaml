@@ -62,5 +62,4 @@ services:
         cd /home/muser/neuropixel/Kilosort-3.0/CUDA && matlab -r "mexGPUall;quit" &&
         cd /home/muser/neuropixel/Kilosort-2.5/CUDA && matlab -r "mexGPUall;quit" &&
         cd /home/muser/neuropixel/Kilosort-2.0/CUDA && matlab -r "mexGPUall;quit" &&
-        cd /home/muser/neuropixel/sciops-demo-workflow-1 && run_workflow spike_sorting_worker &
-        tail -f /dev/null
+        run_workflow spike_sorting_worker & tail -f /dev/null
