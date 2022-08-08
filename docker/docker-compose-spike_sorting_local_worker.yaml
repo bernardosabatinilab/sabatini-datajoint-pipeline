@@ -1,11 +1,11 @@
-# cd ./docker/spike_sorting_worker && set -a && source .env && docker-compose -f dist/debian/docker-compose-spike_sorting_local_worker.yaml build
+# docker-compose -f ./docker/docker-compose-spike_sorting_local_worker.yaml up -d --build
 version: '2.4'
 services:
   spike_sorting_worker:
     build:
       # only necessary if rebuilding image
-      context: ../../
-      dockerfile: ./dist/debian/spike_sorting_worker.Dockerfile
+      context: .
+      dockerfile: ./spike_sorting_worker.Dockerfile
       args:
         - DEPLOY_KEY
         - REPO_OWNER
@@ -52,7 +52,7 @@ services:
       - /home/ubuntu/neuropixel/data_for_ecephys:/home/muser/neuropixel/data_for_ecephys
       - ${ROOT_DATA_DIR}:/home/${MATLAB_USER}/inbox
       - ${PROCESSED_DATA_DIR}:/home/${MATLAB_USER}/outbox
-      #- ./apt_requirements.txt:/tmp/apt_requirements.txt
+      #- ./apt_requirements.txt:/tmp/apt_requirements.txt 
     mac_address: $MATLAB_HOSTID
     scale: ${WORKER_COUNT:-1}
     command:
@@ -62,5 +62,4 @@ services:
         cd /home/muser/neuropixel/Kilosort-3.0/CUDA && matlab -r "mexGPUall;quit" &&
         cd /home/muser/neuropixel/Kilosort-2.5/CUDA && matlab -r "mexGPUall;quit" &&
         cd /home/muser/neuropixel/Kilosort-2.0/CUDA && matlab -r "mexGPUall;quit" &&
-        cd /home/muser/neuropixel/sciops-demo-workflow-1 && run_workflow spike_sorting_worker &
-        tail -f /dev/null
+        run_workflow spike_sorting_worker & tail -f /dev/null
