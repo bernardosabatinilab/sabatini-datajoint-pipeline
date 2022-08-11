@@ -13,11 +13,11 @@ schema = dj.schema(get_schema_name('photometry'))
 
 
 @schema
-class ExcitationWavelength(dj.Lookup):
+class ExcitationWavelength(dj.Lookup):  # always constant?
     definition = """
     wavelength:      smallint 
     """
-    contents = [[415], [470], [560]]
+    contents = [[405], [470], [560]]
 
 @schema
 class EmissionColor(dj.Lookup):
@@ -63,7 +63,6 @@ class FiberPhotometrySession(dj.Imported):
         """
         
     class ROI(dj.Part): 
-        # ROIs in the camera raw image
         definition = """
         -> master.Fiber
         -> EmissionColor
@@ -71,7 +70,7 @@ class FiberPhotometrySession(dj.Imported):
         header_name:   varchar(30)      # Header name in the csv file
         """
         
-    class RawTrace(dj.Part):
+    class Trace(dj.Part):  # downsampled & processed data?
         definition = """
         -> master.ROI
         -> master.ExcitationWavelength
@@ -79,7 +78,12 @@ class FiberPhotometrySession(dj.Imported):
         timestamp:  longblob   # (in seconds)
         raw:        longblob
         """
-                
+    
+    def make():
+        pass           
+        
+
+        
 
 @schema
 class TrialEvent(dj.Imported):     
