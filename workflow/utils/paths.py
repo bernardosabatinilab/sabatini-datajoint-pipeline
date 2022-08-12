@@ -24,13 +24,11 @@ def get_ephys_session_directory(session_key: dict) -> str:
     return sess_dir.as_posix()
 
 def get_imaging_root_data_dir():
-    data_dir = dj.config.get("custom", {}).get("imaging_root_data_dir")
-    return pathlib.Path(data_dir) if data_dir else None
+    return get_ephys_root_data_dir() 
 
 
 def get_imaging_processed_root_data_dir():
-    data_dir = dj.config.get("custom", {}).get("imaging_processed_data_dir", None)
-    return pathlib.Path(data_dir) if data_dir else None
+    return get_ephys_processed_root_data_dir()
 
 
 def get_scan_image_files(scan_key):
@@ -44,7 +42,7 @@ def get_scan_image_files(scan_key):
     if not sess_dir.exists():
         raise FileNotFoundError(f"Session directory not found ({sess_dir})")
 
-    tiff_filepaths = [fp.as_posix() for fp in sess_dir.glob("*.tif")]
+    tiff_filepaths = [fp.as_posix() for fp in (sess_dir / "Imaging").glob("*.tif")]
     if tiff_filepaths:
         return tiff_filepaths
     else:

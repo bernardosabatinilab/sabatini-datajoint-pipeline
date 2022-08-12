@@ -24,12 +24,4 @@ dj.config['custom']['ephys_processed_data_dir'] = os.getenv(
     'EPHYS_PROCESSED_DATA_DIR',
     dj.config['custom'].get('ephys_processed_data_dir', ''))
 
-dj.config['custom']['imaging_root_data_dir'] = os.getenv(
-    'IMAGING_ROOT_DATA_DIR',
-    dj.config['custom'].get('imaging_root_data_dir', ''))
-
-dj.config['custom']['imaging_processed_data_dir'] = os.getenv(
-    'IMAGING_PROCESSED_DATA_DIR',
-    dj.config['custom'].get('imaging_processed_data_dir', ''))
-
 db_prefix = dj.config["custom"].get("database.prefix", "")
