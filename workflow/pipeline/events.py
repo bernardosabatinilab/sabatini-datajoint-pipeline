@@ -6,6 +6,7 @@ from workflow import db_prefix
 from workflow.pipeline import lab, session, subject, ephys
 from pathlib import Path
 from element_array_ephys import ephys_no_curation as ephys
+import datetime 
 
 __all__ = ['event', 'trial']
 
@@ -137,5 +138,6 @@ class BehaviorIngestion(dj.Imported):
         # temp_df["session_id"] = session_id
         # trial.TrialEvent.insert(temp_df, allow_direct_insert=True, skip_duplicates=True)
 
+        self.insert1({**key, "ingestion_time": datetime.datetime.now()})
 
 event.BehaviorIngestion = BehaviorIngestion
