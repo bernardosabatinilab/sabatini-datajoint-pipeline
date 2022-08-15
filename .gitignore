@@ -117,7 +117,7 @@ Diagram.ipynb
 docker/.env
 
 # vscode
-.vscode/settings.json
+.vscode/*
 
 # ssh
 *.ssh
