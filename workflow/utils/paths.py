@@ -3,12 +3,12 @@ import pathlib
 
 
 def get_raw_root_data_dir():
-    data_dir = dj.config.get("custom", {}).get("root_data_dir", None)
+    data_dir = dj.config.get("custom", {}).get("raw_root_data_dir", None)
     return pathlib.Path(data_dir) if data_dir else None
 
 
 def get_processed_root_data_dir():
-    data_dir = dj.config.get("custom", {}).get("processed_data_dir", None)
+    data_dir = dj.config.get("custom", {}).get("processed_root_data_dir", None)
     return pathlib.Path(data_dir) if data_dir else None
 
 
