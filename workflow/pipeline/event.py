@@ -5,8 +5,8 @@ from element_event import event, trial
 from workflow import db_prefix
 from workflow.pipeline import lab, session, subject, ephys
 from pathlib import Path
-from element_array_ephys import ephys_no_curation as ephys
-import datetime 
+# from element_array_ephys import ephys_no_curation as ephys
+from datetime import datetime 
 
 __all__ = ['event', 'trial']
 
@@ -16,14 +16,11 @@ Session = session.Session
 if not event.schema.is_activated():
     event.activate(db_prefix + 'event', linking_module=__name__)
     
-Event = event.Event
-
 # ------------- Activate "trial" schema -------------
 if not trial.schema.is_activated():
-    trial.activate(db_prefix + 'trial', db_prefix + 'event',linking_module=__name__)
+    trial.activate(db_prefix + 'trial', db_prefix + 'event', linking_module=__name__)
     
-Trial = trial.Trial
-Block = trial.Block
+
 @event.schema
 class BehaviorIngestion(dj.Imported):
     definition = """
@@ -38,27 +35,20 @@ class BehaviorIngestion(dj.Imported):
         """
         
         subject, session_id = key["subject"], key["session_id"]
-        root_dir = Path(dj.config['custom']['beh_root_data_dir'])
-        session_dir = (session.SessionDirectory & key).fetch("session_dir")[0]
         
+        session_dir = ephys.get_ephys_session_directory(key)
         beh_data_files = ['events.csv', 'block.csv', 'trial.csv']  # one behavioral session expects these .csv files
         
-        assert np.prod([(root_dir / session_dir / file).exists() for file in beh_data_files]), "behavioral data missing!"
+        assert all([(session_dir / Path(file)).exists() for file in beh_data_files]), "behavioral data missing!"
         
-        for file in beh_data_files:
-            if 'events' in file:
-                events_df = pd.read_csv(root_dir / session_dir / file)
-            elif 'block' in file:
-                block_df = pd.read_csv(root_dir / session_dir / file)
-                block_df.replace(np.nan, '', regex=True, inplace=True)
-            elif 'trial' in file:
-                trial_df = pd.read_csv(root_dir / session_dir / file)        
+        events_df = pd.read_csv(session_dir / 'events.csv', keep_default_na=False)
+        block_df = pd.read_csv(session_dir / 'block.csv', keep_default_na=False)
+        trial_df = pd.read_csv(session_dir / 'trial.csv', keep_default_na=False)        
 
         # Populate EventType
-        event.EventType.insert([[event, ''] for event in events_df["event_type"].unique()], skip_duplicates=True)  # should be hard-coded later
+        event.EventType.insert([[event, ''] for event in events_df["event_type"].unique()], skip_duplicates=True)  # can be hard-coded later
         
         # Populate BehaviorRecording
-        recording_start_time = ''
         recording_duration = events_df['time'].iloc[-1] 
         event.BehaviorRecording.insert1(
                                     {
@@ -69,20 +59,23 @@ class BehaviorIngestion(dj.Imported):
                                 )
         
         # Populate BehaviorRecording.File
-        for file in beh_data_files:
-            event.BehaviorRecording.File.insert1({**key, "filepath": session_dir + '/' + file}, skip_duplicates=True)
+        behavioral_recording_file_list = [[*key.values(), f"{session_dir}/{file}"] for file in beh_data_files]
+        event.BehaviorRecording.File.insert(behavioral_recording_file_list, skip_duplicates=True)
 
         # Populate Block
+        # TODO: trial block dict
+        
         for block_ind, row in block_df.iterrows(): 
+            
             block_start_trial = row["start_trial"] 
             block_end_trial = row["end_trial"] 
             
-            temp_df = events_df.loc[events_df['trial']== block_start_trial]
-            block_start_time =  temp_df["time"].values[0]
-            temp_df = events_df.loc[events_df['trial']== block_end_trial]
-            block_stop_time =  temp_df["time"].values[-1]
+            events_block_df = events_df.loc[events_df['trial']== block_start_trial]
+            block_start_time =  events_block_df["time"].values[0]
+            events_block_df = events_df.loc[events_df['trial']== block_end_trial]
+            block_stop_time =  events_block_df["time"].values[-1]
             
-            Block.insert1(
+            trial.Block.insert1(
                             {
                                 **key,
                                 "block_id": block_ind + 1,
@@ -95,7 +88,7 @@ class BehaviorIngestion(dj.Imported):
             attributes = [[*key.values(), block_ind + 1, attr, val] for (attr, val) in zip(row.index, row.values) if attr != 'session']
             
             # Populate Block.Attribute
-            Block.Attribute.insert(attributes,  allow_direct_insert=True, skip_duplicates=True)
+            trial.Block.Attribute.insert(attributes,  allow_direct_insert=True, skip_duplicates=True)
             
         # Populate trial.TrialType
         trial.TrialType.insert1(["None", "None"], skip_duplicates=True)  # not sure if this is needed
@@ -104,15 +97,15 @@ class BehaviorIngestion(dj.Imported):
         # Populate trial.Trial
         for _, row in trial_df.iterrows(): 
             block_start_trial = row["trial_id"] 
-            temp_df = events_df.loc[events_df['trial']== row["trial_id"] ]
+            events_trial_df = events_df.loc[events_df['trial']== row["trial_id"] ]
             
-            Trial.insert1(
+            trial.Trial.insert1(
                             {
                                 **key,
                                 "trial_id": row['trial_id'],
                                 "trial_type": "None",
-                                "trial_start_time": temp_df["time"].values[0],                                
-                                "trial_stop_time": temp_df["time"].values[-1]                                
+                                "trial_start_time": events_trial_df["time"].values[0],                                
+                                "trial_stop_time": events_trial_df["time"].values[-1]                                
                             },  allow_direct_insert=True, skip_duplicates=True
                         )
             
@@ -120,24 +113,24 @@ class BehaviorIngestion(dj.Imported):
                           if attr != 'trial_id' and attr != 'block']
             
             # Populate Trial.Attribute
-            Trial.Attribute.insert(attributes)
+            trial.Trial.Attribute.insert(attributes)
 
         # Populate trial.BlockTrial()
-        temp_df = trial_df.loc[:, ["trial_id", "block_id"]]
-        temp_df["subject"] = subject
-        temp_df["session_id"] = session_id
-        trial.BlockTrial.insert(temp_df, allow_direct_insert=True, skip_duplicates=True)
+        trial_df["subject"] = subject
+        trial_df["session_id"] = session_id
+        trial.BlockTrial.insert(trial_df, ignore_extra_fields=True, allow_direct_insert=True, skip_duplicates=True)
         
-        ## TODO
         # Populate event.Event
+        event_table_df = events_df.rename(columns={"time": "event_start_time"})  # populate the table with this dataframe
+        event_table_df["subject"] = subject
+        event_table_df["session_id"] = session_id
+        event.Event.insert(event_table_df, ignore_extra_fields=True, allow_direct_insert=True, skip_duplicates=True)
         
-        ## TODO : this table depends on event.Event
         # Populate trial.TrialEvent  
-        # temp_df = events_df.rename(columns={"time": "event_start_time", "trial": "trial_id"})
-        # temp_df["subject"] = subject
-        # temp_df["session_id"] = session_id
-        # trial.TrialEvent.insert(temp_df, allow_direct_insert=True, skip_duplicates=True)
-
-        self.insert1({**key, "ingestion_time": datetime.datetime.now()})
+        event_table_df.rename(columns={"trial": "trial_id"}, inplace=True)
+        trial.TrialEvent.insert(event_table_df, allow_direct_insert=True, skip_duplicates=True)
+        
+        # Populate event.BehaviorIngestion  
+        self.insert1({**key, "ingestion_time": datetime.now()})
 
 event.BehaviorIngestion = BehaviorIngestion
