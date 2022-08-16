@@ -1,4 +1,5 @@
 ipykernel
+black
 datajoint>=0.13.0
 element-lab @ git+https://github.com/datajoint/element-lab.git
 element-animal @ git+https://github.com/datajoint/element-animal.git

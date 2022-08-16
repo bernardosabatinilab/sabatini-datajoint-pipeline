@@ -7,10 +7,9 @@ from workflow import db_prefix
 
 __all__ = ['lab', 'subject', 'session']
 
-# ------------- Activate "lab" -------------
-
+# ------------- Activate "lab" schema -------------
 lab.activate(db_prefix + 'lab')
-
+    
 Source = lab.Source
 Lab = lab.Lab
 Protocol = lab.Protocol
@@ -18,9 +17,7 @@ User = lab.User
 Location = lab.Location
 Project = lab.Project
 
-
-# Declare table SkullReference for use in element-array-ephys
-
+# Declare SkullReference table for use in element-array-ephys
 @lab.schema
 class SkullReference(dj.Lookup):
     definition = """
@@ -28,24 +25,9 @@ class SkullReference(dj.Lookup):
     """
     contents = zip(['Bregma', 'Lambda'])
 
+lab.SkullReference = SkullReference 
 
-lab.SkullReference = SkullReference
-
-
-# ------------- Activate "subject" schema -------------
-
-subject.activate(db_prefix + 'subject', linking_module=__name__)
-
-
-# ------------- Activate "session" schema -------------
-
-Subject = subject.Subject
-Experimenter = lab.User
-session.activate(db_prefix + 'session', linking_module=__name__)
-
-
-# ------------- Declare table Equipment for use in element_calcium_imaging -------------
-
+# Declare Equipment table for use in element_calcium_imaging 
 @lab.schema
 class Equipment(dj.Lookup):
     definition = """
@@ -53,6 +35,15 @@ class Equipment(dj.Lookup):
     """
     contents = zip(["Nikon A1 plus"])
 
-
 lab.Equipment = Equipment
+
+# ------------- Activate "subject" schema -------------
+subject.activate(db_prefix + 'subject', linking_module=__name__)
+Subject = subject.Subject
+
+Experimenter = lab.User
+
+# ------------- Activate "session" schema -------------
+session.activate(db_prefix + 'session', linking_module=__name__)
+
 

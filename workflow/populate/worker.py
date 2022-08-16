@@ -1,7 +1,7 @@
 import datajoint as dj
 from datajoint_utilities.dj_worker import DataJointWorker, WorkerLog, ErrorLog
 from workflow import db_prefix
-from workflow.pipeline import session, ephys, scan, imaging, model as dlc_model, train as dlc_train
+from workflow.pipeline import session, ephys, event, scan, imaging, model as dlc_model, train as dlc_train
 
 logger = dj.logger
 
@@ -41,6 +41,8 @@ standard_worker = DataJointWorker('standard_worker',
                                   sleep_duration=30,
                                   autoclear_error_patterns=autoclear_error_patterns)
 
+standard_worker(event.BehaviorIngestion, max_calls=5)
+
 standard_worker(auto_generate_probe_insertions)
 
 standard_worker(ephys.EphysRecording, max_calls=5)
@@ -52,7 +54,6 @@ standard_worker(ephys.CuratedClustering, max_calls=5)
 standard_worker(ephys.WaveformSet, max_calls=5)
 
 standard_worker(ephys.LFP, max_calls=5)
-
 
 # spike_sorting process for GPU required jobs
 spike_sorting_worker = DataJointWorker('spike_sorting_worker',
@@ -100,3 +101,4 @@ dlc_worker = DataJointWorker(
 )
 dlc_worker(dlc_model.RecordingInfo, max_calls=5)
 dlc_worker(dlc_model.PoseEstimation, max_calls=5)
+
