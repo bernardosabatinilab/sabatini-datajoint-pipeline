@@ -7,7 +7,8 @@ from .core import lab, session
 from workflow.utils.paths import (
     get_imaging_root_data_dir,
     get_imaging_processed_root_data_dir,
-    get_imaging_session_directory,
+    get_nd2_files,
+    get_scan_box_files,
     get_scan_image_files,
 )
 
@@ -17,13 +18,16 @@ __all__ = ["scan", "imaging"]
 Session = session.Session
 Equipment = lab.Equipment
 
+
 @lab.schema
 class BrainRegion(dj.Manual):
+
     definition = """
     acronym: varchar(32)
     ---
     region_name: varchar(128)
     """
+
 
 Location = BrainRegion
 
