@@ -61,7 +61,14 @@ def get_scan_image_files(scan_key):
         raise FileNotFoundError(f"No tiff file found in {sess_dir}")
 
 
-# for element-deeplabcut activation
+def get_scan_box_files(scan_key):
+    raise NotImplementedError
+
+
+def get_nd2_files(scan_key):
+    raise NotImplementedError
+
+
 def get_dlc_root_data_dir():
     return get_raw_root_data_dir()
 

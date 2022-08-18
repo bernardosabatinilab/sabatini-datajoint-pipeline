@@ -31,7 +31,7 @@ class BehaviorIngestion(dj.Imported):
         """
 
         session_dir = (session.SessionDirectory & key).fetch1("session_dir")
-        session_full_dir = find_full_path(get_raw_root_data_dir(), session_dir)
+        behavior_dir = find_full_path(get_raw_root_data_dir(), session_dir) / "behavior"
 
         beh_data_files = [
             "events.csv",
@@ -39,13 +39,12 @@ class BehaviorIngestion(dj.Imported):
             "trial.csv",
         ]  # one behavioral session expects these .csv files
 
-        assert all(
-            [(session_full_dir / Path(file)).exists() for file in beh_data_files]
-        ), "behavioral data missing!"
-
-        events_df = pd.read_csv(session_full_dir / "events.csv", keep_default_na=False)
-        block_df = pd.read_csv(session_full_dir / "block.csv", keep_default_na=False)
-        trial_df = pd.read_csv(session_full_dir / "trial.csv", keep_default_na=False)
+        try:
+            events_df = pd.read_csv(behavior_dir / "events.csv", keep_default_na=False)
+            block_df = pd.read_csv(behavior_dir / "block.csv", keep_default_na=False)
+            trial_df = pd.read_csv(behavior_dir / "trial.csv", keep_default_na=False)
+        except FileNotFoundError:
+            print("behavioral data missing!")
 
         # Populate EventType
         event.EventType.insert(
