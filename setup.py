@@ -28,7 +28,7 @@ with open(path.join(here, pkg_name, 'version.py')) as f:
 setup(
     name='datajoint-pipeline',
     version=__version__,
-    description="Extracellular electrophysiology, Calcium Imaging, Fiber Photometry, DLC, integrated behavior pipeline",
+    description="Extracellular electrophysiology, Calcium Imaging, Fiber Photometry, DLC, Integrated behavior pipeline",
     long_description=long_description,
     author='DataJoint',
     author_email='info@datajoint.com',
