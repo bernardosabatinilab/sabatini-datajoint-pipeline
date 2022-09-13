@@ -5,7 +5,7 @@ from workflow import db_prefix
 from workflow.pipeline import lab, session
 from workflow.utils.paths import (get_ephys_root_data_dir,
                                   get_ephys_processed_root_data_dir,
-                                  get_ephys_session_directory)
+                                  get_session_directory)
 
 __all__ = ['ephys', 'probe']
 

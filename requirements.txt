@@ -11,3 +11,6 @@ ecephys-spike-sorting @ git+https://github.com/datajoint-company/ecephys_spike_s
 element-calcium-imaging @ git+https://github.com/datajoint/element-calcium-imaging.git
 element-interface[scanreader,image_converter,suite2p] @ git+https://github.com/datajoint/element-interface.git
 datajoint-utilities @ git+https://github.com/datajoint-company/datajoint-utilities.git
+
+tifffile==2021.11.2
+nd2==0.1.6

@@ -1,8 +1,8 @@
 import sys
 from datajoint_utilities.dj_worker import parse_args
 
-from workflow.populate.worker import standard_worker, spike_sorting_worker, \
-    calcium_imaging_worker, logger, dlc_worker
+from workflow.populate.worker import (standard_worker, spike_sorting_worker,
+                                      calcium_imaging_worker, logger, dlc_worker)
 
 
 # -------- Run process(s) --------
@@ -12,6 +12,7 @@ configured_workers = {
     'calcium_imaging_worker': calcium_imaging_worker,
     'dlc_worker': dlc_worker
 }
+
 
 def run(**kwargs):
     worker = configured_workers[kwargs["worker_name"]]

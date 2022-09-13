@@ -6,9 +6,7 @@ from .core import lab, session
 
 from workflow.utils.paths import (
     get_imaging_root_data_dir,
-    get_imaging_processed_root_data_dir,
-    get_nd2_files,
-    get_scan_box_files,
+    get_processed_root_data_dir,
     get_scan_image_files,
 )
 
@@ -21,7 +19,6 @@ Equipment = lab.Equipment
 
 @lab.schema
 class BrainRegion(dj.Manual):
-
     definition = """
     acronym: varchar(32)
     ---

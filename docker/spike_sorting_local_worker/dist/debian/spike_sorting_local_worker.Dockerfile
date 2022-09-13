@@ -70,7 +70,7 @@ RUN mkdir $HOME/tmp0
 RUN git clone https://github.com/jenniferColonell/Kilosort2 Kilosort-3.0
 RUN cp /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall.m /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall_determ.m && \
    sed -i 's/-DENABLE_STABLEMODE mexMPnu8.cu/-DENSURE_DETERM -DENABLE_STABLEMODE mexMPnu8.cu/' /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall_determ.m
-## 2
+## 2.5
 RUN wget -P /tmp/ https://github.com/jenniferColonell/Kilosort2/archive/refs/tags/v2.5.zip
 RUN unzip /tmp/v2.5.zip
 RUN mv Kilosort2-2.5 Kilosort-2.5
@@ -112,18 +112,19 @@ RUN git clone https://github.com/ttngu207/ecephys_spike_sorting.git
 #RUN pip install ./ecephys_spike_sorting/
 #RUN pip install argschema==1.* marshmallow==2.*
 
+
 ## Workflow Array Ephys
-ARG DEPLOY_KEY
 ARG MATLAB_USER
 RUN mkdir $HOME/.ssh
-COPY --chown=${MATLAB_USER} $DEPLOY_KEY $HOME/.ssh/id_ed25519
-RUN chmod u=r,g-rwx,o-rwx $HOME/.ssh/id_ed25519 && \
-   ssh-keyscan github.com >> $HOME/.ssh/known_hosts
 
 USER $MATLAB_USER
 ENV SSL_CERT_DIR=/etc/ssl/certs
 ARG REPO_OWNER
 ARG REPO_NAME
-RUN git clone git@github.com:${REPO_OWNER}/${REPO_NAME}.git && \
-   pip install --upgrade pip && \
-   pip install --use-deprecated=legacy-resolver ./${REPO_NAME}
+
+# Clone the workflow
+RUN git clone -b main https://github.com/${REPO_OWNER}/${REPO_NAME}.git
+
+# Install the workflow
+RUN pip install --upgrade pip && \
+    pip install --use-deprecated=legacy-resolver ./${REPO_NAME}
