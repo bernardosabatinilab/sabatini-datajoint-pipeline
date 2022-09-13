@@ -31,7 +31,7 @@ class BehaviorIngestion(dj.Imported):
         """
 
         session_dir = (session.SessionDirectory & key).fetch1("session_dir")
-        behavior_dir = find_full_path(get_raw_root_data_dir(), session_dir) / "behavior"
+        session_full_dir = find_full_path(get_raw_root_data_dir(), session_dir)
 
         beh_data_files = [
             "events.csv",
@@ -39,12 +39,10 @@ class BehaviorIngestion(dj.Imported):
             "trial.csv",
         ]  # one behavioral session expects these .csv files
 
-        try:
-            events_df = pd.read_csv(behavior_dir / "events.csv", keep_default_na=False)
-            block_df = pd.read_csv(behavior_dir / "block.csv", keep_default_na=False)
-            trial_df = pd.read_csv(behavior_dir / "trial.csv", keep_default_na=False)
-        except FileNotFoundError:
-            print("behavioral data missing!")
+        # Load .csv into pandas dataframe
+        events_df = pd.read_csv(session_full_dir / "Behavior" / "events.csv", keep_default_na=False)
+        block_df = pd.read_csv(session_full_dir / "Behavior" / "block.csv", keep_default_na=False)
+        trial_df = pd.read_csv(session_full_dir / "Behavior" / "trial.csv", keep_default_na=False)
 
         # Populate EventType
         event.EventType.insert(
@@ -69,7 +67,6 @@ class BehaviorIngestion(dj.Imported):
         attribute_list = []  # list of lists
 
         for block_ind, row in block_df.iterrows():
-
             block_start_trial = row["start_trial"]
             block_end_trial = row["end_trial"]
 
@@ -151,7 +148,10 @@ class BehaviorIngestion(dj.Imported):
 
         # Populate trial.TrialEvent
         event_table_df.rename(columns={"trial": "trial_id"}, inplace=True)
-        trial.TrialEvent.insert(event_table_df, allow_direct_insert=True)
+        trial.TrialEvent.insert(event_table_df,
+                                ignore_extra_fields=True,
+                                allow_direct_insert=True,
+                                skip_duplicates=True)
 
         # Populate event.BehaviorIngestion
         self.insert1({**key, "ingestion_time": datetime.now()})

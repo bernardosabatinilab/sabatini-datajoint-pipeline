@@ -21,7 +21,7 @@ def get_ephys_processed_root_data_dir():
     return get_processed_root_data_dir()
 
 
-def get_ephys_session_directory(session_key: dict) -> str:
+def get_session_directory(session_key: dict) -> str:
     data_dir = get_ephys_root_data_dir()
 
     from workflow.pipeline import session
@@ -39,10 +39,6 @@ def get_imaging_root_data_dir():
     return get_raw_root_data_dir()
 
 
-def get_imaging_processed_root_data_dir():
-    return get_processed_root_data_dir()
-
-
 def get_scan_image_files(scan_key):
     # Folder structure: root / subject / session / .tif (raw)
     data_dir = get_imaging_root_data_dir()
@@ -54,19 +50,13 @@ def get_scan_image_files(scan_key):
     if not sess_dir.exists():
         raise FileNotFoundError(f"Session directory not found ({sess_dir})")
 
-    tiff_filepaths = [fp.as_posix() for fp in (sess_dir / "Imaging").glob("*.tif")]
+    tiff_filepaths = [fp.as_posix()
+                      for fp in (sess_dir / "Imaging" / f"scan{scan_key['scan_id']}").glob("*.tif")
+                      if not fp.name.startswith('zstack')]
     if tiff_filepaths:
         return tiff_filepaths
     else:
         raise FileNotFoundError(f"No tiff file found in {sess_dir}")
-
-
-def get_scan_box_files(scan_key):
-    raise NotImplementedError
-
-
-def get_nd2_files(scan_key):
-    raise NotImplementedError
 
 
 def get_dlc_root_data_dir():
