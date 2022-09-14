@@ -4,7 +4,7 @@ from element_array_ephys import ephys_no_curation as ephys
 from workflow import db_prefix
 from workflow.pipeline import lab, session
 from workflow.utils.paths import (get_ephys_root_data_dir,
-                                  get_ephys_processed_root_data_dir,
+                                  get_processed_root_data_dir,
                                   get_session_directory)
 
 __all__ = ['ephys', 'probe']
