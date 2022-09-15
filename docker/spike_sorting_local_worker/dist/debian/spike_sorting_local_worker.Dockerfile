@@ -1,4 +1,4 @@
-FROM drewyangdev/matlab:R2021a-GUI
+FROM datajoint/matlab:R2022a-GUI
 
 USER root
 ## system level dependencies
@@ -8,6 +8,13 @@ RUN xargs apt-get install -y < /tmp/apt_requirements.txt
 
 ## NVIDIA driver is managed by nvidia-container-toolkit and nvidia-docker-2
 ## https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#setting-up-nvidia-container-toolkit
+
+## Downgrade gcc/g++ for cuda
+RUN apt-get install -y gcc-9 g++-9 && \
+    rm /usr/bin/gcc && \
+    rm /usr/bin/g++ && \
+    ln -s /usr/bin/gcc-9 /usr/bin/gcc && \
+    ln -s /usr/bin/g++-9 /usr/bin/g++
 
 ## CUDA Toolkit
 RUN wget -P /tmp/ http://developer.download.nvidia.com/compute/cuda/11.0.2/local_installers/cuda_11.0.2_450.51.05_linux.run
@@ -52,21 +59,28 @@ WORKDIR /home/muser/neuropixel
 RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/CatGTLnxApp.zip
 RUN unzip /tmp/CatGTLnxApp.zip
 RUN cd ./CatGT-linux && bash install.sh
+ENV catGTPath=/home/muser/neuropixel/CatGT-linux
 
 ## TPrime
 RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/TPrimeLnxApp.zip
 RUN unzip /tmp/TPrimeLnxApp.zip
 RUN cd ./TPrime-linux && bash install.sh
+ENV tPrime_path=/home/muser/neuropixel/TPrime-linux
 
 ## C_Waves
 RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/C_WavesLnxApp.zip
 RUN unzip /tmp/C_WavesLnxApp.zip
 RUN cd ./C_Waves-linux && bash install.sh
+ENV cWaves_path=/home/muser/neuropixel/C_Waves-linux
+
+## SpikeBandMedianSubtraction
+RUN wget -P /tmp/ https://github.com/AllenInstitute/ecephys_spike_sorting/files/4821847/SpikeBandMedianSubtraction.zip
+RUN unzip /tmp/SpikeBandMedianSubtraction.zip
+ENV median_subtraction_executable=/home/muser/neuropixel/SpikeBandMedianSubtraction
 
 ## KiloSort
 ## 3.0
 #RUN git clone https://github.com/MouseLand/Kilosort.git Kilosort-3.0
-RUN mkdir $HOME/tmp0
 RUN git clone https://github.com/jenniferColonell/Kilosort2 Kilosort-3.0
 RUN cp /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall.m /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall_determ.m && \
    sed -i 's/-DENABLE_STABLEMODE mexMPnu8.cu/-DENSURE_DETERM -DENABLE_STABLEMODE mexMPnu8.cu/' /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall_determ.m
@@ -76,7 +90,6 @@ RUN unzip /tmp/v2.5.zip
 RUN mv Kilosort2-2.5 Kilosort-2.5
 RUN cp /home/muser/neuropixel/Kilosort-2.5/CUDA/mexGPUall.m /home/muser/neuropixel/Kilosort-2.5/CUDA/mexGPUall_determ.m && \
    sed -i 's/-DENABLE_STABLEMODE mexMPnu8.cu/-DENSURE_DETERM -DENABLE_STABLEMODE mexMPnu8.cu/' /home/muser/neuropixel/Kilosort-2.5/CUDA/mexGPUall_determ.m
-
 ## 2.0
 RUN wget -P /tmp/ https://github.com/jenniferColonell/Kilosort2/archive/refs/tags/v2.0.zip
 RUN unzip /tmp/v2.0.zip
@@ -111,16 +124,9 @@ ARG CACHE_AT=$(date)
 RUN git clone https://github.com/ttngu207/ecephys_spike_sorting.git
 #RUN pip install ./ecephys_spike_sorting/
 #RUN pip install argschema==1.* marshmallow==2.*
-
+ENV ecephys_directory=/home/muser/neuropixel/ecephys_spike_sorting/ecephys_spike_sorting
 
 ## Workflow Array Ephys
-ARG MATLAB_USER
-RUN mkdir $HOME/.ssh
-
-USER $MATLAB_USER
-ENV SSL_CERT_DIR=/etc/ssl/certs
-ARG REPO_OWNER
-ARG REPO_NAME
 
 # Clone the workflow
 RUN git clone -b main https://github.com/${REPO_OWNER}/${REPO_NAME}.git
