@@ -82,6 +82,8 @@ ENV median_subtraction_executable=/home/muser/neuropixel/SpikeBandMedianSubtract
 ## 3.0
 #RUN git clone https://github.com/MouseLand/Kilosort.git Kilosort-3.0
 RUN git clone https://github.com/jenniferColonell/Kilosort2 Kilosort-3.0
+RUN cp /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall.m /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall_determ.m && \
+   sed -i 's/-DENABLE_STABLEMODE mexMPnu8.cu/-DENSURE_DETERM -DENABLE_STABLEMODE mexMPnu8.cu/' /home/muser/neuropixel/Kilosort-3.0/CUDA/mexGPUall_determ.m
 ## 2.5
 RUN wget -P /tmp/ https://github.com/jenniferColonell/Kilosort2/archive/refs/tags/v2.5.zip
 RUN unzip /tmp/v2.5.zip
@@ -92,6 +94,9 @@ RUN cp /home/muser/neuropixel/Kilosort-2.5/CUDA/mexGPUall.m /home/muser/neuropix
 RUN wget -P /tmp/ https://github.com/jenniferColonell/Kilosort2/archive/refs/tags/v2.0.zip
 RUN unzip /tmp/v2.0.zip
 RUN mv Kilosort2-2.0 Kilosort-2.0
+RUN cp /home/muser/neuropixel/Kilosort-2.0/CUDA/mexGPUall.m /home/muser/neuropixel/Kilosort-2.0/CUDA/mexGPUall_determ.m && \
+   sed -i 's/-DENABLE_STABLEMODE mexMPnu8.cu/-DENSURE_DETERM -DENABLE_STABLEMODE mexMPnu8.cu/' /home/muser/neuropixel/Kilosort-2.0/CUDA/mexGPUall_determ.m
+
 
 ## mexGPU build require cuda and matlab in the temp container
 ## cuda can use --gpu(docker run) or runtime: nvidia(docker-compose)
