@@ -1,15 +1,17 @@
-# docker-compose -f ./docker/docker-compose-spike_sorting_local_worker.yaml up -d --build
+# cd into spike_sorting_worker/dist/debian then run
+# docker compose --env-file=../../.env -f ./docker-compose-spike_sorting_local_worker.yaml -p sciops-dev_sabatini_spike up -d --build
 version: '2.4'
 services:
   spike_sorting_worker:
     build:
       # only necessary if rebuilding image
-      context: .
-      dockerfile: ./spike_sorting_worker.Dockerfile
+      context: ../../
+      dockerfile: ./dist/debian/spike_sorting_local_worker.Dockerfile
       args:
         - DEPLOY_KEY
         - REPO_OWNER
         - REPO_NAME
+        - WORKER_BASE_HASH
         - MATLAB_VERSION
         - MATLAB_FILE_KEY
         - MATLAB_USER
@@ -28,8 +30,8 @@ services:
       - DATABASE_PREFIX
       - AWS_ACCESS_KEY
       - AWS_ACCESS_SECRET
-      - EPHYS_ROOT_DATA_DIR=/home/${MATLAB_USER}/inbox
-      - EPHYS_PROCESSED_DATA_DIR=/home/${MATLAB_USER}/outbox
+      - RAW_ROOT_DATA_DIR=/home/${MATLAB_USER}/inbox
+      - PROCESSED_ROOT_DATA_DIR=/home/${MATLAB_USER}/outbox
       - ecephys_directory
       - kilosort_repository
       - npy_matlab_repository
@@ -48,7 +50,7 @@ services:
     volumes:
       #- /tmp/.X11-unix:/tmp/.X11-unix:rw # only necessary for GUI image
       #- ./licenses/${MATLAB_VERSION}_joseph_license.lic:/home/muser/license_${MATLAB_VERSION}.lic:ro # Must specify MATLAB_LICENSE variable or license file volume mount
-      - /home/ubuntu/neuropixel/matlab-docker/matlab/licenses/${MATLAB_VERSION}_joseph_license.lic:/home/muser/.MATLAB/licenses/license_${MATLAB_VERSION}.lic:ro # Must specify MATLAB_LICENSE variable or license file volume mount
+      - ${MATLAB_LICENSE_PATH}:/home/muser/.MATLAB/licenses/license_${MATLAB_VERSION}.lic:ro # Must specify MATLAB_LICENSE variable or license file volume mount
       - /home/ubuntu/neuropixel/data_for_ecephys:/home/muser/neuropixel/data_for_ecephys
       - ${ROOT_DATA_DIR}:/home/${MATLAB_USER}/inbox
       - ${PROCESSED_DATA_DIR}:/home/${MATLAB_USER}/outbox
