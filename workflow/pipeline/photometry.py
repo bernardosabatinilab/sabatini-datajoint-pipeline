@@ -11,7 +11,7 @@ schema = dj.schema(db_prefix + "photometry")
 
 
 @schema
-class Sensor(dj.Lookup):
+class SensorProtein(dj.Lookup):
     definition = """            
     name                : varchar(16)  # (e.g., GCaMP, dLight, etc)
     ---
@@ -20,66 +20,20 @@ class Sensor(dj.Lookup):
 
 
 @schema
-class Virus(dj.Lookup):
-    definition = """            
-    name                : varchar(32)  # (e.g., AAV9-DIO-GCaMP6s)
-    ---
-    notes=''            : varchar(64)  
-    """
-
-
-@schema
 class ExcitationWavelength(dj.Lookup):
     definition = """
-    excitation_wavelength : smallint 
+    excitation_wavelength   : smallint 
     """
 
 
 @schema
 class EmissionColor(dj.Lookup):
     definition = """
-    emission_color      : varchar(10) 
+    emission_color          : varchar(10) 
     ---
-    light_source=''     : varchar(16)  # (e.g., Plexon LED, Laser, etc)
-    emission_wavelength : smallint
+    light_source=''         : varchar(16)  # (e.g., Plexon LED, Laser, etc)
+    emission_wavelength     : smallint
     """
-
-
-@schema
-class Coordinate(dj.Manual):
-    definition = """
-    -> lab.SkullReference                   # (e.g., bregma or lambda)
-    ap            : decimal(6, 2)           # (um) anterior-posterior; ref is 0
-    ml            : decimal(6, 2)           # (um) medial axis; ref is 0 
-    dv            : decimal(6, 2)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
-    dv_reference  : enum("skull", "dura")   # (um) refence (0) for the dorso-ventral axis; (e.g., 'skull' or 'dura') - should be <=0
-    theta=null    : decimal(5, 2)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
-    phi=null      : decimal(5, 2)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
-    beta=null     : decimal(5, 2)           # (deg) rotation about the shank of the fiber [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
-    """
-
-
-@schema
-class Injection(dj.Manual):
-    definition = """
-    injection_id        : tinyint unsigned
-    -> subject.Subject
-    -> lab.User
-    -> Virus
-    ---
-    injection_volume    : float                         # injection volume
-    injection_time=null : datetime                      # injection time
-    rate_of_injection   : float                         # rate of injection
-    wait_time           : float                         # wait time after injection
-    target_region       : varchar(16)
-    hemisphere=''       : enum("left", "right", "")
-    notes=''            : 
-    """
-    @schema
-    class Coordinate(dj.Part):
-        definition="""
-        -> Coorindate
-        """
 
 
 @schema
@@ -93,22 +47,17 @@ class FiberPhotometry(dj.Imported):
     """
 
     @schema
-    class Implantation(dj.Part):
+    class Implantation(dj.Part):  # may not necessarily be a fiber here
         definition = """
-        # Fiber implantation for a subject
         -> master
-        date                : date                          # surgery date
-        target_region       : varchar(16)
-        hemisphere=''       : enum("left", "right", "")
         ---
-        -> lab.User                                         # surgeon
-        -> Coordinate
+        -> Implantation
         """
-        
+
     class Trace(dj.Part):
         definition = """ # preprocessed photometry traces
         -> master
-        channel_id: int
+        channel_id      : int
         ---
         -> Sensor          
         -> ExcitationWavelength
