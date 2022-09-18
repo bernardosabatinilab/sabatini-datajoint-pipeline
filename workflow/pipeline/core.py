@@ -68,14 +68,84 @@ class Virus(dj.Lookup):
     notes=''            : varchar(64)  
     """
     
+lab.Virus = Virus
 
+@lab.schema
+class BrainAtlas(dj.Lookup):
+    definition = """  # Common Coordinate Framework
+    atlas_id                : int             # CCF ID, a.k.a atlas ID
+    ---
+    atlas_version=''        : varchar(64)     # Allen CCF Version - e.g. CCFv3
+    atlas_description=''    : varchar(255)    # CCFLabel Description
+    """
+
+lab.BrainAtlas = BrainAtlas
+
+@lab.schema
+class BrainRegion(dj.Lookup):
+    definition = """
+    -> BrainAtlas
+    acronym                 : varchar(32)
+    ---
+    region_name             : varchar(128)
+    region_id=null          : int
+    color_code=null         : varchar(6)  # hexcode of the color code of this region
+    """
+    
+lab.BrainRegion = BrainRegion
+
+
+@lab.schema
+class Hemisphere(dj.Lookup):
+    definition = """
+    hemisphere: varchar(32)
+    """
+
+    contents = zip(["left", "right", "middle"])
+
+lab.Hemisphere = Hemisphere
+
+@lab.schema
+class ImplantationType(dj.Lookup):
+    definition = """
+    implant_type: varchar(16)
+    """
+
+    contents = zip(["ephys", "fiber"]) 
+    
+
+lab.ImplantationType = ImplantationType
+
+@lab.schema
+class Implantation(dj.Manual):  # may not necessarily be a fiber here
+    definition = """
+    -> subject.Subject
+    implant_date  : date   # surgery date
+    -> ImplantationType
+    -> BrainRegion
+    -> Hemisphere
+    ---
+    -> lab.User.proj(surgeon='user')        # surgeon
+    ap            : decimal(3, 2)           # (um) anterior-posterior; ref is 0
+    -> lab.SkullReference.proj(ap_ref='skull_reference')
+    ml            : decimal(3, 2)           # (um) medial axis; ref is 0 
+    -> lab.SkullReference.proj(ml_ref='skull_reference')
+    dv            : decimal(3, 2)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
+    -> lab.SkullReference.proj(dv_ref='skull_reference')
+    theta=null    : decimal(3, 2)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
+    phi=null      : decimal(3, 2)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
+    beta=null     : decimal(3, 2)           # (deg) rotation about the shank of the fiber [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
+    """
+    
+lab.Implantation = Implantation
+ 
 @lab.schema
 class VirusInjection(dj.Manual):
     definition = """
     -> subject.Subject
     injection_id        : tinyint unsigned
     ---
-    -> Virus
+    -> lab.Virus
     -> lab.User
     injection_volume        : float                         # injection volume
     injection_time=null     : datetime                      # injection time
@@ -100,75 +170,18 @@ class VirusInjection(dj.Manual):
         beta=null     : decimal(5, 2)           # (deg) rotation about the shank of the fiber [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
         """
  
+lab.VirusInjection = VirusInjection
  
-@lab.schema
-class BrainAtlas(dj.Lookup):
-    definition = """  # Common Coordinate Framework
-    atlas_id                : int             # CCF ID, a.k.a atlas ID
-    ---
-    atlas_version=''        : varchar(64)     # Allen CCF Version - e.g. CCFv3
-    atlas_description=''    : varchar(255)    # CCFLabel Description
-    """
-
-
-@lab.schema
-class BrainRegion(dj.Lookup):
-    definition = """
-    -> BrainAtlas
-    acronym                 : varchar(32)
-    ---
-    region_name             : varchar(128)
-    region_id=null          : int
-    color_code=null         : varchar(6)  # hexcode of the color code of this region
-    """
-
-
-@lab.schema
-class Hemisphere(dj.Lookup):
-    definition = """
-    hemisphere: varchar(32)
-    """
-
-    contents = zip(["left", "right", "middle"])
-
-
-@lab.schema
-class ImplantationType(dj.Lookup):
-    definition = """
-    implant_type: varchar(16)
-    """
-
-    contents = zip(["ephys", "fiber"]) 
-    
-    
-@lab.schema
-class Implantation(dj.Manual):  # may not necessarily be a fiber here
-    definition = """
-    -> subject.Subject
-    implant_date  : date   # surgery date
-    -> ImplantationType
-    -> BrainRegion
-    -> Hemisphere
-    ---
-    -> lab.User.proj(surgeon='user')        # surgeon
-    ap            : decimal(3, 2)           # (um) anterior-posterior; ref is 0
-    -> lab.SkullReference.proj(ap_ref='skull_reference')
-    ml            : decimal(3, 2)           # (um) medial axis; ref is 0 
-    -> lab.SkullReference.proj(ml_ref='skull_reference')
-    dv            : decimal(3, 2)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
-    -> lab.SkullReference.proj(dv_ref='skull_reference')
-    theta=null    : decimal(3, 2)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
-    phi=null      : decimal(3, 2)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
-    beta=null     : decimal(3, 2)           # (deg) rotation about the shank of the fiber [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
-    """
-    
-    
+ 
 @subject.schema
 class Perfusion(dj.Manual):
     definition = """
     -> subject.Subject
     ---
-    lab.User.proj(experimenter='user')  # person who performed perfusion
+    -> lab.User.proj(experimenter='user')  # person who performed perfusion
     date                : date          # perfusion date
     reagent             : varchar(16)   # (e.g., PFA)
     """
+    
+subject.Perfusion = Perfusion
+    
