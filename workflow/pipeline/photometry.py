@@ -4,7 +4,6 @@ from .core import session, lab, subject
 from workflow import db_prefix
 from element_interface.utils import find_full_path
 from workflow.utils.paths import get_raw_root_data_dir
-from element_array_ephys import ephys_precluster
 
 logger = dj.logger
 schema = dj.schema(db_prefix + "photometry")
@@ -18,7 +17,14 @@ class SensorProtein(dj.Lookup):
     notes=''            : varchar(64)  
     """
 
-
+@schema
+class LightSource(dj.Lookup):
+    definition = """
+    name                : varchar(16)
+    """
+    contents = zip(['Plexon LED', 'Laser'])
+    
+    
 @schema
 class ExcitationWavelength(dj.Lookup):
     definition = """
@@ -31,7 +37,7 @@ class EmissionColor(dj.Lookup):
     definition = """
     emission_color          : varchar(10) 
     ---
-    light_source=''         : varchar(16)  # (e.g., Plexon LED, Laser, etc)
+    -> LightSource
     emission_wavelength     : smallint
     """
 
@@ -43,15 +49,15 @@ class FiberPhotometry(dj.Imported):
     fiber_id            : int    # id of the implanted fibers
     ---
     sample_rate         : float  # (in Hz) 
+    timestamps          : longblob  # (in seconds) photometry timestamps, already synced to the master clock
     notes=''            : varchar(1000)  
     """
 
-    @schema
     class Implantation(dj.Part):  # may not necessarily be a fiber here
         definition = """
         -> master
         ---
-        -> Implantation
+        -> lab.Implantation
         """
 
     class Trace(dj.Part):
@@ -59,10 +65,9 @@ class FiberPhotometry(dj.Imported):
         -> master
         channel_id      : int
         ---
-        -> Sensor          
+        -> SensorProtein          
         -> ExcitationWavelength
         -> EmissionColor
-        timestamps      : longblob  # (in seconds) photometry timestamps, already synced to the master clock
         trace           : longblob
         """
 
