@@ -125,6 +125,7 @@ RUN git clone https://github.com/ttngu207/ecephys_spike_sorting.git
 #RUN pip install ./ecephys_spike_sorting/
 #RUN pip install argschema==1.* marshmallow==2.*
 ENV ecephys_directory=/home/muser/neuropixel/ecephys_spike_sorting/ecephys_spike_sorting
+ENV median_subtraction_repo=/home/muser/neuropixel/ecephys_spike_sorting/ecephys_spike_sorting/modules/median_subtraction/SpikeBandMedianSubtraction
 
 ## Workflow Array Ephys
 
