@@ -27,15 +27,15 @@ Experimenter = lab.User
 session.activate(db_prefix + 'session', linking_module=__name__)
 
 
-# Declare SkullReference table for use in element-array-ephys
+# Declare SurgeryCoordinateReference table for use in element-array-ephys
 @lab.schema
-class SkullReference(dj.Lookup):
+class SurgeryCoordinateReference(dj.Lookup):
     definition = """
-    skull_reference   : varchar(60)
+    reference   : varchar(60)
     """
-    contents = zip(['Bregma', 'Lambda'])
+    contents = zip(["bregma", "lambda", "dura", "skull_surface", "sagittal_suture", "sinus"])
 
-lab.SkullReference = SkullReference 
+lab.SurgeryCoordinateReference = SurgeryCoordinateReference 
 
 # Declare Equipment table for use in element_calcium_imaging 
 @lab.schema
@@ -126,15 +126,15 @@ class Implantation(dj.Manual):  # may not necessarily be a fiber here
     -> Hemisphere
     ---
     -> lab.User.proj(surgeon='user')        # surgeon
-    ap            : decimal(3, 2)           # (um) anterior-posterior; ref is 0
-    -> lab.SkullReference.proj(ap_ref='skull_reference')
-    ml            : decimal(3, 2)           # (um) medial axis; ref is 0 
-    -> lab.SkullReference.proj(ml_ref='skull_reference')
-    dv            : decimal(3, 2)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
-    -> lab.SkullReference.proj(dv_ref='skull_reference')
-    theta=null    : decimal(3, 2)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
-    phi=null      : decimal(3, 2)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
-    beta=null     : decimal(3, 2)           # (deg) rotation about the shank of the fiber [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
+    ap            : decimal(3, 3)           # (um) anterior-posterior; ref is 0
+    -> lab.SurgeryCoordinateReference.proj(ap_ref='reference')
+    ml            : decimal(3, 3)           # (um) medial axis; ref is 0 
+    -> lab.SurgeryCoordinateReference.proj(ml_ref='reference')
+    dv            : decimal(3, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
+    -> lab.SurgeryCoordinateReference.proj(dv_ref='reference')
+    theta=null    : decimal(3, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
+    phi=null      : decimal(3, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
+    beta=null     : decimal(3, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
     """
     
 lab.Implantation = Implantation
@@ -143,14 +143,14 @@ lab.Implantation = Implantation
 class VirusInjection(dj.Manual):
     definition = """
     -> subject.Subject
-    injection_id        : tinyint unsigned
+    injection_id            : tinyint unsigned
     ---
     -> lab.Virus
     -> lab.User
     injection_volume        : float                         # injection volume
     injection_time=null     : datetime                      # injection time
     rate_of_injection=null  : float                         # rate of injection
-    wait_time=null          : float                         # wait time after injection
+    wait_time=null          : float                         # wait time after injection (in min)
     target_region           : varchar(16)
     -> Hemisphere
     notes=''                : varchar(1000)
@@ -160,14 +160,15 @@ class VirusInjection(dj.Manual):
         definition = """
         -> master
         ---
-        -> lab.SkullReference                   # (e.g., bregma or lambda)
-        ap            : decimal(6, 2)           # (um) anterior-posterior; ref is 0
-        ml            : decimal(6, 2)           # (um) medial axis; ref is 0 
-        dv            : decimal(6, 2)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
-        dv_reference  : enum("skull", "dura")   # (um) refence (0) for the dorso-ventral axis; (e.g., 'skull' or 'dura') - should be <=0
-        theta=null    : decimal(5, 2)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
-        phi=null      : decimal(5, 2)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
-        beta=null     : decimal(5, 2)           # (deg) rotation about the shank of the fiber [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
+        ap            : decimal(3, 3)           # (um) anterior-posterior; ref is 0
+        -> lab.SurgeryCoordinateReference.proj(ap_ref='reference')
+        ml            : decimal(3, 3)           # (um) medial axis; ref is 0 
+        -> lab.SurgeryCoordinateReference.proj(ml_ref='reference')
+        dv            : decimal(3, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
+        -> lab.SurgeryCoordinateReference.proj(dv_ref='reference')
+        theta=null    : decimal(3, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
+        phi=null      : decimal(3, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
+        beta=null     : decimal(3, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
         """
  
 lab.VirusInjection = VirusInjection
