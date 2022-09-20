@@ -5,11 +5,11 @@ from element_session import session_with_id as session
 
 from workflow import db_prefix
 
-__all__ = ['lab', 'subject', 'session']
+__all__ = ["lab", "subject", "session"]
 
 # ------------- Activate "lab" schema -------------
-lab.activate(db_prefix + 'lab')
-    
+lab.activate(db_prefix + "lab")
+
 Source = lab.Source
 Lab = lab.Lab
 Protocol = lab.Protocol
@@ -18,32 +18,36 @@ Location = lab.Location
 Project = lab.Project
 
 # ------------- Activate "subject" schema -------------
-subject.activate(db_prefix + 'subject', linking_module=__name__)
+subject.activate(db_prefix + "subject", linking_module=__name__)
 Subject = subject.Subject
 
 Experimenter = lab.User
 
 # ------------- Activate "session" schema -------------
-session.activate(db_prefix + 'session', linking_module=__name__)
+session.activate(db_prefix + "session", linking_module=__name__)
 
 
-# Declare SurgeryCoordinateReference table for use in element-array-ephys
+# Declare BrainCoordinateReference table for use in element-array-ephys
 @lab.schema
-class SurgeryCoordinateReference(dj.Lookup):
+class BrainCoordinateReference(dj.Lookup):
     definition = """
     reference   : varchar(60)
     """
-    contents = zip(["bregma", "lambda", "dura", "skull_surface", "sagittal_suture", "sinus"])
+    contents = zip(
+        ["bregma", "lambda", "dura", "skull_surface", "sagittal_suture", "sinus"]
+    )
 
-lab.SurgeryCoordinateReference = SurgeryCoordinateReference 
 
-# Declare Equipment table for use in element_calcium_imaging 
+lab.BrainCoordinateReference = BrainCoordinateReference
+
+# Declare Equipment table for use in element_calcium_imaging
 @lab.schema
 class Equipment(dj.Lookup):
     definition = """
     scanner: varchar(32)
     """
     contents = zip(["Nikon A1 plus"])
+
 
 lab.Equipment = Equipment
 
@@ -57,6 +61,7 @@ class Device(dj.Lookup):
     device_description  : varchar(256)
     """
 
+
 lab.Device = Device
 
 
@@ -67,8 +72,10 @@ class Virus(dj.Lookup):
     ---
     notes=''            : varchar(64)  
     """
-    
+
+
 lab.Virus = Virus
+
 
 @lab.schema
 class BrainAtlas(dj.Lookup):
@@ -79,7 +86,9 @@ class BrainAtlas(dj.Lookup):
     atlas_description=''    : varchar(255)    # CCFLabel Description
     """
 
+
 lab.BrainAtlas = BrainAtlas
+
 
 @lab.schema
 class BrainRegion(dj.Lookup):
@@ -91,7 +100,8 @@ class BrainRegion(dj.Lookup):
     region_id=null          : int
     color_code=null         : varchar(6)  # hexcode of the color code of this region
     """
-    
+
+
 lab.BrainRegion = BrainRegion
 
 
@@ -103,43 +113,11 @@ class Hemisphere(dj.Lookup):
 
     contents = zip(["left", "right", "middle"])
 
+
 lab.Hemisphere = Hemisphere
 
-@lab.schema
-class ImplantationType(dj.Lookup):
-    definition = """
-    implant_type: varchar(16)
-    """
 
-    contents = zip(["ephys", "fiber"]) 
-    
-
-lab.ImplantationType = ImplantationType
-
-@lab.schema
-class Implantation(dj.Manual):  # may not necessarily be a fiber here
-    definition = """
-    -> subject.Subject
-    implant_date  : date   # surgery date
-    -> ImplantationType
-    -> BrainRegion
-    -> Hemisphere
-    ---
-    -> lab.User.proj(surgeon='user')        # surgeon
-    ap            : decimal(3, 3)           # (um) anterior-posterior; ref is 0
-    -> lab.SurgeryCoordinateReference.proj(ap_ref='reference')
-    ml            : decimal(3, 3)           # (um) medial axis; ref is 0 
-    -> lab.SurgeryCoordinateReference.proj(ml_ref='reference')
-    dv            : decimal(3, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
-    -> lab.SurgeryCoordinateReference.proj(dv_ref='reference')
-    theta=null    : decimal(3, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
-    phi=null      : decimal(3, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
-    beta=null     : decimal(3, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
-    """
-    
-lab.Implantation = Implantation
- 
-@lab.schema
+@subject.schema
 class VirusInjection(dj.Manual):
     definition = """
     -> subject.Subject
@@ -161,19 +139,20 @@ class VirusInjection(dj.Manual):
         -> master
         ---
         ap            : decimal(3, 3)           # (um) anterior-posterior; ref is 0
-        -> lab.SurgeryCoordinateReference.proj(ap_ref='reference')
+        -> lab.BrainCoordinateReference.proj(ap_ref='reference')
         ml            : decimal(3, 3)           # (um) medial axis; ref is 0 
-        -> lab.SurgeryCoordinateReference.proj(ml_ref='reference')
+        -> lab.BrainCoordinateReference.proj(ml_ref='reference')
         dv            : decimal(3, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
-        -> lab.SurgeryCoordinateReference.proj(dv_ref='reference')
+        -> lab.BrainCoordinateReference.proj(dv_ref='reference')
         theta=null    : decimal(3, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
         phi=null      : decimal(3, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
         beta=null     : decimal(3, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
         """
- 
-lab.VirusInjection = VirusInjection
- 
- 
+
+
+subject.VirusInjection = VirusInjection
+
+
 @subject.schema
 class Perfusion(dj.Manual):
     definition = """
@@ -183,6 +162,43 @@ class Perfusion(dj.Manual):
     date                : date          # perfusion date
     reagent             : varchar(16)   # (e.g., PFA)
     """
-    
+
+
 subject.Perfusion = Perfusion
-    
+
+
+@lab.schema
+class ImplantationType(dj.Lookup):
+    definition = """
+    implant_type: varchar(16)
+    """
+
+    contents = zip(["ephys", "fiber"])
+
+
+lab.ImplantationType = ImplantationType
+
+
+@subject.schema
+class Implantation(dj.Manual):  # may not necessarily be a fiber here
+    definition = """
+    -> subject.Subject
+    implant_date  : date   # surgery date
+    -> ImplantationType
+    -> BrainRegion
+    -> Hemisphere
+    ---
+    -> lab.User.proj(surgeon='user')        # surgeon
+    ap            : decimal(3, 3)           # (um) anterior-posterior; ref is 0
+    -> lab.BrainCoordinateReference.proj(ap_ref='reference')
+    ml            : decimal(3, 3)           # (um) medial axis; ref is 0 
+    -> lab.BrainCoordinateReference.proj(ml_ref='reference')
+    dv            : decimal(3, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
+    -> lab.BrainCoordinateReference.proj(dv_ref='reference')
+    theta=null    : decimal(3, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
+    phi=null      : decimal(3, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
+    beta=null     : decimal(3, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
+    """
+
+
+subject.Implantation = Implantation
