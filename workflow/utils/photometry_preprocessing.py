@@ -10,6 +10,7 @@ import typing as T
 
 
 def set_analog_headers(analog_df: pd.DataFrame):
+
     if analog_df[
         analog_df.columns[-1]
     ].min():  # analog values are not zero...want to confirm
@@ -44,7 +45,6 @@ def set_analog_headers(analog_df: pd.DataFrame):
 
 
 def handshake_behav_recording_sys(data: pd.DataFrame) -> pd.DataFrame:
-
     """now from the perspective of the photometry data, find first incoming and outgoing pulses"""
 
     data = data.loc[
@@ -61,7 +61,9 @@ def handshake_behav_recording_sys(data: pd.DataFrame) -> pd.DataFrame:
 
 def bins_per_trial_behavior(analog_df: pd.DataFrame):
 
-    trial_starts = analog_df[analog_df.ENL == 1].groupby("nTrial").head(1).index.tolist()
+    trial_starts = (
+        analog_df[analog_df.ENL == 1].groupby("nTrial").head(1).index.tolist()
+    )
 
     trial_lengths = np.diff(trial_starts).tolist()
     trial_lengths.append(len(analog_df) - trial_starts[-1])  # last trial for length
@@ -70,6 +72,7 @@ def bins_per_trial_behavior(analog_df: pd.DataFrame):
 
 
 def bins_per_trial_photo(photo_df: pd.DataFrame):
+
     trial_starts = photo_df[photo_df.fromBehSys.diff() == -1].index.tolist()
     trial_starts = np.insert(trial_starts, 0, 0)
 
@@ -83,9 +86,9 @@ def resample_and_align(
     beh_df, photo_df, channels=["grnR", "redR", "grnL", "redL"], by_trial=False
 ) -> T.Tuple[pd.DataFrame, float]:
 
-    import scipy.signal as sp_signal
-
     """resamples photometry data and aligns with behavior data"""
+
+    import scipy.signal as sp_signal
 
     behavior_trial_lengths, beh_bin_idx = bins_per_trial_behavior(
         beh_df
@@ -189,7 +192,6 @@ def normalize(x, window):
 
 
 def zscore(x, window, rolling=False):
-
     # z score options: full distribution or sliding window
 
     if rolling:
