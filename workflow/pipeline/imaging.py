@@ -6,8 +6,7 @@ from .core import lab, session
 
 from workflow.utils.paths import (
     get_imaging_root_data_dir,
-    get_imaging_processed_root_data_dir,
-    get_imaging_session_directory,
+    get_processed_root_data_dir,
     get_scan_image_files,
 )
 
@@ -16,5 +15,6 @@ __all__ = ["scan", "imaging"]
 # ------------- Activate "imaging" schema -------------
 Session = session.Session
 Equipment = lab.Equipment
+Location = lab.BrainRegion
 
 imaging.activate(db_prefix + "imaging", db_prefix + "scan", linking_module=__name__)
