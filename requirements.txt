@@ -12,5 +12,8 @@ element-calcium-imaging @ git+https://github.com/datajoint/element-calcium-imagi
 element-interface[scanreader,image_converter,suite2p] @ git+https://github.com/datajoint/element-interface.git
 datajoint-utilities @ git+https://github.com/datajoint-company/datajoint-utilities.git
 
+graphviz
+tdt==0.4.3
 tifffile==2021.11.2
 nd2==0.1.6
+seaborn==0.12.0

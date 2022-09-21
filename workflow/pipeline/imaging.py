@@ -15,17 +15,6 @@ __all__ = ["scan", "imaging"]
 # ------------- Activate "imaging" schema -------------
 Session = session.Session
 Equipment = lab.Equipment
-
-
-@lab.schema
-class BrainRegion(dj.Manual):
-    definition = """
-    acronym: varchar(32)
-    ---
-    region_name: varchar(128)
-    """
-
-
-Location = BrainRegion
+Location = lab.BrainRegion
 
 imaging.activate(db_prefix + "imaging", db_prefix + "scan", linking_module=__name__)
