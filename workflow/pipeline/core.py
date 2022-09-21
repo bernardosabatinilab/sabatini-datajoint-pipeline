@@ -92,7 +92,7 @@ lab.BrainRegion = BrainRegion
 @lab.schema
 class Hemisphere(dj.Lookup):
     definition = """
-    hemisphere: varchar(32)
+    hemisphere: varchar(8)
     """
 
     contents = zip(["left", "right", "middle"])
@@ -134,15 +134,15 @@ class VirusInjection(dj.Manual):
         definition = """
         -> master
         ---
-        ap            : decimal(3, 3)           # (um) anterior-posterior; ref is 0
+        ap            : decimal(6, 3)           # (um) anterior-posterior; ref is 0
         -> lab.BrainCoordinateReference.proj(ap_ref='reference')
-        ml            : decimal(3, 3)           # (um) medial axis; ref is 0 
+        ml            : decimal(6, 3)           # (um) medial axis; ref is 0 
         -> lab.BrainCoordinateReference.proj(ml_ref='reference')
-        dv            : decimal(3, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
+        dv            : decimal(6, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
         -> lab.BrainCoordinateReference.proj(dv_ref='reference')
-        theta=null    : decimal(3, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
-        phi=null      : decimal(3, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
-        beta=null     : decimal(3, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
+        theta=null    : decimal(6, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
+        phi=null      : decimal(6, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
+        beta=null     : decimal(6, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
         """
 
 
@@ -173,15 +173,15 @@ class Implantation(dj.Manual):
     -> lab.Hemisphere
     ---
     -> lab.User.proj(surgeon='user')        # surgeon
-    ap            : decimal(5, 3)           # (um) anterior-posterior; ref is 0
+    ap            : decimal(6, 3)           # (um) anterior-posterior; ref is 0
     -> lab.BrainCoordinateReference.proj(ap_ref='reference')
-    ml            : decimal(5, 3)           # (um) medial axis; ref is 0 
+    ml            : decimal(6, 3)           # (um) medial axis; ref is 0 
     -> lab.BrainCoordinateReference.proj(ml_ref='reference')
-    dv            : decimal(5, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
+    dv            : decimal(6, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
     -> lab.BrainCoordinateReference.proj(dv_ref='reference')
-    theta=null    : decimal(5, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
-    phi=null      : decimal(5, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
-    beta=null     : decimal(5, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
+    theta=null    : decimal(6, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
+    phi=null      : decimal(6, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
+    beta=null     : decimal(6, 3)           # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
     """
 
 

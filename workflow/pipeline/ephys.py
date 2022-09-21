@@ -14,7 +14,7 @@ __all__ = ["ephys", "probe"]
 
 # ------------- Activate "ephys" schema -------------
 
-BrainCoordinateReference = lab.BrainCoordinateReference
+SkullReference = lab.BrainCoordinateReference
 Session = session.Session
 
 if not ephys.schema.is_activated():

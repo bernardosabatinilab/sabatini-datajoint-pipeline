@@ -15,5 +15,6 @@ __all__ = ["scan", "imaging"]
 # ------------- Activate "imaging" schema -------------
 Session = session.Session
 Equipment = lab.Equipment
+Location = lab.BrainRegion
 
 imaging.activate(db_prefix + "imaging", db_prefix + "scan", linking_module=__name__)
