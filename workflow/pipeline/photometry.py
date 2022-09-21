@@ -87,6 +87,7 @@ class FiberPhotometry(dj.Imported):
         subject_id = (session.Session & key).fetch1("subject")
         session_dir = (session.SessionDirectory & key).fetch1("session_dir")
         session_full_dir: Path = find_full_path(get_raw_root_data_dir(), session_dir)
+        behavior_dir = session_full_dir / "Behavior"
         photometry_dir = session_full_dir / "Photometry"
 
         tdt_data: tdt.StructType = tdt.read_block(photometry_dir)
@@ -110,10 +111,10 @@ class FiberPhotometry(dj.Imported):
 
         # Resample the photometry data and align to 200 Hz state transition behavioral data (analog_df)
         behavior_df: pd.DataFrame = pd.read_csv(
-            photometry_dir / f"{subject_id}_behavior_df_full.csv", index_col=0
+            behavior_dir / f"{subject_id}_behavior_df_full.csv", index_col=0
         )
         analog_df: pd.DataFrame = pd.read_csv(
-            photometry_dir / f"{subject_id}_analog_filled.csv", index_col=0
+            behavior_dir / f"{subject_id}_analog_filled.csv", index_col=0
         )
         analog_df["session_clock"] = analog_df.index * 0.005
 
@@ -223,12 +224,7 @@ class FiberPhotometry(dj.Imported):
                     **key,
                     "fiber_id": fiber_id,
                     "sample_rate": target_downsample_rate,
-                    "timestamps": (
-                        np.linspace(
-                            0, len(downsampled_states_df), len(downsampled_states_df)
-                        )
-                        / target_downsample_rate
-                    ),
+                    "timestamps": downsampled_states_df["session_clock"].values,
                     "light_source_name": light_source,
                     "time_offset": time_offset,
                     "notes": fiber_notes,
@@ -237,7 +233,9 @@ class FiberPhotometry(dj.Imported):
 
             try:  # if meta info exists populate here
 
-                brain_region = meta_info["Fiber"]["implantation"][hemisphere]["region"]
+                brain_region = meta_info["Fiber"]["implantation"][hemisphere][
+                    "brain_region"
+                ]
                 implantation_list.append(
                     {
                         **key,
