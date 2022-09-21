@@ -223,12 +223,7 @@ class FiberPhotometry(dj.Imported):
                     **key,
                     "fiber_id": fiber_id,
                     "sample_rate": target_downsample_rate,
-                    "timestamps": (
-                        np.linspace(
-                            0, len(downsampled_states_df), len(downsampled_states_df)
-                        )
-                        / target_downsample_rate
-                    ),
+                    "timestamps": downsampled_states_df["session_clock"].values,
                     "light_source_name": light_source,
                     "time_offset": time_offset,
                     "notes": fiber_notes,
@@ -237,7 +232,9 @@ class FiberPhotometry(dj.Imported):
 
             try:  # if meta info exists populate here
 
-                brain_region = meta_info["Fiber"]["implantation"][hemisphere]["region"]
+                brain_region = meta_info["Fiber"]["implantation"][hemisphere][
+                    "brain_region"
+                ]
                 implantation_list.append(
                     {
                         **key,
