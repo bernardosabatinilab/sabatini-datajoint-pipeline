@@ -83,6 +83,12 @@ celerybeat-schedule
 
 # dotenv
 docker/.env
+docker/spike_sorting_local_worker/.env
+docker/standard_worker/.env
+docker/calcium_imaging_worker/.env
+docker/dlc_local_worker/.env
+
+
 
 # virtualenv
 .venv
