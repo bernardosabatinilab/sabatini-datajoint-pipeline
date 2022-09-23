@@ -30,8 +30,6 @@ def auto_generate_clustering_tasks():
 
 
 # -------- Define process(s) --------
-org_name, workflow_name, _ = db_prefix.split("_")
-
 worker_schema_name = db_prefix + "workerlog"
 autoclear_error_patterns = ["%FileNotFound%"]
 
