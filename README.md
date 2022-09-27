@@ -12,40 +12,39 @@ pip install -e .
 ### Worker Deployment using Docker
 ```
 Standard Worker Example
+TO adapt to other workers, follow same convention, just cd to the respective folder
+First, 
 
-cd /docker/standard_worker/
+    cd /docker/standard_worker/
 
-create a local .env file based on the template build.env
+Create a local .env file based on the template build.env
 Will need to fill in MATLAB_HOSTID, MATLAB_FILE_KEY, DJ_PASS, ROOT_DATA_DIR, PROCESSED_DATA_DIR
+MATLAB_HOSTID - MAC Address supplied to Mathworks as HostID associated with license.
+MATLAB_FILE_KEY - Mathworks provided file key associated with installation.
+MATLAB_LICENSE_PATH - Local File Path location for MATLAB_LICENSE (.lic file)
 
 Next, 
 
-cd /docker/standard_worker/dist/debian/
+    cd /docker/standard_worker/dist/debian/
 
 Run Docker Commands to build/up worker images
 
-docker compose --env-file=../../.env  -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard build --no-cache
+    docker compose --env-file=../../.env  -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard build --no-cache
 
---no-cache flag included will rebuild image without using cache
+    --no-cache flag included will rebuild image without using cache
 
-After image has been built
+After image has been built in order to bring up the container
+    docker compose --env-file=../../.env  -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard up -d
 
-docker compose --env-file=../../.env  -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard up -d
+To bring down the container
+    docker compose --env-file=../../.env  -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard down
 
-docker compose --env-file=../../.env  -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard logs
-
-docker ps -a --> command to view all open containers, lists container-IDs
-docker logs [container-ID] -f --> command to view container logs (-f follows output)
-
-Can access the container using this command
-
-docker exec -it [container-ID] bash
-Inside the container, can run ipython
-In ipython shell we can run
-
+    docker ps -a --> command to view all open containers, lists container-IDs
+    docker logs [container-ID] -f --> command to view container logs (-f follows output)
 
 Additional useful docker commands for docker memory management
-docker image prune
-docker volume prune
-docker system prune
+    docker image prune
+    docker volume prune
+    docker system prune
+
 ```
