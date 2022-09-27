@@ -12,7 +12,7 @@ pip install -e .
 ### Worker Deployment using Docker
 ```
 Standard Worker Example
-TO adapt to other workers, follow same convention, just cd to the respective folder
+To adapt to other workers, follow same convention, just cd to the respective folder
 First, 
 
     cd /docker/standard_worker/
