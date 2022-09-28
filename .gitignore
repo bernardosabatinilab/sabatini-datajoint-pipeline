@@ -88,8 +88,6 @@ docker/standard_worker/.env
 docker/calcium_imaging_worker/.env
 docker/dlc_local_worker/.env
 
-
-
 # virtualenv
 .venv
 venv/
