@@ -23,17 +23,16 @@ Pipeline Operation
     - DLC Worker will work on populating RecordingInfo and PoseEstimation tables
 4. 
 
-Standard Worker Example
-To adapt to other workers, follow same convention, just cd to the respective folder
+Standard Worker Example (same for Calcium Imaging and DLC, just need cd to respective folder)
 First, 
 
     cd ./docker/standard_worker/
 
 Create a local .env file based on the template example.env
-Will need to fill in MATLAB_HOSTID, MATLAB_FILE_KEY, DJ_PASS, ROOT_DATA_DIR, PROCESSED_DATA_DIR
-MATLAB_HOSTID - MAC Address supplied to Mathworks as HostID associated with license.
-MATLAB_FILE_KEY - Mathworks provided file key associated with installation.
-MATLAB_LICENSE_PATH - Local File Path location for MATLAB_LICENSE (.lic file)
+Will need to fill in DJ_PASS, ROOT_DATA_DIR, PROCESSED_DATA_DIR
+    DJ_PASS - Datajoint Database Password
+    ROOT_DATA_DIR - Local Inbox Data Directory 
+    PROCESSED_DATA_DIR - Local Outbox Data Directory
 
 Next, 
 
@@ -63,4 +62,37 @@ Additional useful docker commands for docker memory management
         Removes all unused local volumes. Unused local volumes are those which are not referenced by any containers.
     docker system prune
         Removes all unused containers, networks, images (both dangling and unreferenced), and optionally, volumes.
+
+
+Spike Sorting Worker Example
+
+    cd ./docker/spike_sorting_local_worker/
+
+Create a local .env file based on the template example.env
+Will need to fill in MATLAB_HOSTID, MATLAB_FILE_KEY, DJ_PASS, ROOT_DATA_DIR, PROCESSED_DATA_DIR
+    MATLAB_HOSTID - MAC Address supplied to Mathworks as HostID associated with license.
+    MATLAB_FILE_KEY - Mathworks provided file key associated with installation.
+    MATLAB_LICENSE_PATH - Local File Path location for MATLAB_LICENSE (.lic file)
+    DJ_PASS - DataJoint Database Password
+    ROOT_DATA_DIR - Local Inbox Data Directory 
+    PROCESSED_DATA_DIR - Local Outbox Data Directory
+
+Next, 
+
+    cd /docker/spike_sorting_local_worker/dist/debian/
+
+Run Docker Commands to build/up worker images
+
+    docker compose --env-file=../../.env  -f docker-compose-spike_sorting_local_worker.yaml -p sabatini-datajoint-pipeline_spike build --no-cache
+
+    --no-cache flag included will rebuild image without using cache
+
+After image has been built in order to bring up the container
+    docker compose --env-file=../../.env  -f docker-compose-spike_sorting_local_worker.yaml -p sabatini-datajoint-pipeline_spike up -d
+
+    -d flag will start the container detached, in the background, and the current terminal window can continue to be used
+
+To bring down the container
+    docker compose --env-file=../../.env  -f docker-compose-spike_sorting_local_worker.yaml -p sabatini-datajoint-pipeline_spike down
+
 ```
