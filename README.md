@@ -21,7 +21,7 @@ Pipeline Operation
     - Spike Sorting Worker will work on populating Clustering table (runs kilosort)
     - Calcium Imaging Worker will work on populating Processing table (in Imaging schema)
     - DLC Worker will work on populating RecordingInfo and PoseEstimation tables
-4. 
+4. Workers will continually operate and will continue to do work if new data appears in the inbox folder, if no data is added, and data is not added to LabBook, the workers will not do anything until the data has been added.
 
 Standard Worker Example (same for Calcium Imaging and DLC, just need cd to respective folder)
 First, 
@@ -36,7 +36,7 @@ Will need to fill in DJ_PASS, ROOT_DATA_DIR, PROCESSED_DATA_DIR
 
 Next, 
 
-    cd /docker/standard_worker/dist/debian/
+    cd ./docker/standard_worker/dist/debian/
 
 Run Docker Commands to build/up worker images
 
@@ -79,7 +79,7 @@ Will need to fill in MATLAB_HOSTID, MATLAB_FILE_KEY, DJ_PASS, ROOT_DATA_DIR, PRO
 
 Next, 
 
-    cd /docker/spike_sorting_local_worker/dist/debian/
+    cd ./docker/spike_sorting_local_worker/dist/debian/
 
 Run Docker Commands to build/up worker images
 
