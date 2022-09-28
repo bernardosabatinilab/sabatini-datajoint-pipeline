@@ -133,3 +133,8 @@ docker/.env
 
 # Mac
 .DS_Store
+
+# Web Apps .env
+webapps/workflow-monitoring/.env
+
+
