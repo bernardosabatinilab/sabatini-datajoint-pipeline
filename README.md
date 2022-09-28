@@ -15,7 +15,7 @@ Standard Worker Example
 To adapt to other workers, follow same convention, just cd to the respective folder
 First, 
 
-    cd /docker/standard_worker/
+    cd ./docker/standard_worker/
 
 Create a local .env file based on the template build.env
 Will need to fill in MATLAB_HOSTID, MATLAB_FILE_KEY, DJ_PASS, ROOT_DATA_DIR, PROCESSED_DATA_DIR
