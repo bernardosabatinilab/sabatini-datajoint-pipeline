@@ -7,7 +7,7 @@ services:
   pharus:
     cpus: 0.50
     mem_limit: 512m
-    image: jverswijver/pharus:0.4.2-Beta.0
+    image: jverswijver/pharus:0.4.2-prerelease-5
     environment:
       PHARUS_SPEC_PATH: /main/specs/config.yaml # for dynamic api spec
       PHARUS_MODE: ${MODE}  # DEV | PROD
@@ -28,7 +28,7 @@ services:
   sci-viz:
     cpus: 2.0
     mem_limit: 4g
-    image: jverswijver/sci-viz:0.1.3-beta.3
+    image: jverswijver/sci-viz:0.2.0-prerelease-7
     environment:
       - CHOKIDAR_USEPOLLING=true
       - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api

@@ -24,8 +24,8 @@ SciViz: # top level tab
 
                 This site provides Worker Status, Error Log, Jobs Log and Worker Log Monitoring
 
-    Sabatini Lab:
-      route: /sabatini_dj
+    Workflow Monitor:
+      route: /workflow_monitor
       grids:
         grid1:
           type: fixed
@@ -33,12 +33,12 @@ SciViz: # top level tab
           row_height: 680
           components:
             Worker Status: 
-              route: /sabatini_dj_workerstatus
+              route: /workflow_monitor_workerstatus
               x: 0
               y: 0
               height: 1
               width: 1
-              type: table
+              type: antd-table
               restriction: >
                 def restriction(**kwargs):
                     return dict(**kwargs)
@@ -62,12 +62,12 @@ SciViz: # top level tab
                     
                     return {'query': recent_jobs, 'fetch_args': {'order_by': 'minutes_since_newest ASC'}}
             Error Log: 
-              route: /sabatini_dj_errorlog
+              route: /workflow_monitor_errorlog
               x: 0
               y: 1
               height: 1
               width: 1
-              type: table
+              type: antd-table
               restriction: >
                 def restriction(**kwargs):
                     return dict(**kwargs)
@@ -81,7 +81,7 @@ SciViz: # top level tab
               y: 2
               height: 1
               width: 1
-              type: table
+              type: antd-table
               restriction: >
                 def restriction(**kwargs):
                     return dict(**kwargs)
@@ -110,12 +110,12 @@ SciViz: # top level tab
                     jobs_table = jobs_table.proj(..., minutes_elapsed='TIMESTAMPDIFF(MINUTE, timestamp, UTC_TIMESTAMP())')
                     return {'query': jobs_table, 'fetch_args': {'order_by': 'status DESC, minutes_elapsed ASC'}}
             Worker Log:
-              route: /sabatini_dj_workerlog
+              route: /workflow_monitor_workerlog
               x: 0
               y: 3
               height: 1
               width: 1
-              type: table
+              type: antd-table
               restriction: >
                 def restriction(**kwargs):
                     return dict(**kwargs)
