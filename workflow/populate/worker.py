@@ -1,7 +1,7 @@
 import datajoint as dj
 from datajoint_utilities.dj_worker import DataJointWorker, WorkerLog, ErrorLog
 from workflow import db_prefix
-from workflow.pipeline import session, ephys, event, scan, imaging, model as dlc_model, train as dlc_train
+from workflow.pipeline import session, ephys, event, scan, photometry, imaging, model as dlc_model, train as dlc_train
 
 logger = dj.logger
 
@@ -49,6 +49,9 @@ standard_worker(ephys.CuratedClustering, max_calls=5)
 standard_worker(ephys.WaveformSet, max_calls=5)
 standard_worker(ephys.LFP, max_calls=5)
 
+# photometry
+standard_worker(photometry.FiberPhotometry, max_calls=5)
+
 # spike_sorting process for GPU required jobs
 spike_sorting_worker = DataJointWorker('spike_sorting_worker',
                                        worker_schema_name,
@@ -66,7 +69,7 @@ standard_worker(imaging.Segmentation, max_calls=5)
 standard_worker(imaging.Fluorescence, max_calls=5)
 standard_worker(imaging.Activity, max_calls=5)
 
-# analysis worker
+# calcium imaging worker
 calcium_imaging_worker = DataJointWorker(
     "calcium_imaging_worker",
     worker_schema_name,
