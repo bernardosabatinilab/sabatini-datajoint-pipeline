@@ -15,7 +15,7 @@ cd sabatini-datajoint-pipeline/
 pip install -r requirements.txt 
 pip install -e . 
 
-Create a local dj_local_conf.json file based on template .example_dj_config.json
+Create a copy of .example_dj_local_config.json, rename it to dj_local_conf.json and fill in database user/host/password credentials
 
 Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda environment 
 
