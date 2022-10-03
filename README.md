@@ -1,14 +1,24 @@
-### Installation
+### Installation and setting up local environment to access database
 
 ```
-conda create -n dope -c conda-forge python=3.9 -y
+conda create -n sabatini-datajoint -c conda-forge python=3.9 -y
 
-conda activate dope
+conda activate sabatini-datajoint
+conda install graphviz python-graphviz pydotplus ipykernel ipywidgets nb_conda_kernels jupyterlab
+
+git clone https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline
+
+Navigate into cloned repository
+cd sabatini-datajoint-pipeline/
 
 pip install -r requirements.txt 
-pip install -e .  
+pip install -e . 
 
-```
+Create a copy of .example_dj_local_config.json, rename it to dj_local_conf.json and fill in database user/host/password credentials
+
+Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda environment 
+
+``` 
 ### Worker Deployment using Docker
 ```
 
@@ -17,13 +27,13 @@ Pipeline Operation
 2. Using Labbook insert into Subject, Session, and SessionDirectory tables
     SessionDirectory should point to the root raw data directory
 3. Once workers are docker composed up they will begin working on populating tables
-    - Standard Worker will work on populating BehaviorIngestion, EphysRecording, CuratedClustering,\ WaveformSet, LFP, ScanInfo, MotionCorrection, Segmentation, Fluorescence, and Activity \
+    - Standard Worker will work on populating BehaviorIngestion, EphysRecording, CuratedClustering, WaveformSet, LFP, ScanInfo, MotionCorrection, Segmentation, Fluorescence, and Activity 
     (all tables without large computational resources needed)
     - Spike Sorting Worker will work on populating Clustering table (runs kilosort)
     - Calcium Imaging Worker will work on populating Processing table (in Imaging schema)
     - DLC Worker will work on populating RecordingInfo and PoseEstimation tables
-4. Workers will continually operate and will continue to do work if new data appears in the inbox folder.\
-    If no data is added, and data is not added to LabBook, the workers will not do anything until the data\ has been added.
+4. Workers will continually operate and will continue to do work if new data appears in the inbox folder.
+    If no data is added, and data is not added to LabBook, the workers will not do anything until the data has been added.
 
 Standard Worker Example (same for Calcium Imaging and DLC, just need cd to respective folder)
 
@@ -101,3 +111,4 @@ To bring down the container
     docker compose --env-file=../../.env -f docker-compose-spike_sorting_local_worker.yaml -p sabatini-datajoint-pipeline_spike down
 
 ```
+
