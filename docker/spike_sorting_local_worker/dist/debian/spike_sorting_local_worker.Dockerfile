@@ -130,6 +130,8 @@ ENV median_subtraction_repo=/home/muser/neuropixel/ecephys_spike_sorting/ecephys
 ## Workflow Array Ephys
 
 # Clone the workflow
+USER $MATLAB_USER
+ENV SSL_CERT_DIR=/etc/ssl/certs
 ARG REPO_OWNER
 ARG REPO_NAME
 RUN git clone -b main https://github.com/${REPO_OWNER}/${REPO_NAME}.git
