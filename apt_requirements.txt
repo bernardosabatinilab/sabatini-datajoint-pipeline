@@ -1,5 +1,6 @@
-locales-all
-build-essential
-vim
-wget
-curl
+git
+gcc
+g++
+ffmpeg
+libsm6
+libxext6
