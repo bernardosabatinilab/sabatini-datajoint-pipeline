@@ -69,6 +69,8 @@ Pipeline Operation
 
 Standard Worker Example (same for Calcium Imaging and DLC, just need cd to respective folder)
 
+Within WSL: 
+
 First, 
 
     cd ./docker/standard_worker/
@@ -110,6 +112,8 @@ Additional useful docker commands for docker memory management
 
 
 Spike Sorting Worker Example
+
+Within WSL:
 
 First,
 
