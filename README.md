@@ -1,5 +1,6 @@
 ### Installation and setting up local environment to access database
 
+
 ```
 conda create -n sabatini-datajoint -c conda-forge python=3.9 -y
 
@@ -19,7 +20,40 @@ Create a copy of .example_dj_local_config.json, rename it to dj_local_conf.json 
 Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda environment 
 
 ``` 
-### Worker Deployment using Docker
+
+### Windows Nvidia GPU Configuration (using Windows Subsystem for Linux (WSL))
+
+
+```
+1. Update OS to allow for developer options: Windows 10 2022 Update | Version 22H2
+2. Install WSL using powershell
+3. Confirm Ubuntu exists in WSL installation by running
+
+    wsl --install -d Ubuntu-20.04
+
+4. Set Ubuntu to use WSL2 
+
+    wsl --set-version Ubuntu-20.04 2
+
+5. Make sure that your version of Ubuntu is integrated in the docker app (Settings > Resources > WSL integration)
+6. Install CUDA in WSL: https://docs.nvidia.com/cuda/wsl-user-guide/index.html
+7. WSL-Ubuntu must be configured to be a root user in order to use Docker. Run in powershell: 
+
+    ubuntu2004 config --default-user root
+
+8. Run install_nvidia_driver.sh script using command
+
+    sudo bash install_nvidia_driver.sh "516.94" "https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run"
+
+    ![Example nvidia-smi](images/nvdia_smi.jpg)
+
+    - the "516.96" Driver Version is pulled from nvidia-smi 
+    - Specify installers for Cuda Version 11.7 (also specified in nvidia-smi)
+
+9. Confirm that /etc/docker/daemon.json contains a runtime component pointing to the correct nvidia-container-runtime path. (This is updated by default in Ubuntu, but needs to be manually set in Windows)
+10. Update all .env paths with WSL Ubuntu path format. For example: /mnt/c/Users/Janet/...
+```
+### Worker Deployment using Docker Container (using WSL)
 ```
 
 Pipeline Operation
