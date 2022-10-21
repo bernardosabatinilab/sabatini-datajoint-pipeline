@@ -1,6 +1,5 @@
 ### Installation and setting up local environment to access database
 
-
 ```
 conda create -n sabatini-datajoint -c conda-forge python=3.9 -y
 
@@ -22,7 +21,6 @@ Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda envir
 ``` 
 
 ### Windows Nvidia GPU Configuration (using Windows Subsystem for Linux (WSL))
-
 
 ```
 1. Update OS to allow for developer options: Windows 10 2022 Update | Version 22H2
@@ -53,7 +51,7 @@ Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda envir
 9. Confirm that /etc/docker/daemon.json contains a runtime component pointing to the correct nvidia-container-runtime path. (This is updated by default in Ubuntu, but needs to be manually set in Windows)
 10. Update all .env paths with WSL Ubuntu path format. For example: /mnt/c/Users/Janet/...
 ```
-### Worker Deployment using Docker Container (using WSL)
+### Worker Deployment using Docker Container (in WSL)
 ```
 
 Pipeline Operation
