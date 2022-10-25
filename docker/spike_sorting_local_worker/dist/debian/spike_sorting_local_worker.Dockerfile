@@ -1,4 +1,4 @@
-FROM datajoint/matlab:R2022a-GUI
+FROM datajoint/matlab:R2021a-GUI
 
 USER root
 ## system level dependencies
