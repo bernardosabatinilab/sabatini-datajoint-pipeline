@@ -2,7 +2,7 @@ from element_array_ephys import probe
 from element_array_ephys import ephys_no_curation as ephys
 
 from workflow import db_prefix
-from workflow.pipeline import lab, session
+from workflow.pipeline import lab, session, reference
 from workflow.utils.paths import (
     get_ephys_root_data_dir,
     get_processed_root_data_dir,
@@ -14,7 +14,7 @@ __all__ = ["ephys", "probe"]
 
 # ------------- Activate "ephys" schema -------------
 
-SkullReference = lab.BrainCoordinateReference
+SkullReference = reference.BrainCoordinateReference
 Session = session.Session
 
 if not ephys.schema.is_activated():
