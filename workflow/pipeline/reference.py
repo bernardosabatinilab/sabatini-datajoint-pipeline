@@ -26,7 +26,7 @@ class Equipment(dj.Lookup):
     scanner: varchar(32)
     """
 
-    contents = zip(["Scanner A"])
+    contents = zip(["ScannerA"])
 
 
 # Declare Device table for use in element_deeplabcut
