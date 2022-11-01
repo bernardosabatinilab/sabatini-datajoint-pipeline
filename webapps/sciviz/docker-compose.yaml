@@ -1,0 +1,93 @@
+# MODE=PROD docker-compose up
+#
+# Access using fakeservices.datajoint.io
+version: '2.4'
+services:
+  pharus:
+    cpus: 0.50
+    mem_limit: 512m
+    image: jverswijver/pharus:0.4.2-Beta.0
+    environment:
+      PHARUS_SPEC_PATH: /main/specs/sciviz_specsheet.yaml # for dynamic api spec
+      PHARUS_MODE: ${MODE}  # DEV | PROD
+    env_file: .env
+    volumes:
+      - ./sciviz_specsheet.yaml:/main/specs/sciviz_specsheet.yaml:ro #copy the spec over to /main/specs/YOUR_SPEC_NAME
+    command:
+      - sh
+      - -c
+      - |
+        pharus
+    # export PHARUS_PRIVATE_KEY=$$(echo $$PHARUS_PRIVATE_KEY | sed 's|\\n|\n|g')
+    # otumat watch -f $${PHARUS_SPEC_PATH} -s /tmp/reload.sh -i 5
+    # ports:
+    # - "5000:5000"
+    networks:
+      - main
+  sci-viz:
+    cpus: 2.0
+    mem_limit: 4g
+    image: jverswijver/sci-viz:0.1.3-beta.3
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api
+      - DJSCIVIZ_SPEC_PATH=sciviz_specsheet.yaml
+      - DJSCIVIZ_MODE=${MODE}  # DEV | PROD
+    volumes:
+      - ./sciviz_specsheet.yaml:/main/sciviz_specsheet.yaml:ro
+    # ports:
+    #   - "3000:3000"
+    command:
+      - sh
+      - -c
+      - |
+        sciviz_update() {
+            sleep 3  # delaying to ensure pharus is up
+            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
+            if [ "$$DJSCIVIZ_MODE" == "DEV" ]; then
+                python frontend_gen.py
+                yarn run start &
+            else
+                rm -R /usr/share/nginx/html
+                python frontend_gen.py
+                yarn build
+                mv ./build /usr/share/nginx/html
+                nginx -g "daemon off;" &
+            fi
+            PRIMARY_PID=$$!
+        }
+        sciviz_update
+        echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Monitoring SciViz updates..."
+        INIT_TIME=$$(date +%s)
+        LAST_MOD_TIME=$$(date -r $$DJSCIVIZ_SPEC_PATH +%s)
+        DELTA=$$(expr $$LAST_MOD_TIME - $$INIT_TIME)
+        while true; do
+           CURR_LAST_MOD_TIME=$$(date -r $$DJSCIVIZ_SPEC_PATH +%s)
+           CURR_DELTA=$$(expr $$CURR_LAST_MOD_TIME - $$INIT_TIME)
+           if [ "$$DELTA" -lt "$$CURR_DELTA" ]; then
+               echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Reloading SciViz since \`$$DJSCIVIZ_SPEC_PATH\` changed."
+               sciviz_update
+               DELTA=$$CURR_DELTA
+           else
+               sleep 2
+           fi
+        done
+    networks:
+      - main
+  fakeservices.datajoint.io:
+    image: datajoint/nginx:v0.1.1
+    environment:
+      - ADD_pharus_TYPE=REST
+      - ADD_pharus_ENDPOINT=pharus:5000
+      - ADD_pharus_PREFIX=/api
+      - ADD_sciviz_TYPE=REST
+      - ADD_sciviz_ENDPOINT=sci-viz:3000
+      - ADD_sciviz_PREFIX=/
+      - HTTPS_PASSTHRU=TRUE
+    ports:
+      - "443:443"
+      - "80:80"
+    networks:
+      - main
+networks:
+  main:
