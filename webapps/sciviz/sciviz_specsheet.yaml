@@ -58,7 +58,7 @@ SciViz: # top level tab
                     
                     return {'query': recent_jobs, 'fetch_args': {'order_by': 'minutes_since_newest ASC'}}
             Error Log:
-              route: /datajoint_neuropixels_errorlog
+              route: /sabatini_dj_errorlog
               x: 0
               y: 1
               height: 1
@@ -72,7 +72,7 @@ SciViz: # top level tab
                     cls = sabatinilab_workerlog.ErrorLog.proj(..., '-error_timestamp', minutes_elapsed='TIMESTAMPDIFF(MINUTE, error_timestamp, UTC_TIMESTAMP())')
                     return {'query': cls, 'fetch_args': {'order_by': 'minutes_elapsed ASC'}}
             Jobs Log:
-              route: /datajoint_neuropixels_jobslog
+              route: /sabatini_dj_jobslog
               x: 0
               y: 2
               height: 1
@@ -105,7 +105,7 @@ SciViz: # top level tab
                     jobs_table = jobs_table.proj(..., minutes_elapsed='TIMESTAMPDIFF(MINUTE, timestamp, UTC_TIMESTAMP())')
                     return {'query': jobs_table, 'fetch_args': {'order_by': 'status DESC, minutes_elapsed ASC'}}
             Worker Log:
-              route: /datajoint_neuropixels_workerlog
+              route: /sabatini_dj_workerlog
               x: 0
               y: 3
               height: 1
