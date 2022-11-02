@@ -3,7 +3,7 @@ from element_deeplabcut import train, model
 from workflow import db_prefix
 from workflow.utils.paths import get_dlc_root_data_dir, get_dlc_processed_data_dir
 
-from . import lab, session, reference
+from workflow.pipeline import lab, session, reference
 
 __all__ = ["train", "model"]
 
