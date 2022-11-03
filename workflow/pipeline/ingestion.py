@@ -87,7 +87,7 @@ class BehaviorIngestion(dj.Imported):
 
             attribute_list.extend(
                 [
-                    [*key.values(), block_ind + 1, attr, val]
+                    [*key.values(), block_ind + 1, attr, val, None]
                     for (attr, val) in zip(row.index, row.values)
                     if attr != "session"
                 ]
@@ -118,7 +118,7 @@ class BehaviorIngestion(dj.Imported):
 
             attribute_list.extend(
                 [
-                    [*key.values(), row["trial_id"], attr, val]
+                    [*key.values(), row["trial_id"], attr, val, None]
                     for (attr, val) in zip(row.index, row.values)
                     if attr != "trial_id" and attr != "block"
                 ]
