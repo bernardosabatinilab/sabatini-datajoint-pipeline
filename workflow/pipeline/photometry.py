@@ -248,7 +248,7 @@ class FiberPhotometry(dj.Imported):
                     }
                 )
 
-                lab.BrainRegion.insert1(
+                reference.BrainRegion.insert1(
                     {"region_name": brain_region}, skip_duplicates=True
                 )
 
@@ -294,9 +294,9 @@ class FiberPhotometry(dj.Imported):
                     }
                 )
 
-        # Populate Subject.Implantation if not populated already
+        # Populate reference.Implantation if not populated already
         if len(implantation_list):
-            subject.Implantation.insert(
+            reference.Implantation.insert(
                 implantation_list, ignore_extra_fields=True, skip_duplicates=True
             )
 
