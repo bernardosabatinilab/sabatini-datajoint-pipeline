@@ -203,6 +203,7 @@ class FiberPhotometry(dj.Imported):
             print("meta info is missing")
 
         # Populate FiberPhotometry
+        surgeon_list: T.List[T.Dict[str, T.Any]] = []
         fiber_photometry_list: T.List[T.Dict[str, T.Any]] = []
         implantation_list: T.List[T.Dict[str, T.Any]] = []
         trace_names: T.List[str] = list(downsampled_states_df.columns[-6:])
@@ -248,13 +249,19 @@ class FiberPhotometry(dj.Imported):
                     }
                 )
 
+                surgeon_list.append(
+                    {
+                        "user": meta_info["Fiber"]["implantation"]["surgeon"]
+                    }
+                )
+
                 reference.BrainRegion.insert1(
                     {"region_name": brain_region}, skip_duplicates=True
                 )
 
             except:
                 pass
-
+                
             # Populate FiberPhotometry.Trace
             # ['detrend_grn', 'raw_grn', 'z_grn']
             for trace_name in trace_names:
@@ -293,6 +300,11 @@ class FiberPhotometry(dj.Imported):
                         ].values,
                     }
                 )
+        # Populate lab.User if not populated already
+        if len(surgeon_list):
+            lab.User.insert(
+                surgeon_list, ignore_extra_fields=True, skip_duplicates=True
+            )
 
         # Populate reference.Implantation if not populated already
         if len(implantation_list):
