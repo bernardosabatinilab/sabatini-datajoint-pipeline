@@ -294,9 +294,9 @@ class FiberPhotometry(dj.Imported):
                     }
                 )
 
-        # Populate Subject.Implantation if not populated already
+        # Populate reference.Implantation if not populated already
         if len(implantation_list):
-            subject.Implantation.insert(
+            reference.Implantation.insert(
                 implantation_list, ignore_extra_fields=True, skip_duplicates=True
             )
 
@@ -310,7 +310,7 @@ def _split_penalty_states(
     """Handle penalties. Label preceding states as different from those without penalties"""
     penalty_trials = df.loc[df[penalty] == 1].nTrial.unique()
 
-    if len(penalty_trials) > 1:
+    if len(penalty_trials) > 1: 
         penalty_groups = df.loc[df.nTrial.isin(penalty_trials)].groupby(
             "nTrial", as_index=False
         )
