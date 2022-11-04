@@ -248,7 +248,7 @@ class FiberPhotometry(dj.Imported):
                     }
                 )
 
-                lab.BrainRegion.insert1(
+                reference.BrainRegion.insert1(
                     {"region_name": brain_region}, skip_duplicates=True
                 )
 
