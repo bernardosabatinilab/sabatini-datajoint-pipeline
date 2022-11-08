@@ -1,11 +1,18 @@
 import datajoint as dj
-from .core import session, subject, lab
-from workflow import db_prefix
-from element_interface.utils import find_full_path
 import pandas as pd
 import numpy as np
-from workflow.utils.paths import get_raw_root_data_dir
 import typing as T
+from pathlib import Path
+import tomli
+import tdt
+from copy import deepcopy
+
+from element_interface.utils import find_full_path
+from workflow import db_prefix
+from workflow.pipeline import session, subject, lab, reference
+from workflow.utils.paths import get_raw_root_data_dir
+import workflow.utils.photometry_preprocessing as pp
+from workflow.utils import demodulation
 
 logger = dj.logger
 schema = dj.schema(db_prefix + "photometry")
@@ -61,21 +68,13 @@ class FiberPhotometry(dj.Imported):
         trace_name       : varchar(8)  # (e.g., raw, detrend, z)
         -> EmissionColor
         ---
-        -> lab.Hemisphere
+        -> reference.Hemisphere
         -> [nullable] SensorProtein          
         -> [nullable] ExcitationWavelength
         trace           : longblob
         """
 
     def make(self, key):
-
-        from pathlib import Path
-        import tomli
-        import workflow.utils.photometry_preprocessing as pp
-        from workflow.utils import demodulation
-        import tdt
-        from copy import deepcopy
-
         # Parameters
         fiber_to_side_mapping = {1: "right", 2: "left"}
         color_mapping = {"g": "green", "r": "red", "b": "blue"}
@@ -204,6 +203,7 @@ class FiberPhotometry(dj.Imported):
             print("meta info is missing")
 
         # Populate FiberPhotometry
+        surgeon_list: T.List[T.Dict[str, T.Any]] = []
         fiber_photometry_list: T.List[T.Dict[str, T.Any]] = []
         implantation_list: T.List[T.Dict[str, T.Any]] = []
         trace_names: T.List[str] = list(downsampled_states_df.columns[-6:])
@@ -249,13 +249,19 @@ class FiberPhotometry(dj.Imported):
                     }
                 )
 
-                lab.BrainRegion.insert1(
+                surgeon_list.append(
+                    {
+                        "user": meta_info["Fiber"]["implantation"]["surgeon"]
+                    }
+                )
+
+                reference.BrainRegion.insert1(
                     {"region_name": brain_region}, skip_duplicates=True
                 )
 
             except:
                 pass
-
+                
             # Populate FiberPhotometry.Trace
             # ['detrend_grn', 'raw_grn', 'z_grn']
             for trace_name in trace_names:
@@ -294,10 +300,15 @@ class FiberPhotometry(dj.Imported):
                         ].values,
                     }
                 )
+        # Populate lab.User if not populated already
+        if len(surgeon_list):
+            lab.User.insert(
+                surgeon_list, ignore_extra_fields=True, skip_duplicates=True
+            )
 
-        # Populate Subject.Implantation if not populated already
+        # Populate reference.Implantation if not populated already
         if len(implantation_list):
-            subject.Implantation.insert(
+            reference.Implantation.insert(
                 implantation_list, ignore_extra_fields=True, skip_duplicates=True
             )
 
