@@ -62,6 +62,8 @@ class FiberPhotometry(dj.Imported):
     notes=''            : varchar(1000)  
     """
 
+    key_source = session.Session & session.SessionDirectory
+
     class Trace(dj.Part):
         definition = """ # preprocessed photometry traces
         -> master
