@@ -1,18 +1,11 @@
 import datajoint as dj
+from .core import session, subject, lab
+from workflow import db_prefix
+from element_interface.utils import find_full_path
 import pandas as pd
 import numpy as np
-import typing as T
-from pathlib import Path
-import tomli
-import tdt
-from copy import deepcopy
-
-from element_interface.utils import find_full_path
-from workflow import db_prefix
-from workflow.pipeline import session, subject, lab, reference
 from workflow.utils.paths import get_raw_root_data_dir
-import workflow.utils.photometry_preprocessing as pp
-from workflow.utils import demodulation
+import typing as T
 
 logger = dj.logger
 schema = dj.schema(db_prefix + "photometry")
@@ -68,13 +61,21 @@ class FiberPhotometry(dj.Imported):
         trace_name       : varchar(8)  # (e.g., raw, detrend, z)
         -> EmissionColor
         ---
-        -> reference.Hemisphere
+        -> lab.Hemisphere
         -> [nullable] SensorProtein          
         -> [nullable] ExcitationWavelength
         trace           : longblob
         """
 
     def make(self, key):
+
+        from pathlib import Path
+        import tomli
+        import workflow.utils.photometry_preprocessing as pp
+        from workflow.utils import demodulation
+        import tdt
+        from copy import deepcopy
+
         # Parameters
         fiber_to_side_mapping = {1: "right", 2: "left"}
         color_mapping = {"g": "green", "r": "red", "b": "blue"}
@@ -106,93 +107,93 @@ class FiberPhotometry(dj.Imported):
         ).tolist()
 
         # Update df to start with first trial pulse from behavior system
-        photometry_df = pp.handshake_behav_recording_sys(photometry_df)
+        #photometry_df = pp.handshake_behav_recording_sys(photometry_df)
 
         # Resample the photometry data and align to 200 Hz state transition behavioral data (analog_df)
-        behavior_df: pd.DataFrame = pd.read_csv(
-            behavior_dir / f"{subject_id}_behavior_df_full.csv", index_col=0
-        )
-        analog_df: pd.DataFrame = pd.read_csv(
-            behavior_dir / f"{subject_id}_analog_filled.csv", index_col=0
-        )
-        analog_df["session_clock"] = analog_df.index * 0.005
+        # behavior_df: pd.DataFrame = pd.read_csv(
+        #     behavior_dir / f"{subject_id}_behavior_df_full.csv", index_col=0
+        # )
+        # analog_df: pd.DataFrame = pd.read_csv(
+        #     behavior_dir / f"{subject_id}_analog_filled.csv", index_col=0
+        # )
+        # analog_df["session_clock"] = analog_df.index * 0.005
 
-        aligned_behav_photo_df, time_offset = pp.resample_and_align(
-            analog_df, photometry_df, channels=channels
-        )
-        del analog_df
+        # aligned_behav_photo_df, time_offset = pp.resample_and_align(
+        #     analog_df, photometry_df, channels=channels
+        # )
+        # del analog_df
 
         # One more rolling z-score over the window length (60s * sampling freq (200Hz))
-        win = round(60 * 200)
+        # win = round(60 * 200)
 
-        for channel in channels:
-            if "detrend" in channel:
-                aligned_behav_photo_df[
-                    f'z_{channel.split("_")[-1]}'
-                ] = demodulation.rolling_z(aligned_behav_photo_df[channel], wn=win)
-        aligned_behav_photo_df = aligned_behav_photo_df.iloc[win:-win].reset_index(
-            drop=True
-        )  # drop edges that now contain NaNs from rolling window
+        # for channel in channels:
+        #     if "detrend" in channel:
+        #         aligned_behav_photo_df[
+        #             f'z_{channel.split("_")[-1]}'
+        #         ] = demodulation.rolling_z(aligned_behav_photo_df[channel], wn=win)
+        # aligned_behav_photo_df = aligned_behav_photo_df.iloc[win:-win].reset_index(
+        #     drop=True
+        # )  # drop edges that now contain NaNs from rolling window
 
-        # Drop unnecessary columns that we don't need to save
-        photo_columns = channels + [
-            f'z_{channel.split("_")[-1]}' for channel in channels[::3]
-        ]  # channels[::((len(channels)//2)+1)]]]
+        # # Drop unnecessary columns that we don't need to save
+        # photo_columns = channels + [
+        #     f'z_{channel.split("_")[-1]}' for channel in channels[::3]
+        # ]  # channels[::((len(channels)//2)+1)]]]
 
-        cols_to_keep = [
-            "nTrial",
-            "iBlock",
-            "Cue",
-            "ENL",
-            "Select",
-            "Consumption",
-            "iSpout",
-            "stateConsumption",
-            "ENLP",
-            "CueP",
-            "nENL",
-            "nCue",
-            "session_clock",
-        ]
-        cols_to_keep.extend(photo_columns)
+        # cols_to_keep = [
+        #     "nTrial",
+        #     "iBlock",
+        #     "Cue",
+        #     "ENL",
+        #     "Select",
+        #     "Consumption",
+        #     "iSpout",
+        #     "stateConsumption",
+        #     "ENLP",
+        #     "CueP",
+        #     "nENL",
+        #     "nCue",
+        #     "session_clock",
+        # ]
+        # cols_to_keep.extend(photo_columns)
 
-        timeseries_task_states_df: pd.DataFrame = deepcopy(
-            aligned_behav_photo_df[cols_to_keep]
-        )
-        timeseries_task_states_df["trial_clock"] = (
-            timeseries_task_states_df.groupby("nTrial").cumcount() * 5 / 1000
-        )
+        # timeseries_task_states_df: pd.DataFrame = deepcopy(
+        #     aligned_behav_photo_df[cols_to_keep]
+        # )
+        # timeseries_task_states_df["trial_clock"] = (
+        #     timeseries_task_states_df.groupby("nTrial").cumcount() * 5 / 1000
+        # )
 
-        # This has to happen AFTER alignment between photometry and behavior because first ENL triggers sync pulse
-        _split_penalty_states(timeseries_task_states_df, behavior_df, penalty="ENLP")
-        _split_penalty_states(timeseries_task_states_df, behavior_df, penalty="CueP")
+        # # This has to happen AFTER alignment between photometry and behavior because first ENL triggers sync pulse
+        # _split_penalty_states(timeseries_task_states_df, behavior_df, penalty="ENLP")
+        # _split_penalty_states(timeseries_task_states_df, behavior_df, penalty="CueP")
 
-        n_bins, remainder = divmod(
-            len(timeseries_task_states_df), downsample_factor
-        )  # get number of bins to downsample into
-        bin_ids = [
-            j for i in range(int(n_bins)) for j in np.repeat(i, downsample_factor)
-        ]  # define ids of bins at downsampling rate [1,1,1,1,2,2,2,2,...]
-        bin_ids.extend(
-            np.repeat(bin_ids[-1] + 1, remainder)
-        )  # tag on incomplete bin at end
-        timeseries_task_states_df[
-            "bin_ids"
-        ] = bin_ids  # new column to label new bin_ids
+        # n_bins, remainder = divmod(
+        #     len(timeseries_task_states_df), downsample_factor
+        # )  # get number of bins to downsample into
+        # bin_ids = [
+        #     j for i in range(int(n_bins)) for j in np.repeat(i, downsample_factor)
+        # ]  # define ids of bins at downsampling rate [1,1,1,1,2,2,2,2,...]
+        # bin_ids.extend(
+        #     np.repeat(bin_ids[-1] + 1, remainder)
+        # )  # tag on incomplete bin at end
+        # timeseries_task_states_df[
+        #     "bin_ids"
+        # ] = bin_ids  # new column to label new bin_ids
 
-        downsampled_states_df: pd.DataFrame = deepcopy(timeseries_task_states_df)
+        # downsampled_states_df: pd.DataFrame = deepcopy(timeseries_task_states_df)
 
-        # Apply aggregate function to each column
-        col_fcns = {
-            col: np.max
-            for col in downsampled_states_df.columns
-            if col not in photo_columns
-        }
-        [col_fcns.update({col: np.mean}) for col in photo_columns]
+        # # Apply aggregate function to each column
+        # col_fcns = {
+        #     col: np.max
+        #     for col in downsampled_states_df.columns
+        #     if col not in photo_columns
+        # }
+        # [col_fcns.update({col: np.mean}) for col in photo_columns]
 
-        downsampled_states_df = downsampled_states_df.groupby("bin_ids").agg(col_fcns)
-        downsampled_states_df = downsampled_states_df.reset_index(drop=True)
-        downsampled_states_df = downsampled_states_df.drop(columns=["bin_ids"])
+        # downsampled_states_df = downsampled_states_df.groupby("bin_ids").agg(col_fcns)
+        # downsampled_states_df = downsampled_states_df.reset_index(drop=True)
+        # downsampled_states_df = downsampled_states_df.drop(columns=["bin_ids"])
 
         # Read from the meta_info.toml in the photometry folder if exists
         meta_info_file = list(photometry_dir.glob("*.toml"))[0]
@@ -203,7 +204,6 @@ class FiberPhotometry(dj.Imported):
             print("meta info is missing")
 
         # Populate FiberPhotometry
-        surgeon_list: T.List[T.Dict[str, T.Any]] = []
         fiber_photometry_list: T.List[T.Dict[str, T.Any]] = []
         implantation_list: T.List[T.Dict[str, T.Any]] = []
         trace_names: T.List[str] = list(downsampled_states_df.columns[-6:])
@@ -249,19 +249,13 @@ class FiberPhotometry(dj.Imported):
                     }
                 )
 
-                surgeon_list.append(
-                    {
-                        "user": meta_info["Fiber"]["implantation"]["surgeon"]
-                    }
-                )
-
-                reference.BrainRegion.insert1(
+                lab.BrainRegion.insert1(
                     {"region_name": brain_region}, skip_duplicates=True
                 )
 
             except:
                 pass
-                
+
             # Populate FiberPhotometry.Trace
             # ['detrend_grn', 'raw_grn', 'z_grn']
             for trace_name in trace_names:
@@ -300,15 +294,10 @@ class FiberPhotometry(dj.Imported):
                         ].values,
                     }
                 )
-        # Populate lab.User if not populated already
-        if len(surgeon_list):
-            lab.User.insert(
-                surgeon_list, ignore_extra_fields=True, skip_duplicates=True
-            )
 
-        # Populate reference.Implantation if not populated already
+        # Populate Subject.Implantation if not populated already
         if len(implantation_list):
-            reference.Implantation.insert(
+            subject.Implantation.insert(
                 implantation_list, ignore_extra_fields=True, skip_duplicates=True
             )
 
