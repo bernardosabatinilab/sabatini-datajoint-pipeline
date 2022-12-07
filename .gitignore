@@ -140,3 +140,6 @@ webapps/workflow-monitoring/.env
 # EFS mount
 mount_efs.sh
 
+# Misc files/folders
+scratch/*
+data/*
