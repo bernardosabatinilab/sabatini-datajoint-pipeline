@@ -17,7 +17,7 @@ Device = reference.Device
 train.activate(db_prefix + "train", linking_module=__name__)
 model.activate(db_prefix + "model", linking_module=__name__)
 
-def insert_new_dlc_model(project_path, paramset_idx, model_prefix="", model_description=""):
+def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model_description=""):
     config_file_path = project_path / "config.yaml"
         
     with open(config_file_path, "rb") as f:
