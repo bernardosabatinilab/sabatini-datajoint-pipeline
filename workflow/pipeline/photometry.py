@@ -115,7 +115,6 @@ class FiberPhotometry(dj.Imported):
 
         # Get trace names e.g., ["detrend_grnR", "raw_grnR"]
         trace_names: list[str] = photometry_df.columns.drop(synch_signal_names).tolist()
-
         trace_names = set([name[:-1] for name in trace_names])
 
         # Store data in this list for ingestion
@@ -125,15 +124,6 @@ class FiberPhotometry(dj.Imported):
         # Populate FiberPhotometry
         beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
         beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
-
-        self.insert1(
-            {
-                **key,
-                "light_source_name": light_source_name,
-                "raw_sample_rate": raw_sample_rate,
-                "beh_synch_signal": beh_synch_signal,
-            }
-        )
 
         # Get photometry traces for each fiber
         for fiber_id in fibers:
@@ -183,6 +173,9 @@ class FiberPhotometry(dj.Imported):
                     .get("sensor_protein", None)
                 )
                 if sensor_protein:
+                    logger.info(
+                        f"{sensor_protein} is inserted into {__name__}.SensorProtein"
+                    )
                     SensorProtein.insert1(
                         {"sensor_protein_name": sensor_protein}, skip_duplicates=True
                     )
@@ -195,6 +188,9 @@ class FiberPhotometry(dj.Imported):
                 )
 
                 if excitation_wavelength:
+                    logger.info(
+                        f"{excitation_wavelength} is inserted into {__name__}.ExcitationWavelength"
+                    )
                     ExcitationWavelength.insert1(
                         {"excitation_wavelength": excitation_wavelength},
                         skip_duplicates=True,
@@ -216,23 +212,37 @@ class FiberPhotometry(dj.Imported):
                     }
                 )
 
+        # Populate FiberPhotometry
+        logger.info(f"Populate {__name__}.FiberPhotometry")
+        self.insert1(
+            {
+                **key,
+                "light_source_name": light_source_name,
+                "raw_sample_rate": raw_sample_rate,
+                "beh_synch_signal": beh_synch_signal,
+            }
+        )
+
         # Populate FiberPhotometry.Fiber
+        logger.info(f"Populate {__name__}.FiberPhotometry.Fiber")
         self.Fiber.insert(fiber_list)
+
         # Populate FiberPhotometry.DemodulatedTrace
+        logger.info(f"Populate {__name__}.FiberPhotometry.DemodulatedTrace")
         self.DemodulatedTrace.insert(demodulated_trace_list)
 
 
 @schema
-class FiberPhotometrySynched(dj.Imported):
+class FiberPhotometrySynced(dj.Imported):
     definition = """
     -> FiberPhotometry
     ---
     timestamps   : longblob
     time_offset  : float     # time offset to synchronize the photometry traces to the master clock (in second)  
-    sample_rate  : float     # target downsample rate of synched data (in Hz) 
+    sample_rate  : float     # target downsample rate of synced data (in Hz) 
     """
 
-    class SynchedTrace(dj.Part):
+    class SyncedTrace(dj.Part):
         definition = """ # demodulated photometry traces
         -> master
         -> FiberPhotometry.Fiber
@@ -380,7 +390,7 @@ class FiberPhotometrySynched(dj.Imported):
 
         # Get new
         trace_names = list(downsampled_states_df.columns[-6:])
-        # Populate FiberPhotometrySynched
+        # Populate FiberPhotometrySynced
         self.insert1(
             {
                 **key,
@@ -391,11 +401,11 @@ class FiberPhotometrySynched(dj.Imported):
         )
 
         # Populate FiberPhotometry
-        synched_trace_list: list[dict] = []
+        synced_trace_list: list[dict] = []
 
         for trace_name in trace_names:
 
-            synched_trace_list.append(
+            synced_trace_list.append(
                 {
                     **key,
                     "fiber_id": get_fiber_id(trace_name[-1]),
@@ -406,7 +416,7 @@ class FiberPhotometrySynched(dj.Imported):
                 }
             )
 
-        self.SynchedTrace.insert(synched_trace_list)
+        self.SyncedTrace.insert(synced_trace_list)
 
 
 def _split_penalty_states(
