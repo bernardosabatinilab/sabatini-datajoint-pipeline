@@ -317,7 +317,7 @@ def rolling_z(x, wn):
 
 def offline_demodulation(
     data: tdt.StructType, tau, z=True, downsample_fs=600, bandpass_bw=50, **kwargs
-) -> pd.DataFrame:
+) -> tuple[pd.DataFrame, list[str], float]:
 
     # tau: 1/cutoff freq of lowpass filter
     # downsample_fs: new downsampled freq
@@ -440,7 +440,7 @@ def offline_demodulation(
     # demod_df = demod_df.dropna().reset_index(drop=True)
 
     if z:
-        raw = offline_demodulation(
+        raw_df, _, _ = offline_demodulation(
             data,
             tau,
             z=False,
@@ -449,10 +449,10 @@ def offline_demodulation(
             **kwargs,
         )
         assert demod_df[["toBehSys", "fromBehSys"]].equals(
-            raw[["toBehSys", "fromBehSys"]]
+            raw_df[["toBehSys", "fromBehSys"]]
         )
         for fiber in fibers:
             side = fiber_to_side_keys[fiber]
-            demod_df[f"raw_grn{side}"] = raw[f"grn{side}"]
+            demod_df[f"raw_grn{side}"] = raw_df[f"grn{side}"]
 
-    return demod_df
+    return demod_df, fibers, fs
