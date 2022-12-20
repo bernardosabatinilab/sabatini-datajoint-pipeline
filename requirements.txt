@@ -18,4 +18,3 @@ tdt==0.4.3
 tifffile==2021.11.2
 nd2==0.1.6
 seaborn==0.12.0
-plotly==5.7.0
