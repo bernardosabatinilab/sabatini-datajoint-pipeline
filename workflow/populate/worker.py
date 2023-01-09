@@ -10,6 +10,7 @@ from workflow.pipeline import (
     model as dlc_model,
     ingestion,
 )
+from workflow.populate.ingest_dlc import ingest_behavior_videos
 
 logger = dj.logger
 
@@ -49,6 +50,16 @@ def auto_generate_clustering_tasks():
             ErrorLog.log_exception(
                 rkey, ephys.ClusteringTask.auto_generate_entries, error
             )
+
+def auto_generate_dlc_videorecordings():
+    for skey in (session.Session - dlc_model.VideoRecording).fetch("KEY"):
+        try: 
+            ingest_behavior_videos(skey)
+        except Exception as error:
+            logger.error(str(error))
+            ErrorLog.log_exception(
+                skey, ingest_behavior_videos, error
+            )    
 
 
 # -------- Define process(s) --------
@@ -120,4 +131,5 @@ dlc_worker = DataJointWorker(
 )
 
 dlc_worker(dlc_model.RecordingInfo, max_calls=5)
+# dlc_worker(auto_generate_dlc_videorecordings)
 dlc_worker(dlc_model.PoseEstimation, max_calls=5)
