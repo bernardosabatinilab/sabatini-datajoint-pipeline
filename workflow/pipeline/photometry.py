@@ -389,14 +389,6 @@ class FiberPhotometrySynced(dj.Imported):
         downsampled_states_df = downsampled_states_df.reset_index(drop=True)
         downsampled_states_df = downsampled_states_df.drop(columns=["bin_ids"])
 
-        # Read from the meta_info.toml in the photometry folder if exists
-        meta_info_file = list(photometry_dir.glob("*.toml"))[0]
-        try:
-            with open(meta_info_file.as_posix()) as f:
-                meta_info: T.Dict = tomli.loads(f.read())
-        except FileNotFoundError:
-            print("meta info is missing")
-
         # Get new
         trace_names = list(downsampled_states_df.columns[-6:])
         # Populate FiberPhotometrySynced
@@ -411,11 +403,6 @@ class FiberPhotometrySynced(dj.Imported):
 
         # Populate FiberPhotometry
         synced_trace_list: list[dict] = []
-        fiber_photometry_list: T.List[T.Dict[str, T.Any]] = []
-        implantation_list: T.List[T.Dict[str, T.Any]] = []
-        trace_names: T.List[str] = list(downsampled_states_df.columns[-6:])
-        trace_names: T.Set[str] = set([name[:-1] for name in trace_names])
-        trace_list: T.List[T.Dict[str, T.Any]] = []
 
         for trace_name in trace_names:
 
@@ -431,111 +418,6 @@ class FiberPhotometrySynced(dj.Imported):
             )
 
         self.SyncedTrace.insert(synced_trace_list)
-
-        for fiber_id in fibers:
-            hemisphere = fiber_to_side_mapping[fiber_id]
-
-            try:
-                light_source = meta_info["Fiber"]["light_source"]
-                fiber_notes = meta_info["Fiber"]["implantation"][hemisphere]["notes"]
-            except:
-                light_source = fiber_notes = ""
-
-            fiber_photometry_list.append(
-                {
-                    **key,
-                    "fiber_id": fiber_id,
-                    "sample_rate": target_downsample_rate,
-                    "timestamps": downsampled_states_df["session_clock"].values,
-                    "light_source_name": light_source,
-                    "time_offset": time_offset,
-                    "notes": fiber_notes,
-                }
-            )
-
-            try:  # if meta info exists populate here
-
-                brain_region = meta_info["Fiber"]["implantation"][hemisphere][
-                    "brain_region"
-                ]
-                implantation_list.append(
-                    {
-                        **key,
-                        **meta_info["Fiber"]["implantation"][hemisphere],
-                        "fiber_id": fiber_id,
-                        "implant_date": meta_info["Fiber"]["implantation"]["date"],
-                        "implant_type": "fiber",
-                        "brain_region": brain_region,
-                        "hemisphere": hemisphere,
-                        "surgeon": meta_info["Fiber"]["implantation"]["surgeon"],
-                    }
-                )
-
-                surgeon_list.append(
-                    {
-                        "user": meta_info["Fiber"]["implantation"]["surgeon"]
-                    }
-                )
-
-                reference.BrainRegion.insert1(
-                    {"region_name": brain_region}, skip_duplicates=True
-                )
-
-            except:
-                pass
-                
-            # Populate FiberPhotometry.Trace
-            # ['detrend_grn', 'raw_grn', 'z_grn']
-            for trace_name in trace_names:
-
-                sensor_protein = meta_info["VirusInjection"][hemisphere][
-                    "sensor_protein"
-                ]
-                SensorProtein.insert1([sensor_protein], skip_duplicates=True)
-
-                emission_color = color_mapping[trace_name.split("_")[1][0]]
-
-                emission_wavelength = meta_info["Fiber"]["emission_wavelength"][
-                    emission_color
-                ]
-                EmissionColor.insert1(
-                    [emission_color, emission_wavelength], skip_duplicates=True
-                )
-                excitation_wavelength = meta_info["Fiber"]["excitation_wavelength"][
-                    emission_color
-                ]
-                ExcitationWavelength.insert1(
-                    [excitation_wavelength], skip_duplicates=True
-                )
-
-                trace_list.append(
-                    {
-                        **key,
-                        "fiber_id": fiber_id,
-                        "trace_name": trace_name.split("_")[0],
-                        "emission_color": emission_color,
-                        "hemisphere": hemisphere,
-                        "sensor_protein_name": sensor_protein,
-                        "excitation_wavelength": excitation_wavelength,
-                        "trace": downsampled_states_df[
-                            trace_name + hemisphere[0].upper()
-                        ].values,
-                    }
-                )
-        # Populate lab.User if not populated already
-        if len(surgeon_list):
-            lab.User.insert(
-                surgeon_list, ignore_extra_fields=True, skip_duplicates=True
-            )
-
-        # Populate reference.Implantation if not populated already
-        if len(implantation_list):
-            reference.Implantation.insert(
-                implantation_list, ignore_extra_fields=True, skip_duplicates=True
-            )
-
-        self.insert(fiber_photometry_list)
-        self.Trace.insert(trace_list)
 
 def _split_penalty_states(
     df: pd.DataFrame, behavior_df: pd.DataFrame, penalty: str = "ENLP"
