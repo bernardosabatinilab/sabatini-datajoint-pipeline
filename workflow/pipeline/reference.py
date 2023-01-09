@@ -100,11 +100,11 @@ class VirusInjection(dj.Manual):
         definition = """
         -> master
         ---
-        ap            : decimal(6, 3)           # (um) anterior-posterior; ref is 0
+        ap            : decimal(5, 3)           # (mm) anterior-posterior; ref is 0
         -> BrainCoordinateReference.proj(ap_ref='reference')
-        ml            : decimal(6, 3)           # (um) medial axis; ref is 0 
+        ml            : decimal(5, 3)           # (mm) medial axis; ref is 0 
         -> BrainCoordinateReference.proj(ml_ref='reference')
-        dv            : decimal(6, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
+        dv            : decimal(5, 3)           # (mm) dorso-ventral axis; ref is 0; more ventral is more negative
         -> BrainCoordinateReference.proj(dv_ref='reference')
         theta=null    : decimal(6, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
         phi=null      : decimal(6, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
@@ -133,11 +133,11 @@ class Implantation(dj.Manual):
     -> Hemisphere
     ---
     -> lab.User.proj(surgeon='user')        # surgeon
-    ap            : decimal(6, 3)           # (um) anterior-posterior; ref is 0
+    ap            : decimal(5, 3)           # (mm) anterior-posterior; ref is 0
     -> BrainCoordinateReference.proj(ap_ref='reference')
-    ml            : decimal(6, 3)           # (um) medial axis; ref is 0 
+    ml            : decimal(5, 3)           # (mm) medial axis; ref is 0 
     -> BrainCoordinateReference.proj(ml_ref='reference')
-    dv            : decimal(6, 3)           # (um) dorso-ventral axis; ref is 0; more ventral is more negative
+    dv            : decimal(5, 3)           # (mm) dorso-ventral axis; ref is 0; more ventral is more negative
     -> BrainCoordinateReference.proj(dv_ref='reference')
     theta=null    : decimal(6, 3)           # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
     phi=null      : decimal(6, 3)           # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
