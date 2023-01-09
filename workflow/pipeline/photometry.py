@@ -389,6 +389,13 @@ class FiberPhotometrySynced(dj.Imported):
         downsampled_states_df = downsampled_states_df.reset_index(drop=True)
         downsampled_states_df = downsampled_states_df.drop(columns=["bin_ids"])
 
+        # Read from the meta_info.toml in the photometry folder if exists
+        meta_info_file = list(photometry_dir.glob("*.toml"))[0]
+        try:
+            with open(meta_info_file.as_posix()) as f:
+                meta_info: T.Dict = tomli.loads(f.read())
+        except FileNotFoundError:
+            print("meta info is missing")
 
         # Get new
         trace_names = list(downsampled_states_df.columns[-6:])
@@ -424,6 +431,28 @@ class FiberPhotometrySynced(dj.Imported):
             )
 
         self.SyncedTrace.insert(synced_trace_list)
+
+        for fiber_id in fibers:
+            hemisphere = fiber_to_side_mapping[fiber_id]
+
+            try:
+                light_source = meta_info["Fiber"]["light_source"]
+                fiber_notes = meta_info["Fiber"]["implantation"][hemisphere]["notes"]
+            except:
+                light_source = fiber_notes = ""
+
+            fiber_photometry_list.append(
+                {
+                    **key,
+                    "fiber_id": fiber_id,
+                    "sample_rate": target_downsample_rate,
+                    "timestamps": downsampled_states_df["session_clock"].values,
+                    "light_source_name": light_source,
+                    "time_offset": time_offset,
+                    "notes": fiber_notes,
+                }
+            )
+
             try:  # if meta info exists populate here
 
                 brain_region = meta_info["Fiber"]["implantation"][hemisphere][
@@ -442,13 +471,19 @@ class FiberPhotometrySynced(dj.Imported):
                     }
                 )
 
-                lab.BrainRegion.insert1(
+                surgeon_list.append(
+                    {
+                        "user": meta_info["Fiber"]["implantation"]["surgeon"]
+                    }
+                )
+
+                reference.BrainRegion.insert1(
                     {"region_name": brain_region}, skip_duplicates=True
                 )
 
             except:
                 pass
-
+                
             # Populate FiberPhotometry.Trace
             # ['detrend_grn', 'raw_grn', 'z_grn']
             for trace_name in trace_names:
@@ -487,16 +522,20 @@ class FiberPhotometrySynced(dj.Imported):
                         ].values,
                     }
                 )
+        # Populate lab.User if not populated already
+        if len(surgeon_list):
+            lab.User.insert(
+                surgeon_list, ignore_extra_fields=True, skip_duplicates=True
+            )
 
-        # Populate Subject.Implantation if not populated already
+        # Populate reference.Implantation if not populated already
         if len(implantation_list):
-            subject.Implantation.insert(
+            reference.Implantation.insert(
                 implantation_list, ignore_extra_fields=True, skip_duplicates=True
             )
 
         self.insert(fiber_photometry_list)
         self.Trace.insert(trace_list)
-
 
 def _split_penalty_states(
     df: pd.DataFrame, behavior_df: pd.DataFrame, penalty: str = "ENLP"
