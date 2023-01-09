@@ -64,7 +64,6 @@ def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model
     sample_paths = [f for f in project_path.rglob('dlc-models/*trainset*shuffle*')]
     iterations_dir = project_path / 'dlc-models' 
 
-    iteration_list = [iteration for iteration in iterations_dir.glob('*') if iteration.is_dir()]
     iterations = [x for x in str(sample_paths[0]).split("/") if "iteration" in x]
     for iteration in iterations:
         sample_paths = [f for f in iterations_dir.rglob('*trainset*shuffle*')]            
