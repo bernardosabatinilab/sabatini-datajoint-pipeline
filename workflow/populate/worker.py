@@ -10,8 +10,7 @@ from workflow.pipeline import (
     model as dlc_model,
     ingestion,
 )
-from workflow.populate.ingest_dlc import ingest_behavior_videos
-
+from workflow.pipeline.dlc import ingest_behavior_videos
 logger = dj.logger
 
 __all__ = [
@@ -86,6 +85,7 @@ standard_worker(ephys.LFP, max_calls=5)
 
 # photometry
 standard_worker(photometry.FiberPhotometry, max_calls=5)
+standard_worker(photometry.FiberPhotometrySynced, max_calls=5)
 
 # spike_sorting process for GPU required jobs
 spike_sorting_worker = DataJointWorker(
@@ -130,6 +130,6 @@ dlc_worker = DataJointWorker(
     autoclear_error_patterns=autoclear_error_patterns,
 )
 
-dlc_worker(dlc_model.RecordingInfo, max_calls=5)
+# dlc_worker(dlc_model.RecordingInfo, max_calls=5)
 # dlc_worker(auto_generate_dlc_videorecordings)
-dlc_worker(dlc_model.PoseEstimation, max_calls=5)
+# dlc_worker(dlc_model.PoseEstimation, max_calls=5)
