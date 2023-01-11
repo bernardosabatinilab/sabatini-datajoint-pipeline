@@ -299,7 +299,7 @@ class FiberPhotometrySynced(dj.Imported):
         trace_names: list[str] = photometry_df.columns.drop(synch_signal_names).tolist()
 
         # Update df to start with first trial pulse from behavior system
-        #photometry_df = pp.handshake_behav_recording_sys(photometry_df)
+        photometry_df = pp.handshake_behav_recording_sys(photometry_df)
 
         analog_df: pd.DataFrame = pd.read_csv(
             behavior_dir / f"{subject_id}_analog_filled.csv", index_col=0
