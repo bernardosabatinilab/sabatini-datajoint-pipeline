@@ -45,7 +45,8 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
     model.VideoRecording.insert(vid_recs, skip_duplicates=True)
     model.VideoRecording.File.insert(vid_recs_files, skip_duplicates=True)
 
-def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model_description=""):
+def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model_description="", prompt=True):
+    from deeplabcut.utils.auxiliaryfunctions import GetScorerName
     config_file_path = project_path / "config.yaml"
         
     with open(config_file_path, "rb") as f:
@@ -86,7 +87,7 @@ def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model
             )
 
         scorer_legacy = model.str_to_bool(dlc_config.get("scorer_legacy", "f"))
-        dlc_scorer = model.GetScorerName(
+        dlc_scorer = GetScorerName(
             cfg=dlc_config,
             shuffle=shuffle,
             trainFraction=dlc_config["TrainingFraction"][int(trainingsetindex)],
@@ -110,3 +111,9 @@ def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model
             "config_template": dlc_config,
         }
         model.Model.insert1(model_dict)
+        
+        if model.BodyPart.extract_new_body_parts(dlc_config, verbose=False).size > 0:
+            model.BodyPart.insert_from_config(dlc_config, prompt=prompt)
+        model.Model.BodyPart.insert((model_name, bp) for bp in dlc_config["bodyparts"])
+
+
