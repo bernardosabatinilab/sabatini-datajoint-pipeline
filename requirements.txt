@@ -3,7 +3,7 @@ black
 datajoint>=0.13.0
 element-lab==0.1.2
 element-animal @ git+https://github.com/datajoint/element-animal.git
-element-deeplabcut @ git+https://github.com/datajoint/element-deeplabcut.git
+element-deeplabcut @ git+https://github.com/sidhulyalkar/element-deeplabcut.git
 element-session @ git+https://github.com/datajoint/element-session.git
 element-event @ git+https://github.com/datajoint/element-event.git
 element-array-ephys @ git+https://github.com/datajoint/element-array-ephys.git@run_kilosort
