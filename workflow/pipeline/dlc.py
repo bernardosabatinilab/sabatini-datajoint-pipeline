@@ -94,26 +94,24 @@ def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model
             modelprefix=model_prefix,
         )[scorer_legacy]
 
-    if dlc_config["snapshotindex"] == -1:
-        dlc_scorer = "".join(dlc_scorer.split("_")[:-1])
-        model_dict = {
-            "model_name": model_name,
-            "model_description": model_description,
-            "scorer": dlc_scorer,
-            "task": dlc_config["Task"],
-            "date": dlc_config["date"],
-            "iteration": dlc_config["iteration"],
-            "snapshotindex": dlc_config["snapshotindex"],
-            "shuffle": shuffle,
-            "trainingsetindex": int(trainingsetindex),
-            "project_path": project_path.relative_to(root_data_dir).as_posix(),
-            "paramset_idx": paramset_idx,
-            "config_template": dlc_config,
-        }
-        model.Model.insert1(model_dict)
-        
-        if model.BodyPart.extract_new_body_parts(dlc_config, verbose=False).size > 0:
-            model.BodyPart.insert_from_config(dlc_config, prompt=prompt)
-        model.Model.BodyPart.insert((model_name, bp) for bp in dlc_config["bodyparts"])
+        if dlc_config["snapshotindex"] == -1:
+            dlc_scorer = "".join(dlc_scorer.split("_")[:-1])
+            
+            model.Model.insert_new_model(
+                model_name=model_name,
+                dlc_config=dlc_config,
+                shuffle=shuffle,
+                trainingsetindex=trainingsetindex,
+                project_path=project_path.relative_to(root_data_dir).as_posix(),
+                model_description=model_description,
+                model_prefix=model_prefix,
+                paramset_idx=paramset_idx,
+                prompt=prompt,
+                params=None,
+            )
+            
+            if model.BodyPart.extract_new_body_parts(dlc_config, verbose=False).size > 0:
+                model.BodyPart.insert_from_config(dlc_config, prompt=prompt)
+            model.Model.BodyPart.insert((model_name, bp) for bp in dlc_config["bodyparts"])
 
 
