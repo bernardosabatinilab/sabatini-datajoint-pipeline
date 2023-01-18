@@ -4,7 +4,10 @@ FROM datajoint/djbase:py${PY_VER}-debian-${WORKER_BASE_HASH}
 
 USER root
 RUN apt-get update && \
-    apt-get install -y ssh git vim nano
+    apt-get install -y ssh git build-essential vim nano
+
+RUN conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0
+ENV CUDA_CACHE_MAXSIZE=1073741824
 
 USER anaconda:anaconda
 
@@ -25,3 +28,5 @@ RUN /entrypoint.sh echo "Installed dependencies."
 
 # Install the workflow
 RUN pip install ./${REPO_NAME}
+
+ENV LD_LIBRARY_PATH="/lib:/opt/conda/lib"
