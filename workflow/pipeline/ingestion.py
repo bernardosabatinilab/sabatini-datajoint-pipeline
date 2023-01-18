@@ -19,6 +19,8 @@ class BehaviorIngestion(dj.Imported):
     ---
     ingestion_time: datetime        # Stores the start time of behavioral data ingestion
     """
+    
+    key_source = session.Session & session.SessionDirectory
 
     def make(self, key):
         """

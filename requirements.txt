@@ -3,15 +3,16 @@ black
 datajoint>=0.13.0
 element-lab==0.1.2
 element-animal @ git+https://github.com/datajoint/element-animal.git
-element-deeplabcut @ git+https://github.com/datajoint/element-deeplabcut.git
+element-deeplabcut @ git+https://github.com/sidhulyalkar/element-deeplabcut.git
 element-session @ git+https://github.com/datajoint/element-session.git
 element-event @ git+https://github.com/datajoint/element-event.git
 element-array-ephys @ git+https://github.com/datajoint/element-array-ephys.git@run_kilosort
 ecephys-spike-sorting @ git+https://github.com/datajoint-company/ecephys_spike_sorting.git
 element-calcium-imaging @ git+https://github.com/datajoint/element-calcium-imaging.git
-element-interface[scanreader,image_converter,suite2p] @ git+https://github.com/datajoint/element-interface.git
+element-interface @ git+https://github.com/datajoint/element-interface.git
 datajoint-utilities @ git+https://github.com/datajoint-company/datajoint-utilities.git
-
+scanreader @ git+https://github.com/atlab/scanreader.git
+suite2p @ git+https://github.com/datajoint-company/suite2p.git
 graphviz
 tdt==0.4.3
 tifffile==2021.11.2
