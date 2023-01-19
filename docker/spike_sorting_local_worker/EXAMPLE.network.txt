@@ -1,0 +1,2 @@
+SERVER #add hms server here
+USE_SERVER
