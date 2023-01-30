@@ -27,6 +27,7 @@ ENV CUDA_CACHE_MAXSIZE 1073741824
 RUN cd /home/muser/.MATLAB/extern/engines/python && python setup.py install
 RUN apt-get install -y tk
 ENV PATH /home/muser/.MATLAB/bin:${PATH}
+COPY network.lic /opt/matlab/licenses/
 ## Fix: libcrypto.so.1.1: version `OPENSSL_1_1_1' not found
 WORKDIR /tmp
 RUN wget https://www.openssl.org/source/openssl-1.1.1g.tar.gz
