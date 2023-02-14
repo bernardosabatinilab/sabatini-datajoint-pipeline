@@ -6,6 +6,7 @@ from workflow.pipeline import lab, session, reference
 import yaml
 import re
 import numpy as np
+from pathlib import Path
 
 __all__ = ["train", "model"]
 
@@ -47,7 +48,7 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
 
 def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model_description="", prompt=True):
     from deeplabcut.utils.auxiliaryfunctions import GetScorerName
-    config_file_path = project_path / "config.yaml"
+    config_file_path = Path(project_path) / "config.yaml"
         
     with open(config_file_path, "rb") as f:
         dlc_config = yaml.safe_load(f)
@@ -62,10 +63,10 @@ def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model
         root_data_dir / "dlc_projects" / str(config_file_path).split("/")[-2]
     ).as_posix()
 
-    sample_paths = [f for f in project_path.rglob('dlc-models/*trainset*shuffle*')]
+    sample_paths = [f for f in project_path.rglob('*trainset*shuffle*')]
     iterations_dir = project_path / 'dlc-models' 
 
-    iterations = [x for x in str(sample_paths[0]).split("/") if "iteration" in x]
+    iterations = [x for x in str(sample_paths).split("/") if "iteration" in x]
     for iteration in iterations:
         sample_paths = [f for f in iterations_dir.rglob('*trainset*shuffle*')]            
         sample_path = next(x for x in sample_paths if iteration in str(x))
