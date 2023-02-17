@@ -7,6 +7,7 @@ import yaml
 import re
 import numpy as np
 from pathlib import Path
+import os
 
 __all__ = ["train", "model"]
 
@@ -42,7 +43,7 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
                 session_id=key["session_id"],
                 recording_id=recording_id,
                 file_id=file_idx,
-                file_path="/".join(str(bfile).split("/")[4:]),
+                file_path=os.sep.join(list(bfile.parts)[-4:]),
             )
         )
 
@@ -81,14 +82,14 @@ def insert_new_dlc_model(
         sample_path = next(x for x in sample_paths if iteration in str(x))
 
         trainsetshuffle_piece = next(
-            x for x in str(sample_path).split("/") if "trainset" in x
+            x for x in list(sample_path.parts) if "trainset" in x
         )
 
         trainset, shuffle = re.search(
             r"trainset(\d+)shuffle(\d+)", trainsetshuffle_piece
         ).groups()
 
-        model_name = str(project_path).split("/")[-1] + f"_{iteration}"
+        model_name = list(project_path.parts)[-1] + f"_{iteration}"
 
         trainingsetindex = np.argmin(
             np.abs(np.array(dlc_config["TrainingFraction"]) - float(trainset) / 100)
