@@ -43,7 +43,7 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
                 session_id=key["session_id"],
                 recording_id=recording_id,
                 file_id=file_idx,
-                file_path=os.sep.join(list(bfile.parts)[-4:]),
+                file_path=bfile.relative_to(model.get_dlc_root_data_dir()[0]),
             )
         )
 
@@ -62,34 +62,22 @@ def insert_new_dlc_model(
         dlc_config = yaml.safe_load(f)
 
     # Modify the project path and save it to the config.yaml file
-    root_data_dir = (
-        model.get_dlc_root_data_dir()[0]
-        if len(model.get_dlc_root_data_dir()) > 1
-        else model.get_dlc_root_data_dir()
-    )
-    dlc_config["project_path"] = (
-        root_data_dir / "dlc_projects" / list(config_file_path.parts)[-2]
-    ).as_posix()
+    root_data_dir = model.get_dlc_root_data_dir()[0]
+    # Used to
+    dlc_config["project_path"] = config_file_path.parent.as_posix()
 
-    sample_paths = [f for f in project_path.rglob("*trainset*shuffle*")]
-    iterations_dir = project_path / "dlc-models"
-
-    iterations = [
-        x for p in [list(s.parts) for s in sample_paths] for x in p if "iteration" in x
+    sample_paths = [
+        d for d in project_path.rglob(r"iteration*/*trainset*shuffle*") if d.is_dir()
     ]
-    for iteration in iterations:
-        sample_paths = [f for f in iterations_dir.rglob("*trainset*shuffle*")]
-        sample_path = next(x for x in sample_paths if iteration in str(x))
 
-        trainsetshuffle_piece = next(
-            x for x in list(sample_path.parts) if "trainset" in x
-        )
+    for sample_path in sample_paths:
+        iteration = re.search(r"iteration-(\d+)", sample_path.parent.name).groups()[0]
 
         trainset, shuffle = re.search(
-            r"trainset(\d+)shuffle(\d+)", trainsetshuffle_piece
+            r"trainset(\d+)shuffle(\d+)", sample_path.name
         ).groups()
 
-        model_name = list(project_path.parts)[-1] + f"_{iteration}"
+        model_name = project_path.name + f"_i{iteration}_t{trainset}_s{shuffle}"
 
         trainingsetindex = np.argmin(
             np.abs(np.array(dlc_config["TrainingFraction"]) - float(trainset) / 100)
