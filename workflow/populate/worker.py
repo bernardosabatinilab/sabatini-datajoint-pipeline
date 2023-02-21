@@ -63,7 +63,7 @@ def auto_generate_dlc_videorecordings():
 
 # -------- Define process(s) --------
 worker_schema_name = db_prefix + "workerlog"
-autoclear_error_patterns = ["%FileNotFound%"]
+autoclear_error_patterns = [""]
 
 # standard process for non-GPU jobs
 standard_worker = DataJointWorker(
