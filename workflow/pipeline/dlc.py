@@ -6,6 +6,8 @@ from workflow.pipeline import lab, session, reference
 import yaml
 import re
 import numpy as np
+from pathlib import Path
+import os
 
 __all__ = ["train", "model"]
 
@@ -16,21 +18,24 @@ Device = reference.Device
 train.activate(db_prefix + "train", linking_module=__name__)
 model.activate(db_prefix + "model", linking_module=__name__)
 
+
 def ingest_behavior_videos(key, device_id, recording_id=0):
-    rel_path = (session.SessionDirectory & key).fetch1('session_dir')
+    rel_path = (session.SessionDirectory & key).fetch1("session_dir")
     dlc_beh_path = model.get_dlc_root_data_dir()[0] / rel_path / "dlc_behavior_videos"
-    beh_vid_files = [beh_file for beh_file in dlc_beh_path.glob('*.avi') if beh_file.is_file()]
+    beh_vid_files = [
+        beh_file for beh_file in dlc_beh_path.glob("*.avi") if beh_file.is_file()
+    ]
     vid_recs = []
     vid_recs_files = []
     for file_idx, bfile in enumerate(beh_vid_files):
         vid_recs.append(
-                    dict(
-                        subject=key["subject"],
-                        session_id=key["session_id"],
-                        recording_id=recording_id,
-                        device_id=device_id,
-                    )
-                )
+            dict(
+                subject=key["subject"],
+                session_id=key["session_id"],
+                recording_id=recording_id,
+                device_id=device_id,
+            )
+        )
 
         vid_recs_files.append(
             dict(
@@ -38,53 +43,45 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
                 session_id=key["session_id"],
                 recording_id=recording_id,
                 file_id=file_idx,
-                file_path="/".join(str(bfile).split("/")[4:]),
+                file_path=bfile.relative_to(model.get_dlc_root_data_dir()[0]),
             )
         )
 
     model.VideoRecording.insert(vid_recs, skip_duplicates=True)
     model.VideoRecording.File.insert(vid_recs_files, skip_duplicates=True)
 
-def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model_description="", prompt=True):
+
+def insert_new_dlc_model(
+    project_path, paramset_idx=None, model_prefix="", model_description="", prompt=True
+):
     from deeplabcut.utils.auxiliaryfunctions import GetScorerName
-    config_file_path = project_path / "config.yaml"
-        
+
+    config_file_path = Path(project_path) / "config.yaml"
+
     with open(config_file_path, "rb") as f:
         dlc_config = yaml.safe_load(f)
 
     # Modify the project path and save it to the config.yaml file
-    root_data_dir = (
-        model.get_dlc_root_data_dir()[0]
-        if len(model.get_dlc_root_data_dir()) > 1
-        else model.get_dlc_root_data_dir()
-    )
-    dlc_config["project_path"] = (
-        root_data_dir / "dlc_projects" / str(config_file_path).split("/")[-2]
-    ).as_posix()
+    root_data_dir = model.get_dlc_root_data_dir()[0]
+    # Used to
+    dlc_config["project_path"] = config_file_path.parent.as_posix()
 
-    sample_paths = [f for f in project_path.rglob('dlc-models/*trainset*shuffle*')]
-    iterations_dir = project_path / 'dlc-models' 
+    sample_paths = [
+        d for d in project_path.rglob(r"iteration*/*trainset*shuffle*") if d.is_dir()
+    ]
 
-    iterations = [x for x in str(sample_paths[0]).split("/") if "iteration" in x]
-    for iteration in iterations:
-        sample_paths = [f for f in iterations_dir.rglob('*trainset*shuffle*')]            
-        sample_path = next(x for x in sample_paths if iteration in str(x))
-
-        trainsetshuffle_piece = next(
-            x for x in str(sample_path).split("/") if "trainset" in x
-        )
+    for sample_path in sample_paths:
+        iteration = re.search(r"iteration-(\d+)", sample_path.parent.name).groups()[0]
 
         trainset, shuffle = re.search(
-            r"trainset(\d+)shuffle(\d+)", trainsetshuffle_piece
+            r"trainset(\d+)shuffle(\d+)", sample_path.name
         ).groups()
 
-        model_name = str(project_path).split("/")[-1] + f"_{iteration}"
+        model_name = project_path.name + f"_i{iteration}_t{trainset}_s{shuffle}"
 
-        trainingsetindex=np.argmin(
-                np.abs(
-                    np.array(dlc_config["TrainingFraction"]) - float(trainset) / 100
-                )
-            )
+        trainingsetindex = np.argmin(
+            np.abs(np.array(dlc_config["TrainingFraction"]) - float(trainset) / 100)
+        )
 
         scorer_legacy = model.str_to_bool(dlc_config.get("scorer_legacy", "f"))
         dlc_scorer = GetScorerName(
@@ -96,7 +93,7 @@ def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model
 
         if dlc_config["snapshotindex"] == -1:
             dlc_scorer = "".join(dlc_scorer.split("_")[:-1])
-            
+
         model.Model.insert_new_model(
             model_name=model_name,
             dlc_config=dlc_config,
@@ -109,4 +106,3 @@ def insert_new_dlc_model(project_path, paramset_idx=None, model_prefix="", model
             prompt=prompt,
             params=None,
         )
-        
