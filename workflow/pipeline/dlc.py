@@ -43,7 +43,9 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
                 session_id=key["session_id"],
                 recording_id=recording_id,
                 file_id=file_idx,
-                file_path=bfile.relative_to(model.get_dlc_root_data_dir()[0]),
+                file_path=bfile.relative_to(
+                    model.get_dlc_root_data_dir()[0]
+                ).as_posix(),
             )
         )
 
@@ -52,11 +54,17 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
 
 
 def insert_new_dlc_model(
-    project_path, paramset_idx=None, model_prefix="", model_description="", prompt=True
+    project_path,
+    paramset_idx=None,
+    model_prefix="",
+    model_description="",
+    prompt=True,
+    config_filename="config.yaml",
 ):
     from deeplabcut.utils.auxiliaryfunctions import GetScorerName
 
-    config_file_path = Path(project_path) / "config.yaml"
+    project_path = Path(project_path)
+    config_file_path = project_path / config_filename
 
     with open(config_file_path, "rb") as f:
         dlc_config = yaml.safe_load(f)
@@ -64,7 +72,7 @@ def insert_new_dlc_model(
     # Modify the project path and save it to the config.yaml file
     root_data_dir = model.get_dlc_root_data_dir()[0]
     # Used to
-    dlc_config["project_path"] = config_file_path.parent.as_posix()
+    dlc_config["project_path"] = config_file_path.parent.parent.as_posix()
 
     sample_paths = [
         d for d in project_path.rglob(r"iteration*/*trainset*shuffle*") if d.is_dir()
