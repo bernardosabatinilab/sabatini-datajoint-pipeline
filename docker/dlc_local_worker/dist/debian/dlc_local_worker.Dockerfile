@@ -6,7 +6,7 @@ USER root
 RUN apt-get update && \
     apt-get install -y ssh git build-essential vim nano
 
-RUN conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0
+RUN conda install -c conda-forge cudatoolkit=11.6 cudnn=8.3.2
 ENV CUDA_CACHE_MAXSIZE=1073741824
 
 USER anaconda:anaconda
