@@ -12,7 +12,7 @@ element-calcium-imaging @ git+https://github.com/datajoint/element-calcium-imagi
 element-interface @ git+https://github.com/datajoint/element-interface.git
 datajoint-utilities @ git+https://github.com/datajoint-company/datajoint-utilities.git
 scanreader @ git+https://github.com/atlab/scanreader.git
-suite2p @ git+https://github.com/datajoint-company/suite2p.git
+suite2p @ git+https://github.com/datajoint-company/suite2p.git@stableFeb2023
 graphviz
 tdt==0.4.3
 tifffile==2021.11.2
