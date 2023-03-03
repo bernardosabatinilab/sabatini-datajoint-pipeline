@@ -31,15 +31,15 @@ class BehaviorIngestion(dj.Imported):
         session_full_dir = find_full_path(get_raw_root_data_dir(), session_dir)
 
         # Expecting data in session_full_dir / Behavior /
-
-        event_file = [f for f in session_full_dir.rglob("*events.csv*") if f.is_file()]
-        block_file = [f for f in session_full_dir.rglob("*block.csv*") if f.is_file()]
-        trial_file = [f for f in session_full_dir.rglob("*trial.csv*") if f.is_file()]
+        # But handles if data is located in a different folder within the session dir
+        event_file = [f for f in session_full_dir.rglob("*events*.csv*") if f.is_file()]
+        block_file = [f for f in session_full_dir.rglob("*block*.csv*") if f.is_file()]
+        trial_file = [f for f in session_full_dir.rglob("*trial*.csv*") if f.is_file()]
 
         # Load .csv into pandas dataframe
-        events_df = pd.read_csv(event_file, keep_default_na=False)
-        block_df = pd.read_csv(block_file, keep_default_na=False)
-        trial_df = pd.read_csv(trial_file, keep_default_na=False)
+        events_df = pd.read_csv(event_file[0], keep_default_na=False)
+        block_df = pd.read_csv(block_file[0], keep_default_na=False)
+        trial_df = pd.read_csv(trial_file[0], keep_default_na=False)
 
         # Populate EventType
         event.EventType.insert(
