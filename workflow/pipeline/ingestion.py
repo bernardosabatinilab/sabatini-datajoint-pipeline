@@ -40,9 +40,9 @@ class BehaviorIngestion(dj.Imported):
                 raise FileNotFound(f"Missing event or trial or block csv file in {session_full_dir}")
 
         # Load .csv into pandas dataframe
-        events_df = pd.read_csv(event_file[0], keep_default_na=False)
-        block_df = pd.read_csv(block_file[0], keep_default_na=False)
-        trial_df = pd.read_csv(trial_file[0], keep_default_na=False)
+        events_df = pd.read_csv(event_file, keep_default_na=False)
+        block_df = pd.read_csv(block_file, keep_default_na=False)
+        trial_df = pd.read_csv(trial_file, keep_default_na=False)
 
         # Populate EventType
         event.EventType.insert(
