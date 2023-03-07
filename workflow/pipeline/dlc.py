@@ -7,7 +7,6 @@ import yaml
 import re
 import numpy as np
 from pathlib import Path
-import os
 
 __all__ = ["train", "model"]
 
@@ -43,7 +42,9 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
                 session_id=key["session_id"],
                 recording_id=recording_id,
                 file_id=file_idx,
-                file_path=bfile.relative_to(model.get_dlc_root_data_dir()[0]),
+                file_path=bfile.relative_to(
+                    model.get_dlc_root_data_dir()[0]
+                ).as_posix(),
             )
         )
 
@@ -52,11 +53,17 @@ def ingest_behavior_videos(key, device_id, recording_id=0):
 
 
 def insert_new_dlc_model(
-    project_path, paramset_idx=None, model_prefix="", model_description="", prompt=True
+    project_path,
+    paramset_idx=None,
+    model_prefix="",
+    model_description="",
+    prompt=True,
+    config_filename="config.yaml",
 ):
     from deeplabcut.utils.auxiliaryfunctions import GetScorerName
 
-    config_file_path = Path(project_path) / "config.yaml"
+    project_path = Path(project_path)
+    config_file_path = project_path / config_filename
 
     with open(config_file_path, "rb") as f:
         dlc_config = yaml.safe_load(f)
@@ -82,17 +89,6 @@ def insert_new_dlc_model(
         trainingsetindex = np.argmin(
             np.abs(np.array(dlc_config["TrainingFraction"]) - float(trainset) / 100)
         )
-
-        scorer_legacy = model.str_to_bool(dlc_config.get("scorer_legacy", "f"))
-        dlc_scorer = GetScorerName(
-            cfg=dlc_config,
-            shuffle=shuffle,
-            trainFraction=dlc_config["TrainingFraction"][int(trainingsetindex)],
-            modelprefix=model_prefix,
-        )[scorer_legacy]
-
-        if dlc_config["snapshotindex"] == -1:
-            dlc_scorer = "".join(dlc_scorer.split("_")[:-1])
 
         model.Model.insert_new_model(
             model_name=model_name,
