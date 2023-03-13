@@ -52,6 +52,8 @@ class BehaviorIngestion(dj.Imported):
         block_df = pd.read_csv(block_file, keep_default_na=False)
         trial_df = pd.read_csv(trial_file, keep_default_na=False)
 
+        beh_data_files = [event_file, block_file, trial_file]
+
         # Populate EventType
         event.EventType.insert(
             [[e, ""] for e in events_df["event_type"].unique()],
@@ -66,7 +68,8 @@ class BehaviorIngestion(dj.Imported):
 
         # Populate BehaviorRecording.File
         behavioral_recording_file_list = [
-            [*key.values(), f"{session_dir}/{file}"] for file in beh_data_files
+            [*key.values(), file.relative_to(get_raw_root_data_dir())]
+            for file in beh_data_files
         ]
         event.BehaviorRecording.File.insert(behavioral_recording_file_list)
 
