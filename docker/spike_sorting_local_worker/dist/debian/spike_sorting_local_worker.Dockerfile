@@ -11,10 +11,10 @@ RUN xargs apt-get install -y < /tmp/apt_requirements.txt
 
 ## Downgrade gcc/g++ for cuda
 RUN apt-get install -y gcc-9 g++-9 && \
-    rm /usr/bin/gcc && \
-    rm /usr/bin/g++ && \
-    ln -s /usr/bin/gcc-9 /usr/bin/gcc && \
-    ln -s /usr/bin/g++-9 /usr/bin/g++
+   rm /usr/bin/gcc && \
+   rm /usr/bin/g++ && \
+   ln -s /usr/bin/gcc-9 /usr/bin/gcc && \
+   ln -s /usr/bin/g++-9 /usr/bin/g++
 
 ## CUDA Toolkit
 RUN wget -P /tmp/ http://developer.download.nvidia.com/compute/cuda/11.0.2/local_installers/cuda_11.0.2_450.51.05_linux.run
@@ -69,8 +69,8 @@ RUN cd ./TPrime-linux && bash install.sh
 ENV tPrime_path=/home/muser/neuropixel/TPrime-linux
 
 ## C_Waves
-RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/C_WavesLnxApp.zip
-RUN unzip /tmp/C_WavesLnxApp.zip
+RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/CatGTLnx37App.zip
+RUN unzip /tmp/CatGTLnx37App.zip
 RUN cd ./C_Waves-linux && bash install.sh
 ENV cWaves_path=/home/muser/neuropixel/C_Waves-linux
 
@@ -139,4 +139,4 @@ RUN git clone -b main https://github.com/${REPO_OWNER}/${REPO_NAME}.git
 
 # Install the workflow
 RUN pip install --upgrade pip && \
-    pip install --use-deprecated=legacy-resolver ./${REPO_NAME}
+   pip install --use-deprecated=legacy-resolver ./${REPO_NAME}
