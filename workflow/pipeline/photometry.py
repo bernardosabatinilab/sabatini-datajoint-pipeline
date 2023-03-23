@@ -122,9 +122,44 @@ class FiberPhotometry(dj.Imported):
         fiber_list: list[dict] = []
         demodulated_trace_list: list[dict] = []
 
+        if data:
+
+            synch_signal_names = ["toBehSys", "fromBehSys"]
+            demod_sample_rate = 600
+
+            # Demodulate & downsample raw photometry data
+            # Also returns raw sample rate and list of fibers used
+            data_format = "tdt"
+            photometry_df, fibers, raw_sample_rate = demodulation.offline_demodulation(
+                data, z=True, tau=0.05, downsample_fs=demod_sample_rate, bandpass_bw=20
+            )
+            del data
+
+            # Get trace names e.g., ["detrend_grnR", "raw_grnR"]
+            trace_names: list[str] = photometry_df.columns.drop(
+                synch_signal_names
+            ).tolist()
+            trace_names = set([name[:-1] for name in trace_names])
+
+            # Populate FiberPhotometry
+            beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
+            beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
+
         # Populate FiberPhotometry
-        beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
-        beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
+            beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
+            beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
+        else:
+            data: list[dict] = pd.read_csv(
+                next(photometry_dir.glob("*photometry.csv")), simplify_cells=True
+            )["timeSeries"]
+            dt: list[dict] pd.read_csv(next(photonmetry_dir.glob("*dt.csv")), simplify_cells=True)["dt"]
+
+        raw_sample_rate = None
+        beh_synch_signal = None
+        #demod_sample_rate = 1 / data[0]["dt"]
+        photometry_df = pd.DataFrame(data)
+
+        data_format = "csv"
 
         # Get photometry traces for each fiber
         for fiber_id in fibers:
