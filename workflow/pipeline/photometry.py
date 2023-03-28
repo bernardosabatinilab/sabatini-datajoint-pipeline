@@ -125,7 +125,7 @@ class FiberPhotometry(dj.Imported):
         if data:
 
             synch_signal_names = ["toBehSys", "fromBehSys"]
-            demod_sample_rate = 600
+            demod_sample_rate = 600 ##CANNOT HARDCODE THIS
 
             # Demodulate & downsample raw photometry data
             # Also returns raw sample rate and list of fibers used
@@ -148,20 +148,40 @@ class FiberPhotometry(dj.Imported):
         # Populate FiberPhotometry
             beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
             beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
-        else:
-            data: list[dict] = pd.read_csv(
-                next(photometry_dir.glob("*photometry.csv")), simplify_cells=True
+         else:
+            data: list[dict] = spio.loadmat(
+                next(photometry_dir.glob("*timeseries_2.mat")), simplify_cells=True
             )["timeSeries"]
-            dt: list[dict] pd.read_csv(next(photonmetry_dir.glob("*dt.csv")), simplify_cells=True)["dt"]
 
-        raw_sample_rate = None
-        beh_synch_signal = None
-        #demod_sample_rate = 1 / data[0]["dt"]
-        photometry_df = pd.DataFrame(data)
+                    
+            raw_sample_rate = None
+            beh_synch_signal = timeSeries["time_offset"]
+            demod_sample_rate = timeSeries["demux_freq"]
+            photometry_df = pd.DataFrame(data)
 
-        data_format = "csv"
+            if timeSeries['demux']=1:
+                photometry_df = photometry_df
+            else:
+            #process demodulation
+                photometry_df = demodulation.offline_demodulation(
+                    data, z=True, tau=0.05, downsample_fs=demod_sample_rate, bandpass_bw=20
+                )
+        
+            data_format = "mat"
+            del data
 
-        # Get photometry traces for each fiber
+            photometry_df[["emission_color", "hemisphere"]] = photometry_df[
+                "channel_name"
+            ].str.split("_", expand=True)
+
+            fibers = list(range(1, len(photometry_df["hemisphere"].unique()) + 1))
+
+            trace_names = [
+                "_left" + s for s in photometry_df["emission_color"].unique()
+            ]  # ["raw_green", "raw_red"]
+
+
+               # Get photometry traces for each fiber
         for fiber_id in fibers:
 
             hemisphere = fiber_to_side_mapping[fiber_id]
