@@ -163,6 +163,19 @@ class FiberPhotometry(dj.Imported):
                 photometry_df = photometry_df
             else:
             #process demodulation
+                file_key = list(data.keys())[3]
+                processed = data[file_key]
+                params = processed['params']
+
+                raw_sample_rate = params[0,0]['rawSampleFreq']
+                raw_sample_rate = raw_sample_rate[0][0][0][0]
+                finalSampleFreq = params[0,0]['finalSampleFreq']
+                finalSampleFreq = finalSampleFreq[0][0][0][0]
+                demod_sample_rate = params[0]['setCarrierFreq']
+                demod_sample_rate = demod_sample_rate[0][0][0][0] #this is indexed for the first channel..is that right?
+                detrendWindow = params[0,0] ['detrendWindowTime']
+                detrendWindow = detrendWindow[0][0][0][0]
+                
                 photometry_df = demodulation.offline_demodulation(
                     data, z=True, tau=0.05, downsample_fs=demod_sample_rate, bandpass_bw=20
                 )
