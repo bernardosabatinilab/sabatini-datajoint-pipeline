@@ -218,17 +218,17 @@ def demodulate(
     center_fs,
     ref_x=None,
     ref_y=None,
-    demod_tau=0.5,
+    demod_tau=0.5, #corresponds to Celia's tau
     demod_filter_order=3,
     mod_bandpass=True,
-    fs=6103.515625,
+    fs=6103.515625,  ##defaults passed here. 
     attenuation=40,
-    downsample_fs=500,
+    downsample_fs=500, #default set here, what it's downsampling to 
     downsample_filter_order=3,
     downsample_method="polyphase",
     downsample_antialias=True,
     pre_downsample=True,
-    bandpass_bw=50,
+    bandpass_bw=50, #default set here
 ):
 
     assert downsample_fs < fs, "Downsample fs must be lower than original fs"
@@ -330,7 +330,7 @@ def offline_demodulation(
     fs = data.streams[f"Fi{fibers[0]}r"].fs  # sampling freq ~6103 Hz
     # online_fs = data.streams[f'grn{fibers[0]}'].fs # online demod sampling freq
 
-    for fiber in fibers:
+    for fiber in fibers: #START DEMOD and should be standard across systems
 
         k = f"pmt_{fiber}"
         ref_fs[k] = detect_fs(
@@ -343,13 +343,14 @@ def offline_demodulation(
         ]  # CB: raw data (signal convolved with carrier frequency), ch1
 
         if z:
-            sig[k] = rolling_z(sig[k], wn=round(60 * fs))
+            sig[k] = rolling_z(sig[k], wn=round(60 * fs)) ##window should not be hardcoded can be set as a variable this shows up multiple times
             # print('applying first z-score with a 60s rolling window')
 
         # online[k] = data.streams[f'grn{fiber}'].data # CB: demodulated and low-pass filtered data, by TDT, ch1
 
         tstamps[k] = np.arange(len(sig[k])) / fs  # CB: timestamps to track samples
     # tstamps["online"] = np.arange(len(online[k])) / online_fs # CB: timestamps to track samples, necessary if downsampling TDT pp
+    #Fitting and reconstructing the reference signal
 
     # use a short snippet of the signal to fit our offline reference
     use_points = int(1e4)
@@ -364,6 +365,7 @@ def offline_demodulation(
             expected_fs=ref_fs[k],
         )  # CB: TBD but think this is fitting sine measured wave in raw data
         # and comparing to input sine wave parameters for driver; outputs fit params
+        #fit signal to estimated sine waves and cosine
         (
             ref[k]["params_x"],
             _,
@@ -383,7 +385,7 @@ def offline_demodulation(
             ref[k]["params_y"], tstamps[k]
         )  # CB: same but for shifted 90 deg
 
-        int_x, int_y, r, downsample_fs = demodulate(
+        int_x, int_y, r, downsample_fs = demodulate(   ##actual demoduulation step
             v,
             ref_fs[k],  # is this the center_fs? and what is the center_fs
             ref_x=ref[k]["ref_x"],
@@ -398,7 +400,8 @@ def offline_demodulation(
         demod_sig[k][: int(60 * downsample_fs)] = np.nan
         demod_sig[k][-int(60 * downsample_fs) :] = np.nan
 
-    tstamps["demod"] = np.arange(len(demod_sig[f"pmt_{fiber}"])) / downsample_fs
+    tstamps["demod"] = np.arange(len(demod_sig[f"pmt_{fiber}"])) / downsample_fs #might need to delete/comment out
+    #END DEMOD
 
     toBeh = (
         downsample(data.streams.toGG.data, fs, downsample_fs, method="polyphase") > 0.25
@@ -455,4 +458,4 @@ def offline_demodulation(
             side = fiber_to_side_keys[fiber]
             demod_df[f"raw_grn{side}"] = raw_df[f"grn{side}"]
 
-    return demod_df, fibers, fs
+    return demod_df, fibers, fs  #Zscore and keep raw data
