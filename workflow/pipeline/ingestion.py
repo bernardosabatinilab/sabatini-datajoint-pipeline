@@ -81,7 +81,19 @@ class BehaviorIngestion(dj.Imported):
             block_start_trial = row["start_trial"]
             block_end_trial = row["end_trial"]
 
-            events_block_df = events_df.loc[events_df["trial"] == block_start_trial]
+            ## if events_df has column "inTrial" then isolate events with "inTrial" == 1; this handles Bernardo's pipeline
+            ## else isolate events with "trial" == block_start_trial
+            if "inTrial" in events_df.columns:
+                events_block_df = events_df.loc[events_df["inTrial"] == 1]
+            else:
+                events_block_df = events_df.loc[events_df["trial"] == block_start_trial]
+
+            # if events_block_df["trial"] is not sequential, then fill with NaN
+            #if not events_block_df["trial"].is_monotonic_increasing:
+            #    events_block_df["trial"] = events_block_df["trial"].fillna(
+            #        method="ffill"
+            #    )
+
             block_start_time = events_block_df["time"].values[0]
             events_block_df = events_df.loc[events_df["trial"] == block_end_trial]
             block_stop_time = events_block_df["time"].values[-1]
@@ -106,21 +118,21 @@ class BehaviorIngestion(dj.Imported):
         trial.Block.insert(trial_block_list, allow_direct_insert=True)
         trial.Block.Attribute.insert(attribute_list, allow_direct_insert=True)
 
-        # Populate trial.Trial & trial.Trial.Attribute
-        trial_df.rename(
-            columns={"session_position": "trial_id", "block": "block_id"}, inplace=True
-        )
+        # Populate trial.Trial & trial.Trial.Attribute # Why are these renamed?
+        #trial_df.rename(
+        #    columns={"session_position": "trial_id", "block": "block_id"}, inplace=True
+        #)
         trial_trial_list = []  # list of dictionaries
         attribute_list = []  # list of lists
 
         for _, row in trial_df.iterrows():
-            block_start_trial = row["trial_id"]
-            events_trial_df = events_df.loc[events_df["trial"] == row["trial_id"]]
+            block_start_trial = row["session_position"]
+            events_trial_df = events_df.loc[events_df["trial"] == row["session_position"]]
 
             trial_trial_list.append(
                 {
                     **key,
-                    "trial_id": row["trial_id"],
+                    "trial_id": row["session_position"],
                     "trial_start_time": events_trial_df["time"].values[0],
                     "trial_stop_time": events_trial_df["time"].values[-1],
                 }
@@ -128,9 +140,9 @@ class BehaviorIngestion(dj.Imported):
 
             attribute_list.extend(
                 [
-                    [*key.values(), row["trial_id"], attr, val, None]
+                    [*key.values(), row["session_position"], attr, val, None]
                     for (attr, val) in zip(row.index, row.values)
-                    if attr != "trial_id" and attr != "block"
+                    if attr != "session_position" and attr != "block"
                 ]
             )
 
@@ -158,7 +170,7 @@ class BehaviorIngestion(dj.Imported):
         )
 
         # Populate trial.TrialEvent
-        event_table_df.rename(columns={"trial": "trial_id"}, inplace=True)
+        #event_table_df.rename(columns={"trial": "trial_id"}, inplace=True)
         trial.TrialEvent.insert(
             event_table_df,
             ignore_extra_fields=True,
@@ -168,3 +180,7 @@ class BehaviorIngestion(dj.Imported):
 
         # Populate event.BehaviorIngestion
         self.insert1({**key, "ingestion_time": datetime.now()})
+
+
+
+
