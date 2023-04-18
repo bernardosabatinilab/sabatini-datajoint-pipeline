@@ -93,26 +93,17 @@ class FiberPhotometry(dj.Imported):
         session_dir = (session.SessionDirectory & key).fetch1("session_dir")
         session_full_dir: Path = find_full_path(get_raw_root_data_dir(), session_dir)
         photometry_dir = session_full_dir / "Photometry"
-
-        # Read from the meta_info.toml in the photometry folder if exists
-        meta_info_file = list(photometry_dir.glob("*.toml"))[0]
-        meta_info = {}
-        try:
-            with open(meta_info_file.as_posix()) as f:
-                meta_info = tomli.loads(f.read())
-        except FileNotFoundError:
-            logger.info("meta info is missing")
-        light_source_name = meta_info.get("Fiber", {}).get("light_source", "")
+       
 
         # Read raw data sourced from tdt
-        tdt_data: tdt.StructType = tdt.read_block(photometry_dir)
+        #tdt_data: tdt.StructType = tdt.read_block(photometry_dir)
 
         # Demodulate & downsample raw photometry data
         # Also returns raw sample rate and list of fibers used
-        photometry_df, fibers, raw_sample_rate = demodulation.offline_demodulation(
-            tdt_data, z=True, tau=0.05, downsample_fs=demod_sample_rate, bandpass_bw=20
-        )
-        del tdt_data
+        #photometry_df, fibers, raw_sample_rate = demodulation.offline_demodulation(
+        #    tdt_data, z=True, tau=0.05, downsample_fs=600, bandpass_bw=20
+        #)
+        #del tdt_data
 
         # Get trace names e.g., ["detrend_grnR", "raw_grnR"]
         trace_names: list[str] = photometry_df.columns.drop(synch_signal_names).tolist()
@@ -125,41 +116,58 @@ class FiberPhotometry(dj.Imported):
         if data:
 
             synch_signal_names = ["toBehSys", "fromBehSys"]
-            demod_sample_rate = 600 ##CANNOT HARDCODE THIS
+            demod_sample_rate = 600 #default
 
             # Demodulate & downsample raw photometry data
             # Also returns raw sample rate and list of fibers used
             data_format = "tdt"
-            photometry_df, fibers, raw_sample_rate = demodulation.offline_demodulation(
-                data, z=True, tau=0.05, downsample_fs=demod_sample_rate, bandpass_bw=20
+            # Read from the meta_info.toml in the photometry folder if exists
+        meta_info_file = list(photometry_dir.glob("*.toml"))[0]
+        meta_info = {}
+        try:
+            with open(meta_info_file.as_posix()) as f:
+                meta_info = tomli.loads(f.read())
+        except FileNotFoundError:
+            logger.info("meta info is missing")
+        light_source_name = meta_info.get("Fiber", {}).get("light_source", "")
+        carrier_freq = meta_info.get("carrier_freq","")
+        sampling_freq = meta_info.get("sampling_freq", "fs")
+        downsample_freq = meta_info.get("downsample_freq", "")
+        z_window = meta_info.get("z_window", "")
+        task_ID = meta_info.get("task_ID", "").set_index("Fiber")
+        #process demodulation based on the data format
+        photometry_df, fibers, sampling_frequency = demodulation.offline_demodulation(
+                data, z=True, z_window=z_window, tau=0.05, downsample_fs=downsample_freq, bandpass_bw=20
             )
-            del data
+        del data
 
-            # Get trace names e.g., ["detrend_grnR", "raw_grnR"]
-            trace_names: list[str] = photometry_df.columns.drop(
+        # Get trace names e.g., ["detrend_grnR", "raw_grnR"]
+        trace_names: list[str] = photometry_df.columns.drop(
                 synch_signal_names
             ).tolist()
-            trace_names = set([name[:-1] for name in trace_names])
+        trace_names = set([name[:-1] for name in trace_names])
 
             # Populate FiberPhotometry
-            beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
-            beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
+        beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
+        beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
 
         # Populate FiberPhotometry
-            beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
-            beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
-         else:
-            data: list[dict] = spio.loadmat(
+        beh_synch_signal = photometry_df[synch_signal_names].to_dict("list")
+        beh_synch_signal = {k: np.array(v) for k, v in beh_synch_signal.items()}
+        #handle matlab file structure
+
+        else:
+        data: list[dict] = spio.loadmat(
                 next(photometry_dir.glob("*timeseries_2.mat")), simplify_cells=True
             )["timeSeries"]
 
                     
-            raw_sample_rate = None
-            beh_synch_signal = timeSeries["time_offset"]
-            demod_sample_rate = timeSeries["demux_freq"]
-            processed_photometry = pd.DataFrame(data)
+        raw_sample_rate = None
+        beh_synch_signal = timeSeries["time_offset"]
+        demod_sample_rate = timeSeries["demux_freq"]
+        processed_photometry = pd.DataFrame(data)
 
-            if timeSeries['demux']=1:
+        if timeSeries['demux']=1:
                 photometry_df = processed_photometry
             else:
             #process demodulation
@@ -168,13 +176,32 @@ class FiberPhotometry(dj.Imported):
                 signals_raw = processed['signals_raw'] #this imports all raw channels
                 params = processed['params']
 
-                raw_sample_rate = params[0,0]['rawSampleFreq'][0][0][0][0]
-                finalSampleFreq = params[0,0]['finalSampleFreq'][0][0][0][0]
-                demod_sample_rate = params[0]['setCarrierFreq'][0][0][0][0] #this is indexed for the first channel..is that right?
-                detrendWindow = params[0,0] ['detrendWindowTime'][0][0][0][0]
-                                
+                ###get the raw sample rate              
+                def raw_sample_rate(params):
+                    for i in range(0,3):
+                        raw_sample_rate = params[0,i]['rawSampleFreq'][0][0][0][0]
+                        return raw_sample_rate
+                    
+                ###get the final sample rate
+                def finalSampleFreq(params):
+                    for i in range(0,3):
+                        raw_sample_rate = params[0,i]['finalSampleFreq'][0][0][0][0]
+                        return finalSampleFreq
+                
+                ###get the demodulation sample rate
+                def demod_sample_rate(params):
+                    for i in range(0,3):
+                        raw_sample_rate = params[0,i]['setCarrierFreq'][0][0][0][0]
+                        return demod_sample_rate
+                ###get the detrend window
+                def detrendWindow(params):
+                    for i in range(0,3):
+                        detrendWindow = params[0, i]['detrendWindowTime'][0][0][0][0]
+                        return detrendWindow 
+                                              
                 photometry_df = demodulation.offline_demodulation(
-                    data, z=True, tau=0.05, downsample_fs=demod_sample_rate, bandpass_bw=20
+                    signals_raw, z=True, z_window = detrendWindow, tau=0.05,
+                    downsample_fs=demod_sample_rate, bandpass_bw=20
                 )
         
             data_format = "mat"

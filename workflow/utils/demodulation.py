@@ -315,147 +315,72 @@ def rolling_z(x, wn):
     return z.values
 
 
-def offline_demodulation(
-    data: tdt.StructType, tau, z=True, downsample_fs=600, bandpass_bw=50, **kwargs
-) -> tuple[pd.DataFrame, list[str], float]:
-
-    # tau: 1/cutoff freq of lowpass filter
-    # downsample_fs: new downsampled freq
-    # bandpass_bw: bandwith of bandpass filter centered around carrier freq
-    fibers = [i for i in [1, 2] if np.std(data.streams[f"Fi{i}r"].data[0][5:] > 0.05)]
-    # print(f'using fibers {fibers}')
-
-    ref_fs, sig, online, tstamps, ref, demod_sig = {}, {}, {}, {}, {}, {}
-
-    fs = data.streams[f"Fi{fibers[0]}r"].fs  # sampling freq ~6103 Hz
-    # online_fs = data.streams[f'grn{fibers[0]}'].fs # online demod sampling freq
-
-    for fiber in fibers: #START DEMOD and should be standard across systems
-
-        k = f"pmt_{fiber}"
-        ref_fs[k] = detect_fs(
-            data.streams[f"Fi{fiber}r"].data[0], 1.0 / fs
-        )  # CB: channel 1 reference frequency from fft (should be same as from scalars)
-        # print(f'carrier freq fiber {fiber} = {ref_fs[k]}')
-
-        sig[k] = data.streams[f"Fi{fiber}r"].data[
-            2
-        ]  # CB: raw data (signal convolved with carrier frequency), ch1
-
-        if z:
-            sig[k] = rolling_z(sig[k], wn=round(60 * fs)) ##window should not be hardcoded can be set as a variable this shows up multiple times
-            # print('applying first z-score with a 60s rolling window')
-
-        # online[k] = data.streams[f'grn{fiber}'].data # CB: demodulated and low-pass filtered data, by TDT, ch1
-
-        tstamps[k] = np.arange(len(sig[k])) / fs  # CB: timestamps to track samples
-    # tstamps["online"] = np.arange(len(online[k])) / online_fs # CB: timestamps to track samples, necessary if downsampling TDT pp
-    #Fitting and reconstructing the reference signal
-
+def offline_demodulation(data, metadata, tau=20, z=True, z_window=60, downsample_fs=600, 
+                         bandpass_bw=50, **kwargs):
+        
     # use a short snippet of the signal to fit our offline reference
-    use_points = int(1e4)
-    for k, v in sig.items():  # CB: iterate over raw data channels
-        ref[k] = {}
+    use_points = int(1e4)     
+            
+    tstamps, ref, demod_sig = {}, {}, {}
+        
+    if metadata.task_ID.values[0].startswith('hf'):
+        threshold = 0.5# ... # 0.5?
+        toBeh = (downsample(data['toBeh'], metadata.sampling_freq.values[0], downsample_fs, 
+                            method='polyphase') > threshold).astype('int')
+        froG = (downsample(data['froG'], metadata.sampling_freq.values[0], downsample_fs, 
+                             method='polyphase') > threshold)
+    
+    demod_df = pd.DataFrame(data={'toBehSys':toBeh, 
+                                  'fromBehSys':froG})
+    
+    for fiber in [col for col in data.columns if col.startswith('fiber')]:
+    
+        sig = data[fiber].values # photometry signal
+        ref_fs = metadata.loc[fiber, 'carrier_freq']
+        fs = metadata.loc[fiber, 'sampling_freq']
+        if z:
+            sig = rolling_z(sig, wn=round(z_window*fs))
+            print('applying first z-score with a 60s rolling window')
+             
+        tstamps = np.arange(len(sig)) / fs # CB: timestamps to track samples
 
-        results = fit_reference(
-            v[
-                int(60 * fs) : int(60 * fs) + use_points
-            ],  # jump over z-score window tails (or equivalent to match)
-            tstamps[k][int(60 * fs) : int(60 * fs) + use_points],
-            expected_fs=ref_fs[k],
-        )  # CB: TBD but think this is fitting sine measured wave in raw data
-        # and comparing to input sine wave parameters for driver; outputs fit params
-        #fit signal to estimated sine waves and cosine
-        (
-            ref[k]["params_x"],
-            _,
-            ref[k]["ref_clean"],
-        ) = results  # CB: deconstruct above into fit params and bp filtered data
+        results = fit_reference(sig[int(z_window*fs):int(z_window*fs)+use_points],  # jump over z-score window tails (or equivalent to match)
+                                tstamps[int(z_window*fs):int(z_window*fs)+use_points], 
+                                expected_fs=ref_fs) # CB: TBD but think this is fitting sine measured wave in raw data
+                                                       # and comparing to input sine wave parameters for driver; outputs fit params
+        ref["params_x"], _, _ = results # CB: deconstruct above into fit params and bp filtered data
         # remember y has a 90 degree phase shift
-        ref[k]["params_y"] = (
-            ref[k]["params_x"][0],  #
-            ref[k]["params_x"][1],
-            ref[k]["params_x"][2] + np.pi / 2,
-            ref[k]["params_x"][3],
-        )
-        ref[k]["ref_x"] = gen_sine(
-            ref[k]["params_x"], tstamps[k]
-        )  # CB: generate new reference sine using fit params for data
-        ref[k]["ref_y"] = gen_sine(
-            ref[k]["params_y"], tstamps[k]
-        )  # CB: same but for shifted 90 deg
+        ref["params_y"] = (ref["params_x"][0], #
+                           ref["params_x"][1],
+                           ref["params_x"][2] + np.pi / 2,
+                           ref["params_x"][3])
+        ref["ref_x"] = gen_sine(ref["params_x"], tstamps) # CB: generate new reference sine using fit params for data
+        ref["ref_y"] = gen_sine(ref["params_y"], tstamps) # CB: same but for shifted 90 deg
 
-        int_x, int_y, r, downsample_fs = demodulate(   ##actual demoduulation step
-            v,
-            ref_fs[k],  # is this the center_fs? and what is the center_fs
-            ref_x=ref[k]["ref_x"],
-            ref_y=ref[k]["ref_y"],
-            demod_tau=tau,
-            downsample_fs=downsample_fs,
-            bandpass_bw=bandpass_bw,
-        )
-        demod_sig[k] = r
-
-    for k, v in demod_sig.items():
-        demod_sig[k][: int(60 * downsample_fs)] = np.nan
-        demod_sig[k][-int(60 * downsample_fs) :] = np.nan
-
-    tstamps["demod"] = np.arange(len(demod_sig[f"pmt_{fiber}"])) / downsample_fs #might need to delete/comment out
-    #END DEMOD
-
-    toBeh = (
-        downsample(data.streams.toGG.data, fs, downsample_fs, method="polyphase") > 0.25
-    ).astype("int")
-    froG = 1 - (
-        downsample(data.streams.froG.data, fs, downsample_fs, method="polyphase") < 0.25
-    )
-
-    # print(len(data.streams.toGG.data), len(data.streams.froG.data))
-    # print(len(toBeh), len(froG))
-
-    demod_df = pd.DataFrame(
-        data={  #'grnR':demod_sig['pmt_1'],
-            #'grnL':demod_sig['pmt_2'],
-            "toBehSys": toBeh,
-            "fromBehSys": froG,
-        }
-    )
-
-    fiber_to_side_keys = {1: "R", 2: "L"}
-
-    for fiber in fibers:
-        side = fiber_to_side_keys[fiber]
-
-        if len(demod_sig[f"pmt_{fiber}"]) < len(toBeh):
-            # why are fiber data lengths sometimes different? sometimes turn off or on fiber later...how to align?
-            # print(f'padding fiber {fiber} with extra NaNs')
-            length_difference = len(toBeh) - len(demod_sig[f"pmt_{fiber}"])
-            # print(length_difference)
-            demod_sig[f"pmt_{fiber}"].extend([np.nan] * length_difference)
-
-        demod_df[f'{"detrend_" if z else ""}grn{side}'] = demod_sig[f"pmt_{fiber}"]
-
-    start_idx = demod_df[f'{"detrend_" if z else ""}grn{side}'].first_valid_index()
-    end_idx = demod_df[f'{"detrend_" if z else ""}grn{side}'].last_valid_index()
-
+        _, _, demod_sig, _ = demodulate(sig, 
+                                         ref_fs, #is this the center_fs? and what is the center_fs
+                                         ref_x=ref["ref_x"],
+                                         ref_y=ref["ref_y"],
+                                         demod_tau=tau,
+                                         downsample_fs=downsample_fs,
+                                         bandpass_bw=bandpass_bw)
+              
+        demod_sig[:int(z_window*downsample_fs)] = np.nan
+        demod_sig[-int(z_window*downsample_fs):] = np.nan
+        demod_df[fiber.replace('fiber', 'detrend')] = demod_sig
+            
+    start_idx = demod_df[fiber.replace('fiber', 'detrend')].first_valid_index()
+    end_idx = demod_df[fiber.replace('fiber', 'detrend')].last_valid_index()
     demod_df = demod_df[start_idx:end_idx].reset_index(drop=True)
-
-    # demod_df = demod_df.dropna().reset_index(drop=True)
-
+                     
     if z:
-        raw_df, _, _ = offline_demodulation(
-            data,
-            tau,
-            z=False,
-            downsample_fs=downsample_fs,
-            bandpass_bw=bandpass_bw,
-            **kwargs,
-        )
-        assert demod_df[["toBehSys", "fromBehSys"]].equals(
-            raw_df[["toBehSys", "fromBehSys"]]
-        )
-        for fiber in fibers:
-            side = fiber_to_side_keys[fiber]
-            demod_df[f"raw_grn{side}"] = raw_df[f"grn{side}"]
-
-    return demod_df, fibers, fs  #Zscore and keep raw data
+        raw = offline_demodulation(data, metadata, tau, z=False,
+                                   downsample_fs=downsample_fs, 
+                                   bandpass_bw=bandpass_bw, **kwargs)
+        print(raw.columns)
+        assert(demod_df[['toBehSys','fromBehSys']].equals(raw[['toBehSys','fromBehSys']]))
+        for fiber in [col for col in data.columns if col.startswith('fiber')]:
+            side = fiber[len('fiber_'):]
+            demod_df[fiber.replace('fiber', 'raw')] = raw[f'detrend_{side}']
+    
+    return demod_df
