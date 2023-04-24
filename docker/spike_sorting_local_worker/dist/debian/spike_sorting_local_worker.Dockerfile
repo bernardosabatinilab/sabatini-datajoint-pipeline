@@ -57,8 +57,8 @@ RUN mkdir /home/muser/neuropixel
 WORKDIR /home/muser/neuropixel
 
 ## CatGT
-RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/CatGTLnxApp.zip
-RUN unzip /tmp/CatGTLnxApp.zip
+RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/CatGTLnx39App.zip
+RUN unzip /tmp/CatGTLnx39App.zip
 RUN cd ./CatGT-linux && bash install.sh
 ENV catGTPath=/home/muser/neuropixel/CatGT-linux
 
