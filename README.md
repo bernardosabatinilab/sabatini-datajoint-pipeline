@@ -1,6 +1,6 @@
 ### Installation and setting up local environment to access database
 
-```
+```bash
 conda create -n sabatini-datajoint -c conda-forge python=3.9 -y
 
 conda activate sabatini-datajoint
@@ -13,16 +13,42 @@ cd sabatini-datajoint-pipeline/
 
 pip install -r requirements.txt 
 pip install -e . 
+- This step of pip installing in -editable mode, must be rerun if you want to test with local changes
 
 Create a copy of .example_dj_local_config.json, rename it to dj_local_conf.json and fill in database user/host/password credentials
 
-Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda environment 
+Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda environment
+```
 
-``` 
+### Testing setup instructions
+
+```python
+- Rerun editable installation of codebase to make sure that most updated local code is run
+    pip install -e .
+
+- Navigate inside sabatini-datajoint-pipeline/ while in sabatini-datajoint conda environment
+- Launch ipython (type ipython into terminal) after (cd sabatini-datajoint-pipeline/)
+or 
+- Navigate to jupyter notebook, configured with updated conda environment
+
+Next, import necessary pipeline variables:
+- Run line [from workflow.pipeline import *]
+- Now that variables have been defined, you should see the database schemas present, can verify by displaying the session.Session() table. 
+- Define the key of interest: If you are testing insertion of a new subject with a new type of data format you can do this by inserting into subject.Subject(), session.Session(), and session.SessionDirectory() tables. To obtain the session_key, you can run
+    
+    session_key = (session.Session() & 'subject="subject_name").fetch1("KEY")
+    photometry_key = (photometry.FiberPhotometry.key_source & session_key) 
+
+- Using this key of interest, you can move to testing the make function of the table that you wish to modify. For example, to test any updates to the photometry.FiberPhotometry() function, you can manually rerun the .populate() function with the key specified. If there are errors in the code and you want to debug to see where the issue is, you should set the python debugger to be active (%pdb on), that way you can step into the make method and rerun the lines of code previous to that which has errored in order to determine what the issue is. 
+- This testing can be performed without the python debugger if that is easier. To do this, within the ipython/jupyter environment(where you are running the testing), you need to import the specific imports that are necessary to run that function (i.e. in the case of photometry all the imports defined at the top of photometry.py). Then you can manually run line-by-line each line of the specific .make() method that you are modifying in order to see the data you are working with, and verify that the implemented changes work as intended.
+
+    photometry.FiberPhotometry.populate(key)
+    photometry.FiberPhotometry.make(photometry.FiberPhotometry(), key)
+```
 
 ### Windows Nvidia GPU Configuration (using Windows Subsystem for Linux (WSL))
 
-```
+```bash
 1. Update OS to allow for developer options: Windows 10 2022 Update | Version 22H2
 2. Install WSL using powershell
 3. Confirm Ubuntu exists in WSL installation by running
@@ -51,8 +77,10 @@ Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda envir
 9. Confirm that /etc/docker/daemon.json contains a runtime component pointing to the correct nvidia-container-runtime path. (This is updated by default in Ubuntu, but needs to be manually set in Windows)
 10. Update all .env paths with WSL Ubuntu path format. For example: /mnt/c/Users/Janet/...
 ```
+
 ### Worker Deployment using Docker Container (in WSL)
-```
+
+```bash
 
 Pipeline Operation
 1. New data is added into the specfied directory 
@@ -147,4 +175,3 @@ To bring down the container
     docker compose --env-file=../../.env -f docker-compose-spike_sorting_local_worker.yaml -p sabatini-datajoint-pipeline_spike down
 
 ```
-
