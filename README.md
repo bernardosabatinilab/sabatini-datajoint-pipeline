@@ -60,19 +60,14 @@ Next, import necessary pipeline variables:
     wsl --set-version Ubuntu-20.04 2
 
 5. Make sure that your version of Ubuntu is integrated in the docker app (Settings > Resources > WSL integration)
-6. Install CUDA in WSL: https://docs.nvidia.com/cuda/wsl-user-guide/index.html
+6. Install CUDA in WSL: https://docs.nvidia.com/cuda/wsl-user-guide/index.html#getting-started-with-cuda-on-wsl
 7. WSL-Ubuntu must be configured to be a root user in order to use Docker. Run in powershell: 
 
     ubuntu2004 config --default-user root
 
-8. Run install_nvidia_driver.sh script using command
+8. Install Cuda toolkit in WSL - Use Linux OS, x86_64 architecture, WSL-Ubuntu Distribution, Version 2.0, runfile(local). Then, follow the base installer instructions.
 
-    sudo bash install_nvidia_driver.sh "516.94" "https://developer.download.nvidia.com/compute/cuda/11.7.0/local_installers/cuda_11.7.0_515.43.04_linux.run"
-
-    ![Example nvidia-smi](images/nvdia_smi.jpg)
-
-    - the "516.96" Driver Version is pulled from nvidia-smi 
-    - Specify installers for Cuda Version 11.7 (also specified in nvidia-smi)
+    https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=runfile_local
 
 9. Confirm that /etc/docker/daemon.json contains a runtime component pointing to the correct nvidia-container-runtime path. (This is updated by default in Ubuntu, but needs to be manually set in Windows)
 10. Update all .env paths with WSL Ubuntu path format. For example: /mnt/c/Users/Janet/...
@@ -91,7 +86,8 @@ Pipeline Operation
     (all tables without large computational resources needed)
     - Spike Sorting Worker will work on populating Clustering table (runs kilosort)
     - Calcium Imaging Worker will work on populating Processing table (in Imaging schema)
-    - DLC Worker will work on populating RecordingInfo and PoseEstimation tables
+4. For DLC operation, activate conda environment and run the DLC notebook to process new videos     
+    through trained models.    
 4. Workers will continually operate and will continue to do work if new data appears in the inbox folder.
     If no data is added, and data is not added to LabBook, the workers will not do anything until the data has been added.
 
