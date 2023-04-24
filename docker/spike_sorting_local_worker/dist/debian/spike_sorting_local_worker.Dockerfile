@@ -69,8 +69,8 @@ RUN cd ./TPrime-linux && bash install.sh
 ENV tPrime_path=/home/muser/neuropixel/TPrime-linux
 
 ## C_Waves
-RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/CatGTLnx37App.zip
-RUN unzip /tmp/CatGTLnx37App.zip
+RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/C_WavesLnxApp.zip
+RUN unzip /tmp/C_WavesLnxApp.zip
 RUN cd ./C_Waves-linux && bash install.sh
 ENV cWaves_path=/home/muser/neuropixel/C_Waves-linux
 
