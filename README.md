@@ -31,7 +31,7 @@ Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda envir
 or 
 - Navigate to jupyter notebook, configured with updated conda environment
 
-Next, import necessary pipeline variables:
+Next, import the necessary modules from the pipeline:
 - Run line [from workflow.pipeline import *]
 - Now that variables have been defined, you should see the database schemas present, can verify by displaying the session.Session() table. 
 - Define the key of interest: If you are testing insertion of a new subject with a new type of data format you can do this by inserting into subject.Subject(), session.Session(), and session.SessionDirectory() tables. To obtain the session_key, you can run
