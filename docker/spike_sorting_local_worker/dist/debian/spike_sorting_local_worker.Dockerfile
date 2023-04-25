@@ -11,10 +11,10 @@ RUN xargs apt-get install -y < /tmp/apt_requirements.txt
 
 ## Downgrade gcc/g++ for cuda
 RUN apt-get install -y gcc-9 g++-9 && \
-    rm /usr/bin/gcc && \
-    rm /usr/bin/g++ && \
-    ln -s /usr/bin/gcc-9 /usr/bin/gcc && \
-    ln -s /usr/bin/g++-9 /usr/bin/g++
+   rm /usr/bin/gcc && \
+   rm /usr/bin/g++ && \
+   ln -s /usr/bin/gcc-9 /usr/bin/gcc && \
+   ln -s /usr/bin/g++-9 /usr/bin/g++
 
 ## CUDA Toolkit
 RUN wget -P /tmp/ http://developer.download.nvidia.com/compute/cuda/11.0.2/local_installers/cuda_11.0.2_450.51.05_linux.run
@@ -57,8 +57,8 @@ RUN mkdir /home/muser/neuropixel
 WORKDIR /home/muser/neuropixel
 
 ## CatGT
-RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/CatGTLnxApp.zip
-RUN unzip /tmp/CatGTLnxApp.zip
+RUN wget -P /tmp/ http://billkarsh.github.io/SpikeGLX/Support/CatGTLnx39App.zip
+RUN unzip /tmp/CatGTLnx39App.zip
 RUN cd ./CatGT-linux && bash install.sh
 ENV catGTPath=/home/muser/neuropixel/CatGT-linux
 
@@ -139,4 +139,4 @@ RUN git clone -b main https://github.com/${REPO_OWNER}/${REPO_NAME}.git
 
 # Install the workflow
 RUN pip install --upgrade pip && \
-    pip install --use-deprecated=legacy-resolver ./${REPO_NAME}
+   pip install --use-deprecated=legacy-resolver ./${REPO_NAME}
