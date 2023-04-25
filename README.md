@@ -1,4 +1,6 @@
-### Installation and setting up local environment to access database
+# Sabatini Lab - DataJoint Workflow Setup Instructions
+
+## Installation and setting up local environment to access database
 
 ```
 conda create -n sabatini-datajoint -c conda-forge python=3.9 -y
@@ -13,14 +15,14 @@ cd sabatini-datajoint-pipeline/
 
 pip install -r requirements.txt 
 pip install -e . 
+- This step of pip installing in -editable mode, must be rerun if you want to test with local changes
 
 Create a copy of .example_dj_local_config.json, rename it to dj_local_conf.json and fill in database user/host/password credentials
 
-Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda environment 
+Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda environment
+```
 
-``` 
-
-### Windows Nvidia GPU Configuration (using Windows Subsystem for Linux (WSL))
+## Windows Nvidia GPU Configuration (using Windows Subsystem for Linux (WSL))
 
 ```
 1. Update OS to allow for developer options: Windows 10 2022 Update | Version 22H2
@@ -46,9 +48,10 @@ Launch Jupyter Notebook/Lab and set kernel to the sabatini-datajoint conda envir
 9. Confirm that /etc/docker/daemon.json contains a runtime component pointing to the correct nvidia-container-runtime path. (This is updated by default in Ubuntu, but needs to be manually set in Windows)
 10. Update all .env paths with WSL Ubuntu path format. For example: /mnt/c/Users/Janet/...
 ```
-### Worker Deployment using Docker Container (in WSL)
-```
 
+## Worker Deployment using Docker Container (in WSL)
+
+```
 Pipeline Operation
 1. New data is added into the specfied directory 
 2. Using Labbook insert into Subject, Session, and SessionDirectory tables
@@ -143,4 +146,3 @@ To bring down the container
     docker compose --env-file=../../.env -f docker-compose-spike_sorting_local_worker.yaml -p sabatini-datajoint-pipeline_spike down
 
 ```
-

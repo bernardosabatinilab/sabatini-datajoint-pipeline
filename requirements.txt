@@ -7,7 +7,7 @@ element-deeplabcut @ git+https://github.com/sidhulyalkar/element-deeplabcut.git
 element-session @ git+https://github.com/datajoint/element-session.git
 element-event @ git+https://github.com/datajoint/element-event.git
 element-array-ephys @ git+https://github.com/datajoint/element-array-ephys.git
-ecephys-spike-sorting @ git+https://github.com/datajoint-company/ecephys_spike_sorting.git
+ecephys-spike-sorting @ git+https://github.com/datajoint/ecephys_spike_sorting.git
 element-calcium-imaging @ git+https://github.com/datajoint/element-calcium-imaging.git
 element-interface @ git+https://github.com/datajoint/element-interface.git
 datajoint-utilities @ git+https://github.com/datajoint-company/datajoint-utilities.git
