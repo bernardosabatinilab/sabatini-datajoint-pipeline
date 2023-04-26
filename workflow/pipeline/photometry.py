@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 import tomli
 import tdt
+import scipy.io as spio
 from copy import deepcopy
 
 from element_interface.utils import find_full_path
@@ -82,14 +83,9 @@ class FiberPhotometry(dj.Imported):
         """
 
     def make(self, key):
-
-        # Parameters (hard-coded, may need to changed later)
-        fiber_to_side_mapping = {1: "right", 2: "left"}
-        color_mapping = {"g": "green", "r": "red", "b": "blue"}
-        synch_signal_names = ["toBehSys", "fromBehSys"]
-        demod_sample_rate = 600
-
+        
         # Find data dir
+        #first determine data type e.g. raw matlab, processed matlab, or tdt
         session_dir = (session.SessionDirectory & key).fetch1("session_dir")
         session_full_dir: Path = find_full_path(get_raw_root_data_dir(), session_dir)
         photometry_dir = session_full_dir / "Photometry"
@@ -102,11 +98,26 @@ class FiberPhotometry(dj.Imported):
                 meta_info = tomli.loads(f.read())
         except FileNotFoundError:
             logger.info("meta info is missing")
-        light_source_name = meta_info.get("Fiber", {}).get("light_source", "")
+        light_source_name = meta_info.get("Experimental_Details").get("light_source")
 
-        # Read raw data sourced from tdt
-        tdt_data: tdt.StructType = tdt.read_block(photometry_dir)
-
+        # Scan directory for data format
+        # If there is a .tdt file, then it is a tdt data and enter tdt_data mode
+        # If there is a .mat file, then it is a matlab data and enter matlab_data mode
+        # If there is a timeseries2.mat file, then it is demux matlab data and enter demux_matlab_data mode  
+        if len(list(photometry_dir.glob("*.mat"))) > 0:
+            data_format = "matlab_data"
+            matlab_data: dict = spio.loadmat(
+            next(photometry_dir.glob("*.mat")), simplify_cells=True)[list(matlab_data.keys())[3]]
+        elif len(list(photometry_dir.glob("*timeseries_2.mat"))) > 0:
+            data_format = "demux_matlab_data"
+            demux_matlab_data: list[dict] = spio.loadmat(
+                next(photometry_dir.glob("*timeseries_2.mat")), simplify_cells=True
+            )["timeSeries"]
+        else:
+            data_format = "tdt_data"
+            tdt_data: tdt.StructType = tdt.read_block(photometry_dir)      
+        
+        
         # Demodulate & downsample raw photometry data
         # Also returns raw sample rate and list of fibers used
         photometry_df, fibers, raw_sample_rate = demodulation.offline_demodulation(
@@ -147,7 +158,7 @@ class FiberPhotometry(dj.Imported):
                 }
             )
 
-            # Populate FiberPhotometry
+            # Populate FiberPhotometry ## for each trace insert each one of these
             for trace_name in trace_names:
 
                 # Populate EmissionColor if present
@@ -212,6 +223,8 @@ class FiberPhotometry(dj.Imported):
                         ].values,
                     }
                 )
+
+##Keep TDT blocks and MATLAB blocks completely seperate 
 
         # Populate FiberPhotometry
         logger.info(f"Populate {__name__}.FiberPhotometry")
