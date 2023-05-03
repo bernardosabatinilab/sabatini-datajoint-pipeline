@@ -2,10 +2,13 @@ from __future__ import annotations
 import datajoint as dj
 import pandas as pd
 import numpy as np
+import warnings
 from pathlib import Path
 import tomli
 import tdt
 import scipy.io as spio
+from scipy import signal
+from scipy.fft import fft, ifft, rfft
 from copy import deepcopy
 
 from element_interface.utils import find_full_path
@@ -339,22 +342,25 @@ class FiberPhotometry(dj.Imported):
         elif data_format == "tdt_data":
             #tdt_data             
             del tdt_data
+            
+            # Get trace indices from meta_info
+            trace_indices = meta_info.get("Signal_Indices")
+            carrier_g_right = tdt_data.streams.Fi1r.data[trace_indices.get("carrier_g_right", None)]
+            carrier_r_right =tdt_data.streams.Fi1r.data[trace_indices.get("carrier_r_right", None)]
+            photom_g_right = tdt_data.streams.Fi1r.data[trace_indices.get("photom_g_right", None)]
+            photom_r_right = tdt_data.streams.Fi1r.data[trace_indices.get("photom_r_right", None)]
+            carrier_g_left = tdt_data.streams.Fi2r.data[trace_indices.get("carrier_g_left", None)]
+            carrier_r_left = tdt_data.streams.Fi2r.data [trace_indices.get("carrier_r_left", None)]
+            photom_g_left = tdt_data.streams.Fi2r.data[trace_indices.get("photom_g_left", None)]
+            photom_r_left = tdt_data.streams.Fi2r.data[trace_indices.get("photom_r_left", None)]
 
-        # Get trace names and store in this list for ingestion
-            raw_trace_list: list[dict]=[carrier_g_right, carrier_r_right,
-                                         photom_g_right, photom_r_right, 
-                                         carrier_g_left, carrier_r_left, 
+            #Get trace names and store in this list for ingestion
+            raw_photom_list: list[dict]=[photom_g_right, photom_r_right, 
                                          photom_g_left, photom_r_left]
+            raw_carrier_list: list[dict]=[carrier_g_right, carrier_r_right,
+                                            carrier_g_left, carrier_r_left]
 
-            carrier_g_right = tdt_data.streams.Fi1r.data[0] #Fi1r driver 133Hz, green, bR1
-            carrier_r_right = tdt_data.streams.Fi1r.data[1] #Fi1r driver 217Hz, red, gR1
-            photom_g_right = tdt_data.streams.Fi1r.data[2] #Photo sensor bR1, green
-            photom_r_right = tdt_data.streams.Fi1r.data[3] #Photo sensor gR1, red
-            carrier_g_left = tdt_data.streams.Fi2r.data[0] #Fi2r driver 2, green, bL1
-            carrier_r_left = tdt_data.streams.Fi2r.data[1] #Fi2r driver 2, red, gL1
-            photom_g_left = tdt_data.streams.Fi2r.data[2] #Photo sensor bL2, green
-            photom_r_left = tdt_data.streams.Fi2r.data[3] #Photo sensor gL2, red
-
+            
             # Get processing parameters
             processing_parameters = meta_info.get("Processing_Parameters")
             beh_synch_signal = processing_parameters.get("behavior_offset", 0)
@@ -369,12 +375,44 @@ class FiberPhotometry(dj.Imported):
             downsample_Hz = processing_parameters.get("downsample_frequency", 200)
             demod_sample_rate = processing_parameters.get("demod_sample_rate", 200)
             transform = processing_parameters.get("transform", {})
+            num_perseg = processing_parameters.get("no_per_segment", 216)
+            n_overlap = processing_parameters.get("noverlap", 108)
+
+            set_carrier_list: list[dict]=[set_carrier_g_right, set_carrier_r_right,
+                                            set_carrier_g_left, set_carrier_r_left]
+            
+
 
             #change window to reflect the sampling rate/downsample rate
             window1 = window * sampling_Hz
             window2 = window * downsample_Hz
-                          
-           
+
+            # Process traces
+            if transform == "spectogram":
+                calc_carry_list = demodulation.calc_carry(raw_carrier_list, sampling_Hz) 
+                if calc_carry_list != (set_carrier_list >= calc_carry_list+5 or set_carrier_list <= calc_carry_list-5):
+                    warnings.warn("Calculated carrier frequency does not match set carrier frequency. Using calculated carrier frequency.")
+                    set_carrier_list = calc_carry_list
+                else:
+                     calc_carry_list = calc_carry_list
+
+                four_list = demodulation.four(raw_photom_list)
+                bp_list, demodulated_trace_list, z1_trace_list = demodulation.process_trace(
+                                raw_photom_list, four_list, calc_carry_list,
+                                sampling_Hz, window1, num_perseg, n_overlap, bp_bw)                 
+            else:
+                fiber_to_side_mapping = {1: "right", 2: "left"}
+                color_mapping = {"g": "green", "r": "red", "b": "blue"}
+                synch_signal_names = ["toBehSys", "fromBehSys"]
+                demod_sample_rate = 600
+                photometry_df, fibers, raw_sample_rate = demodulation.offline_demodulation(
+                tdt_data, z=True, tau=0.05, downsample_fs=demod_sample_rate, bandpass_bw=20
+                )
+
+            #loop through each trace in raw_photom_list and raw_carrier_list
+            #return the demodulated traces
+            
+          
         # Store data in this list for ingestion
             fiber_list: list[dict] = []
             demodulated_trace_list: list[dict] = []

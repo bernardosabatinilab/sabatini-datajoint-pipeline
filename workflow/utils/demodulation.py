@@ -213,6 +213,63 @@ def fit_reference(
     return new_params, gen_sine(new_params, timestamps), ref
 
 
+def spec_demodulate(four_list, calc_carry_list, sampling_Hz, num_perseg, n_overlap):
+                demodulated_trace_list = []
+                for i in range(len(four_list)):
+                    f, t, sxx = signal.spectrogram(four_list[i], 
+                                                   fs = sampling_Hz, nperseg=num_perseg, noverlap=n_overlap)
+                    freq_ind = np.argmin(np.abs(f - calc_carry_list))
+                    demodulated_trace = sxx[freq_ind, :]
+                    demodulated_trace_list.append(demodulated_trace)
+                return demodulated_trace_list
+            
+def calc_carry(raw_carrier_list, sampling_Hz):
+                calc_carry_list = []
+                for i in range(len(raw_carrier_list)):
+                    fft_carrier = np.fft.fft(raw_carrier_list[i])
+                    N = len(fft_carrier)
+                    P2 = abs(fft_carrier)/N
+                    P1 = P2/2+1
+                    P1[1:-1] = 2*P1[1:-1]
+                    ind = np.argmax(P1, axis=None)
+                    processed_carrier = abs(fft_carrier[ind]/sampling_Hz)
+                    calc_carry_list.append(processed_carrier)
+                return calc_carry_list
+
+def four(z1_trace_list):
+                four_list = []
+                for i in range(len(z1_trace_list)):
+                    four_list.append(np.fft.fft(z1_trace_list[i]))
+                return four_list
+
+def bandpass_demod(demodulated_trace_list, calc_carry_list, sampling_Hz, bp_bw):
+                bp_trace_list = [] 
+                for i in range(len(demodulated_trace_list)):
+                     bp_trace = bandpass_signal(demodulated_trace_list[i], center_fs=calc_carry_list[i],
+                                                              fs=sampling_Hz,
+                                                               attenuation=40,
+                                                                bw= bp_bw)
+                     bp_trace_list.append(bp_trace)
+                return bp_trace_list                
+
+def process_trace(raw_photom_list, four_list, calc_carry_list,
+                                sampling_Hz, downsample_Hz, window1,
+                                num_perseg, n_overlap, bp_bw):
+                z1_trace_list = [] ##create a dict for each step of the process
+                demodulated_trace_list = [] ##create a dict for each step of the process   
+                for i in range(len(raw_photom_list)):
+                    z_trace = rolling_z(raw_photom_list[i], window1)
+                    z1_trace_list.append(z_trace)
+                    four_list = four(z1_trace_list)
+                    demodulated_trace_list = spec_demodulate(four_list, sampling_Hz, downsample_Hz,
+                                                        num_perseg, n_overlap)
+                    #bp_list = bandpass_demod(demodulated_trace_list, calc_carry_list,
+                    #                                  sampling_Hz, bp_bw)
+                    #z_demodulated_trace = rolling_z(bp_list, window2)
+                    #z_demodulated_trace_list.append(z_demodulated_trace)
+                return demodulated_trace_list, z1_trace_list
+
+
 def demodulate(
     x,
     center_fs,
@@ -315,8 +372,9 @@ def rolling_z(x, wn):
     return z.values
 
 
-def offline_demodulation(data, metadata, tau=20, z, z_window, downsample_Hz, 
-                         bp_bw, **kwargs):
+
+def offline_demodulation(data, metadata, tau=20, z=True, z_window=60, downsample_fs=600, 
+                         bandpass_bw=50, **kwargs):
         
     # use a short snippet of the signal to fit our offline reference
     use_points = int(1e4)     
