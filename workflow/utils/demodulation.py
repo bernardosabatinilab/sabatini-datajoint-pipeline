@@ -18,6 +18,7 @@ from scipy import stats
 from scipy import signal
 from scipy import interpolate
 from scipy import optimize
+from scipy.signal.windows import hamming
 from copy import deepcopy
 
 
@@ -213,10 +214,10 @@ def fit_reference(
     return new_params, gen_sine(new_params, timestamps), ref
 
 
-def spec_demodulate(four_list, calc_carry_list, sampling_Hz, num_perseg, n_overlap):
+def spec_demodulate(z1_trace_list, calc_carry_list, sampling_Hz, num_perseg, n_overlap):
                 demodulated_trace_list = []
-                for i in range(len(four_list)):
-                    f, t, sxx = signal.spectrogram(four_list[i], 
+                for i in range(len(z1_trace_list)):
+                    f, t, sxx = signal.spectrogram(z1_trace_list[i], 
                                                    fs = sampling_Hz, nperseg=num_perseg, noverlap=n_overlap)
                     freq_ind = np.argmin(np.abs(f - calc_carry_list))
                     demodulated_trace = sxx[freq_ind, :]
@@ -254,19 +255,15 @@ def bandpass_demod(demodulated_trace_list, calc_carry_list, sampling_Hz, bp_bw):
 
 def process_trace(raw_photom_list, four_list, calc_carry_list,
                                 sampling_Hz, downsample_Hz, window1,
-                                num_perseg, n_overlap, bp_bw):
+                                num_perseg, n_overlap):
                 z1_trace_list = [] ##create a dict for each step of the process
                 demodulated_trace_list = [] ##create a dict for each step of the process   
                 for i in range(len(raw_photom_list)):
                     z_trace = rolling_z(raw_photom_list[i], window1)
                     z1_trace_list.append(z_trace)
                     four_list = four(z1_trace_list)
-                    demodulated_trace_list = spec_demodulate(four_list, sampling_Hz, downsample_Hz,
+                    demodulated_trace_list = spec_demodulate(z1_trace_list, sampling_Hz, downsample_Hz,
                                                         num_perseg, n_overlap)
-                    #bp_list = bandpass_demod(demodulated_trace_list, calc_carry_list,
-                    #                                  sampling_Hz, bp_bw)
-                    #z_demodulated_trace = rolling_z(bp_list, window2)
-                    #z_demodulated_trace_list.append(z_demodulated_trace)
                 return demodulated_trace_list, z1_trace_list
 
 

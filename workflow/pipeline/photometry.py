@@ -384,22 +384,23 @@ class FiberPhotometry(dj.Imported):
 
 
             #change window to reflect the sampling rate/downsample rate
-            window1 = window * sampling_Hz
-            window2 = window * downsample_Hz
+            window1 = round(window * sampling_Hz)
+            window2 = round(window * downsample_Hz)
 
             # Process traces
             if transform == "spectogram":
-                calc_carry_list = demodulation.calc_carry(raw_carrier_list, sampling_Hz) 
-                if calc_carry_list != (set_carrier_list >= calc_carry_list+5 or set_carrier_list <= calc_carry_list-5):
-                    warnings.warn("Calculated carrier frequency does not match set carrier frequency. Using calculated carrier frequency.")
-                    set_carrier_list = calc_carry_list
+                calc_carry_list = demodulation.calc_carry(raw_carrier_list, sampling_Hz)
+                for i in range(len(set_carrier_list)):
+                    if calc_carry_list[i] != (set_carrier_list[i] >= calc_carry_list[i]+5 or set_carrier_list[i] <= calc_carry_list[i]-5):
+                        warnings.warn("Calculated carrier frequency does not match set carrier frequency. Using calculated carrier frequency.")
+                        set_carrier_list = calc_carry_list
                 else:
-                     calc_carry_list = calc_carry_list
+                    calc_carry_list = calc_carry_list
 
                 four_list = demodulation.four(raw_photom_list)
-                bp_list, demodulated_trace_list, z1_trace_list = demodulation.process_trace(
+                demodulated_trace_list, z1_trace_list = demodulation.process_trace(
                                 raw_photom_list, four_list, calc_carry_list,
-                                sampling_Hz, window1, num_perseg, n_overlap, bp_bw)                 
+                                sampling_Hz, window1, num_perseg, n_overlap)                 
             else:
                 fiber_to_side_mapping = {1: "right", 2: "left"}
                 color_mapping = {"g": "green", "r": "red", "b": "blue"}
