@@ -30,7 +30,7 @@ services:
     image: datajoint/sci-viz:2.3.3
     platform: linux/amd64
     environment:
-      - CHOKIDAR_USEPO  LLING=true
+      - CHOKIDAR_USEPOLLING=true
       - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api
       - DJSCIVIZ_SPEC_PATH=/main/sciviz_specsheet.yaml
       - DJSCIVIZ_MODE=${MODE} # DEV | PROD
