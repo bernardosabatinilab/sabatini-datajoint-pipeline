@@ -297,7 +297,7 @@ SciViz: # top level tab
                 def restriction(**kwargs):
                     return dict(**kwargs)
               dj_query: >
-                def dj_query(sabatini_dj_session, sabatini_dj_model, sabatini_dj_train):
+                def dj_query(sabatini_dj_session, sabatini_dj_model):
                     session = sabatini_dj_session
                     model = sabatini_dj_model
 
@@ -307,8 +307,6 @@ SciViz: # top level tab
                                                                 video_recording='count(recording_id)', keep_all_rows=True)
                     session_process_status *= session.Session.aggr(model.RecordingInfo,
                                                                   recording_info='count(recording_id)', keep_all_rows=True)                                                     
-                    session_process_status *= session.Session.aggr(model.Model,
-                                                                  model='count(recording_id)', keep_all_rows=True)
                     session_process_status *= session.Session.aggr(model.PoseEstimationTask,
                                                                   pose_estimation_task='count(recording_id)', keep_all_rows=True)                      
                     session_process_status *= session.Session.aggr(model.PoseEstimation,
