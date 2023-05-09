@@ -253,18 +253,18 @@ def bandpass_demod(demodulated_trace_list, calc_carry_list, sampling_Hz, bp_bw):
                      bp_trace_list.append(bp_trace)
                 return bp_trace_list                
 
-def process_trace(raw_photom_list, four_list, calc_carry_list,
-                                sampling_Hz, downsample_Hz, window1,
+def process_trace(raw_photom_list, calc_carry_list,
+                                sampling_Hz, window1,
                                 num_perseg, n_overlap):
                 z1_trace_list = [] ##create a dict for each step of the process
-                demodulated_trace_list = [] ##create a dict for each step of the process   
+                ##create a dict for each step of the process   
                 for i in range(len(raw_photom_list)):
                     z_trace = rolling_z(raw_photom_list[i], window1)
                     z1_trace_list.append(z_trace)
-                    four_list = four(z1_trace_list)
-                    demodulated_trace_list = spec_demodulate(z1_trace_list, sampling_Hz, downsample_Hz,
-                                                        num_perseg, n_overlap)
-                return demodulated_trace_list, z1_trace_list
+                    power_spectra_list, t_list = rolling_demodulation(z1_trace_list,
+                                                                      calc_carry_list,
+                                                                    sampling_Hz, num_perseg, n_overlap)
+                return z1_trace_list, power_spectra_list, t_list
 
 def rolling_demodulation(z1_trace_list, calc_carry_list, sampling_Hz, nperseg, noverlap):
     power_spectra_list = []
@@ -279,7 +279,7 @@ def rolling_demodulation(z1_trace_list, calc_carry_list, sampling_Hz, nperseg, n
             t.append(t_)
         t = np.concatenate(t)
         power_spectra = np.concatenate(power_spectra, axis=1)
-        freq_ind = np.argmin(np.abs(f - calc_carry_list[0]))
+        freq_ind = np.argmin(np.abs(f - calc_carry_list))
         rolling_demod = power_spectra[freq_ind, :]
         power_spectra_list.append(rolling_demod)
         t_list.append(t)

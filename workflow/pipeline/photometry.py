@@ -128,6 +128,19 @@ class FiberPhotometry(dj.Imported):
             del demux_matlab_data
             raw_sample_rate = None
             beh_synch_signal = demux_matlab_data[0]["time_offset"]
+
+            #Get index of traces
+            trace_indices = meta_info.get("Signal_Indices")
+            carrier_g_right = trace_indices.get("carrier_g_right", None)
+            carrier_r_right =trace_indices.get("carrier_r_right", None)
+            photom_g_right = trace_indices.get("photom_g_right", None)
+            photom_r_right = trace_indices.get("photom_r_right", None)
+            carrier_g_left = trace_indices.get("carrier_g_left", None)
+            carrier_r_left = trace_indices.get("carrier_r_left", None)
+            photom_g_left = trace_indices.get("photom_g_left", None)
+            photom_r_left = trace_indices.get("photom_r_left", None)
+
+            # Get demodulated sample rate
             demod_sample_rate_g_left = demux_matlab_data[0]["demux_freq"]
             demod_sample_rate_r_left = demux_matlab_data[1]["demux_freq"]
             demod_sample_rate_g_right = demux_matlab_data[2]["demux_freq"]
@@ -398,8 +411,8 @@ class FiberPhotometry(dj.Imported):
                     calc_carry_list = calc_carry_list
 
                 four_list = demodulation.four(raw_photom_list)
-                demodulated_trace_list, z1_trace_list = demodulation.process_trace(
-                                raw_photom_list, four_list, calc_carry_list,
+                z1_trace_list, power_spectra_list, t_list = demodulation.process_trace(
+                                raw_photom_list, calc_carry_list,
                                 sampling_Hz, window1, num_perseg, n_overlap)                 
             else:
                 fiber_to_side_mapping = {1: "right", 2: "left"}
@@ -580,20 +593,9 @@ class FiberPhotometry(dj.Imported):
                         skip_duplicates=True,
                     )
 
-                ##pull out the data from the matlab file
-            for sensor_protein in ["g_left", "r_left", "g_right", "r_right"]:
-                    if sensor_protein == "g_left":
-                        photometry_demux_g_left = matlab_data[0]['data']
-                    elif sensor_protein == "r_left":
-                        photometry_demux_r_left = matlab_data[1]['data']
-                    elif sensor_protein == "g_right":
-                        photometry_demux_g_right = matlab_data[2]['data']
-                    elif sensor_protein == "r_right":
-                        photometry_demux_r_right = matlab_data[3]['data']
-                    else:
-                        raise ValueError("Sensor Protein must be g or r")
+            demodulated_trace_list = power_spectra_list
                     
-                    demodulated_trace_list.append(
+            demodulated_trace_list.append(
                     {
                         **key,
                         "fiber_id": fiber_id,
