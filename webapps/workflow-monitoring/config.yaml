@@ -264,18 +264,21 @@ SciViz: # top level tab
                 def restriction(**kwargs):
                     return dict(**kwargs)
               dj_query: >
-                def dj_query(sabatini_dj_session, sabatini_dj_event):
+                def dj_query(sabatini_dj_session, sabatini_dj_event, sabatini_dj_ingestion):
                     session = sabatini_dj_session
                     event = sabatini_dj_event
-
+                    ingestion = sabatini_dj_ingestion
+                    
                     session_process_status = session.Session
 
                     session_process_status *= session.Session.aggr(event.BehaviorRecording,
                                                                   behavior_recording='count(session_id)', keep_all_rows=True)
                     session_process_status *= session.Session.aggr(event.Event,
-                                                                  event='count(session_id)', keep_all_rows=True)                                                                
+                                                                  event='count(session_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ingestion.BehaviorIngestion,
+                                                                  ingestion='count(session_id)', keep_all_rows=True)                                                                                                                                  
                                                                                                                                                          
-                    query = session_process_status.proj(..., all_done='behavior_recording > 0')
+                    query = session_process_status.proj(..., all_done='behavior_recording > 0 AND ingestion = behavior_recording')
                     
                     return {'query': query, 'fetch_args': {'order_by': 'session_datetime DESC'}}
     DLC Session Overview:
