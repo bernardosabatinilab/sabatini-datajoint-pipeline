@@ -1,7 +1,8 @@
-version: 'v0.0.0'
+version: "v0.0.0"
 LabBook: null
 SciViz: # top level tab
-  auth: True
+  auth:
+    mode: "database"
   pages: # individual pages
     Home:
       route: /home
@@ -20,10 +21,7 @@ SciViz: # top level tab
               # this example of image_route has the image in the /src dir
               image_route: ../../logo.svg
               text: |
-                # Welcome to DataJoint Workflow Monitoring for Sabatini Lab
-
-                This site provides Worker Status, Error Log, Jobs Log and Worker Log Monitoring
-
+                # Welcome to the data navigator for the SabatiniLab data pipeline
     Workflow Monitor:
       route: /workflow_monitor
       grids:
@@ -32,7 +30,7 @@ SciViz: # top level tab
           columns: 1
           row_height: 680
           components:
-            Worker Status: 
+            Worker Status:
               route: /workflow_monitor_workerstatus
               x: 0
               y: 0
@@ -52,7 +50,6 @@ SciViz: # top level tab
                         )
                         & f"minute_elapsed < {backtrack_minutes}"
                     )
-
                     recent_jobs = dj.U("process").aggr(
                         cls & recent,
                         worker_count="count(DISTINCT pid)",
@@ -61,8 +58,8 @@ SciViz: # top level tab
                     )
                     
                     return {'query': recent_jobs, 'fetch_args': {'order_by': 'minutes_since_newest ASC'}}
-            Error Log: 
-              route: /workflow_monitor_errorlog
+            Error Log:
+              route: /sabatini_dj_errorlog
               x: 0
               y: 1
               height: 1
@@ -88,16 +85,15 @@ SciViz: # top level tab
               dj_query: >
                 def dj_query(sabatini_dj_workerlog):
                     workerlog_vm = sabatini_dj_workerlog
-                    db_prefix = 'sabatini_dj_'
-
+                    org_name, wf_name = workerlog_vm.schema.database.replace('support_', '').split('_')[:2]
+                    db_prefix = f'{org_name}_{wf_name}'
                     connection = dj.conn(
                         host=workerlog_vm.schema.connection.conn_info['host'],
                         user=workerlog_vm.schema.connection.conn_info['user'],
                         password=workerlog_vm.schema.connection.conn_info['passwd'],
                         reset=True)
-
-                    schema_names = [s for s in dj.list_schemas(connection=connection) if s.startswith(db_prefix)]
-
+                    schema_names = [s for s in dj.list_schemas(connection=connection) if (s.startswith(db_prefix) or 
+                            s.startswith(f'{org_name}_support_{wf_name}'))]
                     jobs_table = None
                     print(schema_names, flush=True)
                     for schema_name in schema_names:
@@ -110,7 +106,7 @@ SciViz: # top level tab
                     jobs_table = jobs_table.proj(..., minutes_elapsed='TIMESTAMPDIFF(MINUTE, timestamp, UTC_TIMESTAMP())')
                     return {'query': jobs_table, 'fetch_args': {'order_by': 'status DESC, minutes_elapsed ASC'}}
             Worker Log:
-              route: /workflow_monitor_workerlog
+              route: /sabatini_dj_workerlog
               x: 0
               y: 3
               height: 1
@@ -123,8 +119,202 @@ SciViz: # top level tab
                 def dj_query(sabatini_dj_workerlog):
                       cls = sabatini_dj_workerlog.WorkerLog.proj(..., minutes_elapsed='TIMESTAMPDIFF(MINUTE, process_timestamp, UTC_TIMESTAMP())')
                       return {'query': cls, 'fetch_args': {'order_by': 'minutes_elapsed ASC'}}
+    Ephys Session Overview:
+      route: /session_overview_ephys
+      grids:
+        grid1:
+          type: fixed
+          columns: 1
+          row_height: 680
+          components:
+            Session Status:
+              route: /session_sessionstatus_ephys
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: antd-table
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_session, sabatini_dj_ephys):
+                    session = sabatini_dj_session
+                    ephys = sabatini_dj_ephys
+
+                    session_process_status = session.Session
+
+                    session_process_status *= session.Session.aggr(ephys.ProbeInsertion,
+                                                                  insertion='count(insertion_number)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ephys.EphysRecording,
+                                                                  ephys_recording='count(insertion_number)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ephys.LFP,
+                                                                  lfp='count(insertion_number)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ephys.ClusteringTask,
+                                                                  clustering_task='count(insertion_number)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ephys.Clustering,
+                                                                  clustering='count(insertion_number)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ephys.CuratedClustering,
+                                                                  curated_clustering='count(insertion_number)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ephys.QualityMetrics,
+                                                                  qc_metrics='count(insertion_number)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ephys.WaveformSet,
+                                                                  waveform='count(insertion_number)', keep_all_rows=True)
+
+                    query = session_process_status.proj(..., all_done='insertion > 0 AND waveform = clustering_task')
                     
-    
-    
-    
-        
+                    return {'query': query, 'fetch_args': {'order_by': 'session_datetime DESC'}}
+    Calcium Imaging Session Overview:
+      route: /session_overview_imaging
+      grids:
+        grid1:
+          type: fixed
+          columns: 1
+          row_height: 680
+          components:
+            Session Status:
+              route: /session_sessionstatus_imaging
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: antd-table
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_session, sabatini_dj_imaging, sabatini_dj_scan):
+                    session = sabatini_dj_session
+                    imaging = sabatini_dj_imaging
+                    scan = sabatini_dj_scan
+
+                    session_process_status = session.Session
+
+                    session_process_status *= session.Session.aggr(scan.Scan,
+                                                                  scan='count(scan_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(scan.ScanInfo,
+                                                                  scan_info='count(scan_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(imaging.ProcessingTask,
+                                                                  processing_task='count(scan_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(imaging.Processing,
+                                                                  processing='count(scan_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(imaging.Segmentation,
+                                                                  segmentation='count(scan_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(imaging.Fluorescence,
+                                                                  fluorescence='count(scan_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(imaging.MaskClassification,
+                                                                  mask_classfication='count(scan_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(imaging.Activity,
+                                                                  activity='count(scan_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(imaging.MotionCorrection,
+                                                                  motion_correction='count(scan_id)', keep_all_rows=True)
+                                                                                                                                                         
+                    query = session_process_status.proj(..., all_done='scan > 0 AND activity = processing_task')
+                    
+                    return {'query': query, 'fetch_args': {'order_by': 'session_datetime DESC'}}
+    Photometry Session Overview:
+      route: /session_overview_photometry
+      grids:
+        grid1:
+          type: fixed
+          columns: 1
+          row_height: 680
+          components:
+            Session Status:
+              route: /session_sessionstatus_photometry
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: antd-table
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_session, sabatini_dj_photometry):
+                    session = sabatini_dj_session
+                    photometry = sabatini_dj_photometry
+
+                    session_process_status = session.Session
+
+                    session_process_status *= session.Session.aggr(photometry.FiberPhotometry,
+                                                                  fiber_photometry='count(session_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(photometry.FiberPhotometrySynced,
+                                                                  fiber_photometry_synced='count(session_id)', keep_all_rows=True)
+                                                                                                                                                         
+                    query = session_process_status.proj(..., all_done='fiber_photometry > 0 AND fiber_photometry_synced = fiber_photometry')
+                    
+                    return {'query': query, 'fetch_args': {'order_by': 'session_datetime DESC'}}
+    Behavior Session Overview:
+      route: /session_overview_behavior
+      grids:
+        grid1:
+          type: fixed
+          columns: 1
+          row_height: 680
+          components:
+            Session Status:
+              route: /session_sessionstatus_behavior
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: antd-table
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_session, sabatini_dj_event, sabatini_dj_ingestion):
+                    session = sabatini_dj_session
+                    event = sabatini_dj_event
+                    ingestion = sabatini_dj_ingestion
+                    
+                    session_process_status = session.Session
+
+                    session_process_status *= session.Session.aggr(event.BehaviorRecording,
+                                                                  behavior_recording='count(session_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(event.Event,
+                                                                  event='count(session_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(ingestion.BehaviorIngestion,
+                                                                  ingestion='count(session_id)', keep_all_rows=True)                                                                                                                                  
+                                                                                                                                                         
+                    query = session_process_status.proj(..., all_done='behavior_recording > 0 AND ingestion = behavior_recording')
+                    
+                    return {'query': query, 'fetch_args': {'order_by': 'session_datetime DESC'}}
+    DLC Session Overview:
+      route: /session_overview_dlc
+      grids:
+        grid1:
+          type: fixed
+          columns: 1
+          row_height: 680
+          components:
+            Session Status:
+              route: /session_sessionstatus_dlc
+              x: 0
+              y: 0
+              height: 1
+              width: 1
+              type: antd-table
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_session, sabatini_dj_model):
+                    session = sabatini_dj_session
+                    model = sabatini_dj_model
+
+                    session_process_status = session.Session
+
+                    session_process_status *= session.Session.aggr(model.VideoRecording,
+                                                                video_recording='count(recording_id)', keep_all_rows=True)
+                    session_process_status *= session.Session.aggr(model.RecordingInfo,
+                                                                  recording_info='count(recording_id)', keep_all_rows=True)                                                     
+                    session_process_status *= session.Session.aggr(model.PoseEstimationTask,
+                                                                  pose_estimation_task='count(recording_id)', keep_all_rows=True)                      
+                    session_process_status *= session.Session.aggr(model.PoseEstimation,
+                                                                pose_estimation='count(recording_id)', keep_all_rows=True)                                                                                                              
+                                                                                                                                                         
+                    query = session_process_status.proj(..., all_done='video_recording > 0 AND pose_estimation = pose_estimation_task')
+                    
+                    return {'query': query, 'fetch_args': {'order_by': 'session_datetime DESC'}}

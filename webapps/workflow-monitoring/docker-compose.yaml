@@ -1,19 +1,18 @@
-# MODE=DEV docker-compose up
+# MODE=PROD docker-compose up
 #
 # Access using fakeservices.datajoint.io
-# NOTE: currently you need to trigger a change to config.yaml after first successful build until https://github.com/datajoint/otumat/issues/11 is addressed
 version: '2.4'
 services:
   pharus:
     cpus: 0.50
     mem_limit: 512m
-    image: jverswijver/pharus:0.4.2-prerelease-5
+    image: datajoint/pharus:0.8.6
     environment:
-      PHARUS_SPEC_PATH: /main/specs/config.yaml # for dynamic api spec
-      PHARUS_MODE: ${MODE}  # DEV | PROD
+      PHARUS_SPEC_PATH: /main/specs/sciviz_specsheet.yaml # for dynamic api spec
+      PHARUS_MODE: ${MODE} # DEV | PROD
     env_file: .env
     volumes:
-      - ./config.yaml:/main/specs/config.yaml:ro #copy the spec over to /main/specs/YOUR_SPEC_NAME
+      - ./sciviz_specsheet.yaml:/main/specs/sciviz_specsheet.yaml:ro #copy the spec over to /main/specs/YOUR_SPEC_NAME
     command:
       - sh
       - -c
@@ -28,55 +27,28 @@ services:
   sci-viz:
     cpus: 2.0
     mem_limit: 4g
-    image: jverswijver/sci-viz:0.2.0-prerelease-7
+    image: datajoint/sci-viz:2.3.3
+    platform: linux/amd64
     environment:
       - CHOKIDAR_USEPOLLING=true
       - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api
-      - DJSCIVIZ_SPEC_PATH=config.yaml
-      - DJSCIVIZ_MODE=${MODE}  # DEV | PROD
+      - DJSCIVIZ_SPEC_PATH=/main/sciviz_specsheet.yaml
+      - DJSCIVIZ_MODE=${MODE} # DEV | PROD
+      - NODE_OPTIONS=--max-old-space-size=8000
     volumes:
-      - ./config.yaml:/main/config.yaml:ro
+      - ./sciviz_specsheet.yaml:/main/sciviz_specsheet.yaml:ro
     # ports:
     #   - "3000:3000"
+    user: root
     command:
       - sh
       - -c
       - |
-        sciviz_update() {
-            sleep 3  # delaying to ensure pharus is up
-            [ -z "$$PRIMARY_PID" ] || kill $$PRIMARY_PID
-            if [ "$$DJSCIVIZ_MODE" == "DEV" ]; then
-                python frontend_gen.py
-                yarn run start &
-            else
-                rm -R /usr/share/nginx/html
-                python frontend_gen.py
-                yarn build
-                mv ./build /usr/share/nginx/html
-                nginx -g "daemon off;" &
-            fi
-            PRIMARY_PID=$$!
-        }
-        sciviz_update
-        echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Monitoring SciViz updates..."
-        INIT_TIME=$$(date +%s)
-        LAST_MOD_TIME=$$(date -r $$DJSCIVIZ_SPEC_PATH +%s)
-        DELTA=$$(expr $$LAST_MOD_TIME - $$INIT_TIME)
-        while true; do
-           CURR_LAST_MOD_TIME=$$(date -r $$DJSCIVIZ_SPEC_PATH +%s)
-           CURR_DELTA=$$(expr $$CURR_LAST_MOD_TIME - $$INIT_TIME)
-           if [ "$$DELTA" -lt "$$CURR_DELTA" ]; then
-               echo "[$$(date -u '+%Y-%m-%d %H:%M:%S')][DataJoint]: Reloading SciViz since \`$$DJSCIVIZ_SPEC_PATH\` changed."
-               sciviz_update
-               DELTA=$$CURR_DELTA
-           else
-               sleep 2
-           fi
-        done
+        sh sci-viz-hotreload-prod.sh
     networks:
       - main
   fakeservices.datajoint.io:
-    image: datajoint/nginx:v0.2.3
+    image: datajoint/nginx:v0.2.5
     environment:
       - ADD_pharus_TYPE=REST
       - ADD_pharus_ENDPOINT=pharus:5000
