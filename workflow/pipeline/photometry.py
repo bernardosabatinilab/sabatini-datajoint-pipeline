@@ -101,7 +101,7 @@ class FiberPhotometry(dj.Imported):
                 meta_info = tomli.load(f)
         except FileNotFoundError:
             logger.info("meta info is missing")
-        light_source_name = meta_info.get("Experimental_Details").get("light_source")
+        light_source_name = meta_info.get("Experimental_Details", {}).get("light_source", "")
 
         # Scan directory for data format
         # If there is a .tdt file, then it is a tdt data and enter tdt_data mode
