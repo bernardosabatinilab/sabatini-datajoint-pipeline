@@ -122,7 +122,10 @@ class FiberPhotometry(dj.Imported):
         
         ## Enter into different data format mode
         if data_format == "matlab_data":
-            del matlab_data #write function here
+            del matlab_data
+            raw_sample_rate = None
+            beh_synch_signal = demux_matlab_data[0]["time_offset"]
+            
         elif data_format == "demux_matlab_data":
             #demux_matlab_data
             del demux_matlab_data
@@ -141,10 +144,10 @@ class FiberPhotometry(dj.Imported):
             photom_r_left = trace_indices.get("photom_r_left", None)
 
             # Get demodulated sample rate
-            demod_sample_rate_g_left = demux_matlab_data[0]["demux_freq"]
-            demod_sample_rate_r_left = demux_matlab_data[1]["demux_freq"]
-            demod_sample_rate_g_right = demux_matlab_data[2]["demux_freq"]
-            demod_sample_rate_r_right = demux_matlab_data[3]["demux_freq"]
+            demod_sample_rate_g_left = demux_matlab_data[carrier_g_left]["demux_freq"]
+            demod_sample_rate_r_left = demux_matlab_data[carrier_r_left]["demux_freq"]
+            demod_sample_rate_g_right = demux_matlab_data[carrier_g_right]["demux_freq"]
+            demod_sample_rate_r_right = demux_matlab_data[carrier_r_right]["demux_freq"]
             
 
             fiber_id = meta_info.get("Experimental_Details").get("Fiber")
@@ -311,13 +314,13 @@ class FiberPhotometry(dj.Imported):
                 ##pull out the data from the matlab file
             for sensor_protein in ["g_left", "r_left", "g_right", "r_right"]:
                     if sensor_protein == "g_left":
-                        photometry_demux_g_left = demux_matlab_data[0]['data']
+                        photometry_demux_g_left = demux_matlab_data[photom_g_left]['data']
                     elif sensor_protein == "r_left":
-                        photometry_demux_r_left = demux_matlab_data[1]['data']
+                        photometry_demux_r_left = demux_matlab_data[photom_r_left]['data']
                     elif sensor_protein == "g_right":
-                        photometry_demux_g_right = demux_matlab_data[2]['data']
+                        photometry_demux_g_right = demux_matlab_data[photom_g_right]['data']
                     elif sensor_protein == "r_right":
-                        photometry_demux_r_right = demux_matlab_data[3]['data']
+                        photometry_demux_r_right = demux_matlab_data[photom_r_right]['data']
                     else:
                         raise ValueError("Sensor Protein must be g or r")
                     
