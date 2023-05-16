@@ -178,6 +178,248 @@ class FiberPhotometry(dj.Imported):
             z1_trace_list, power_spectra_list, t_list, spect_power_list = demodulation.process_trace(
                                 raw_photom_list, calc_carry_list,
                                 sampling_Hz, window1, num_perseg, n_overlap)
+            
+            # Store data in this list for ingestion
+            fiber_list: list[dict] = []
+            demodulated_trace_list: list[dict] = []
+                   
+        # Get photometry traces for each fiber
+            fiber_id = meta_info.get("Fiber").get("fiber_diameter", None)
+            hemisphere = meta_info.get("Experiment").get("hemisphere")
+            fiber_notes_left = meta_info.get("Fiber").get("implantation").get(
+                "left").get("notes", None)
+            fiber_notes_right = meta_info.get("Fiber").get("implantation").get(
+                "right").get("notes", None)
+            fiber_notes = fiber_notes_left + fiber_notes_right
+
+            fiber_list.append(
+                {
+                    **key,
+                    "fiber_id": fiber_id,
+                    "hemisphere": hemisphere,
+                    "notes": fiber_notes,
+                }
+                 )
+            FiberInfo = meta_info.get("Fiber").get("implantation")
+            excitation_wavelength_g_left = (
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_g", {}, "")
+                )
+
+            if excitation_wavelength_g_left:
+                    logger.info(
+                        f"{excitation_wavelength_g_left} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_g_left": excitation_wavelength_g_left},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_r_left = (
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_r", {}, "" )
+                    )
+
+            if excitation_wavelength_r_left:
+                    logger.info(
+                        f"{excitation_wavelength_r_left} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_r_left": excitation_wavelength_r_left},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_g_right = (
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_g", {}, "")
+                )
+
+            if excitation_wavelength_g_right:
+                    logger.info(
+                        f"{excitation_wavelength_g_right} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_g_right": excitation_wavelength_g_right},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_r_right = (
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_r", {}, "")
+                )
+
+            if excitation_wavelength_r_right:
+                    logger.info(
+                        f"{excitation_wavelength_r_right} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_r_right": excitation_wavelength_r_right},
+                        skip_duplicates=True,
+                    )
+
+
+            EmissionColor.insert1(
+                    {
+                        "emission_color_g_left": emission_color_g_left,
+                        "emission_color_r_left": emission_color_r_left,
+                        "wavelength_g_left": emission_wavelength_g_left,
+                        "wavelength_r_left": emission_wavelength_r_left,
+                        "emission_color_g_right": emission_color_g_right,
+                        "emission_color_r_right": emission_color_r_right,
+                        "wavelength_g_right": emission_wavelength_g_right,
+                        "wavelength_r_right": emission_wavelength_r_right,
+                    },
+                    skip_duplicates=True,
+                    )
+            
+                # Populate SensorProtein if present
+            virusInjection = meta_info.get("VirusInjection")
+            sensor_protein_g_left = (
+                    virusInjection.get("left")
+                    .get("sensor_protein_g", {}, "")
+                    )
+            sensor_protein_r_left = (
+                    virusInjection.get("left")
+                    .get("sensor_protein_r", {}, "")
+                    )
+            sensor_protein_g_right = (
+                    virusInjection.get("right")
+                    .get("sensor_protein_g", {}, "")
+                    )
+            sensor_protein_r_right = (
+                    virusInjection.get("right")
+                    .get("sensor_protein_r", {}, "")
+                    )
+            if sensor_protein_g_left:
+                    logger.info(
+                        f"{sensor_protein_g_left} is inserted into {__name__}.SensorProtein"
+                    )
+                    SensorProtein.insert1(
+                        {"sensor_protein_name_g_left": sensor_protein_g_left}, skip_duplicates=True
+                    )
+            if sensor_protein_r_left:
+                    logger.info(
+                        f"{sensor_protein_r_left} is inserted into {__name__}.SensorProtein"
+                    )
+                    SensorProtein.insert1(
+                        {"sensor_protein_name_r_left": sensor_protein_r_left}, skip_duplicates=True
+                    )
+            if sensor_protein_g_right:
+                    logger.info(
+                        f"{sensor_protein_g_right} is inserted into {__name__}.SensorProtein"
+                    )
+                    SensorProtein.insert1(
+                        {"sensor_protein_name_g_right": sensor_protein_g_right}, skip_duplicates=True
+                    )
+            if sensor_protein_r_right:
+                    logger.info(
+                        f"{sensor_protein_r_right} is inserted into {__name__}.SensorProtein"
+                    )
+                    SensorProtein.insert1(
+                        {"sensor_protein_name_r_right": sensor_protein_r_right}, skip_duplicates=True
+                    )
+
+
+                # Populate ExcitationWavelength if present
+            FiberInfo = meta_info.get("Fiber").get("implantation")
+            excitation_wavelength_g_left = (
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_g", {}, "")
+                )
+
+            if excitation_wavelength_g_left:
+                    logger.info(
+                        f"{excitation_wavelength_g_left} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_g_left": excitation_wavelength_g_left},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_r_left = (
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_r", {}, "" )
+                    )
+
+            if excitation_wavelength_r_left:
+                    logger.info(
+                        f"{excitation_wavelength_r_left} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_r_left": excitation_wavelength_r_left},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_g_right = (
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_g", {}, "")
+                )
+
+            if excitation_wavelength_g_right:
+                    logger.info(
+                        f"{excitation_wavelength_g_right} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_g_right": excitation_wavelength_g_right},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_r_right = (
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_r", {}, "")
+                )
+
+            if excitation_wavelength_r_right:
+                    logger.info(
+                        f"{excitation_wavelength_r_right} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_r_right": excitation_wavelength_r_right},
+                        skip_duplicates=True,
+                    )
+                   
+            demodulated_trace_list.append(
+                    {
+                        **key,
+                        "fiber_id": fiber_id,
+                        "hemisphere": hemisphere,
+                        "trace_name": trace_name.split("_")[0],
+                        "emission_color_g_left": emission_color_g_left,
+                        "emission_color_r_left": emission_color_r_left,
+                        "emission_color_g_right": emission_color_g_left,
+                        "emission_color_r_right": emission_color_r_right,
+                        "sensor_protein_name_g_left": sensor_protein_g_left,
+                        "sensor_protein_name_r_left": sensor_protein_r_left,
+                        "sensor_protein_name_g_right": sensor_protein_g_right,
+                        "sensor_protein_name_r_right": sensor_protein_r_right,
+                        "excitation_wavelength_g_left": excitation_wavelength_g_left,
+                        "excitation_wavelength_r_left": excitation_wavelength_r_left,
+                        "excitation_wavelength_g_right": excitation_wavelength_g_right,
+                        "excitation_wavelength_r_right": excitation_wavelength_r_right,
+                        "demod_sample_rate_g_left": demod_sample_rate_g_left,
+                        "demod_sample_rate_r_left": demod_sample_rate_r_left,
+                        "demod_sample_rate_g_right": demod_sample_rate_g_right,
+                        "demod_sample_rate_r_right": demod_sample_rate_r_right,
+                        "trace_g_left": photometry_demux_g_left,
+                        "trace_r_left": photometry_demux_r_left,
+                        "trace_g_right": photometry_demux_g_right,
+                        "trace_r_right": photometry_demux_r_right,
+                    }
+                )
+            
+
+            # Populate FiberPhotometry
+            logger.info(f"Populate {__name__}.FiberPhotometry")
+            self.insert1(
+                {
+                    **key,
+                    "light_source_name": light_source_name,
+                    "raw_sample_rate": sampling_Hz,
+                    "beh_synch_signal": beh_synch_signal,
+                }
+            )
+
+            # Populate FiberPhotometry.Fiber
+            logger.info(f"Populate {__name__}.FiberPhotometry.Fiber")
+            self.Fiber.insert(fiber_list)
+
+            # Populate FiberPhotometry.DemodulatedTrace
+            logger.info(f"Populate {__name__}.FiberPhotometry.DemodulatedTrace")
+            self.DemodulatedTrace.insert(spect_power_list)
 
             del matlab_data
             
@@ -478,6 +720,20 @@ class FiberPhotometry(dj.Imported):
 
             set_carrier_list: list[dict]=[set_carrier_g_right, set_carrier_r_right,
                                             set_carrier_g_left, set_carrier_r_left]
+            
+            calc_carry_list = demodulation.calc_carry(raw_carrier_list, sampling_Hz)
+
+            for i in range(len(set_carrier_list)):
+                    if calc_carry_list[i] != (set_carrier_list[i] >= calc_carry_list[i]+5 or set_carrier_list[i] <= calc_carry_list[i]-5):
+                        warnings.warn("Calculated carrier frequency does not match set carrier frequency. Using calculated carrier frequency.")
+                        set_carrier_list = calc_carry_list
+            else:
+                    calc_carry_list = calc_carry_list
+
+            four_list = demodulation.four(raw_photom_list)
+            z1_trace_list, power_spectra_list, t_list, spect_power_list = demodulation.process_trace(
+                                raw_photom_list, calc_carry_list,
+                                sampling_Hz, window1, num_perseg, n_overlap)
             
 
 
