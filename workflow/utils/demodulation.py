@@ -228,7 +228,7 @@ def calc_carry(raw_carrier_list, sampling_Hz):
                 calc_carry_list = []
                 points_2_process = 2**14
                 for i in range(len(raw_carrier_list)):
-                    fft_carrier = np.fft.fft(raw_carrier_list[i][0:points_2_process])
+                    fft_carrier = abs(np.fft.fft(raw_carrier_list[i][0:points_2_process]))
                     P2 = fft_carrier/points_2_process
                     P1 = abs(P2/2+1)
                     P1[1:-1] = 2*P1[1:-1]

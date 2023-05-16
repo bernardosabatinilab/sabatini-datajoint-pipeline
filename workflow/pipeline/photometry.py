@@ -117,7 +117,7 @@ class FiberPhotometry(dj.Imported):
             demux_matlab_data: list[dict] = spio.loadmat(
                 next(photometry_dir.glob("*timeseries_2.mat")), simplify_cells=True
             )["timeSeries"]
-        elif len(list(photometry_dir.glob("*.tdt"))) > 0:
+        elif len(list(photometry_dir.glob("*.t*"))) > 0:
             data_format = "tdt_data"
             tdt_data: tdt.StructType = tdt.read_block(photometry_dir)      
         
@@ -446,6 +446,9 @@ class FiberPhotometry(dj.Imported):
             demod_sample_rate_g_right = demux_matlab_data[carrier_g_right]["demux_freq"]
             demod_sample_rate_r_right = demux_matlab_data[carrier_r_right]["demux_freq"]
             
+            # Store data in this list for ingestion
+            fiber_list: list[dict] = []
+            demodulated_trace_list: list[dict] = []
 
             fiber_id = meta_info.get("Fiber").get("fiber_diameter")
             hemisphere = meta_info.get("Experiment").get("hemisphere")
@@ -721,21 +724,14 @@ class FiberPhotometry(dj.Imported):
             set_carrier_list: list[dict]=[set_carrier_g_right, set_carrier_r_right,
                                             set_carrier_g_left, set_carrier_r_left]
             
-            calc_carry_list = demodulation.calc_carry(raw_carrier_list, sampling_Hz)
+            calc_carry_list = demodulation.tdt_calc_carry(raw_carrier_list, sampling_Hz)
 
             for i in range(len(set_carrier_list)):
                     if calc_carry_list[i] != (set_carrier_list[i] >= calc_carry_list[i]+5 or set_carrier_list[i] <= calc_carry_list[i]-5):
                         warnings.warn("Calculated carrier frequency does not match set carrier frequency. Using calculated carrier frequency.")
                         set_carrier_list = calc_carry_list
             else:
-                    calc_carry_list = calc_carry_list
-
-            four_list = demodulation.four(raw_photom_list)
-            z1_trace_list, power_spectra_list, t_list, spect_power_list = demodulation.process_trace(
-                                raw_photom_list, calc_carry_list,
-                                sampling_Hz, window1, num_perseg, n_overlap)
-            
-
+                    calc_carry_list = calc_carry_list         
 
             #change window to reflect the sampling rate/downsample rate
             window1 = round(window * sampling_Hz)
