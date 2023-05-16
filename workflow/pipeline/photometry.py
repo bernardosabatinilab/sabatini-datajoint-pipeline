@@ -101,47 +101,102 @@ class FiberPhotometry(dj.Imported):
                 meta_info = tomli.load(f)
         except FileNotFoundError:
             logger.info("meta info is missing")
-        light_source_name = meta_info.get("Experimental_Details", {}).get("light_source", "")
+        light_source_name = meta_info.get("Fiber", {}).get("light_source", "")
 
         # Scan directory for data format
         # If there is a .tdt file, then it is a tdt data and enter tdt_data mode
-        # If there is a .mat file, then it is a matlab data and enter matlab_data mode
+        # If there is a data*.mat file, then it is a matlab data and enter matlab_data mode
         # If there is a timeseries2.mat file, then it is demux matlab data and enter demux_matlab_data mode  
-        if len(list(photometry_dir.glob("processed*.mat"))) > 0:
+        if len(list(photometry_dir.glob("data*.mat"))) > 0:
             data_format = "matlab_data"
             matlab_data: dict = spio.loadmat(
-            next(photometry_dir.glob("processed*.mat")), simplify_cells=True)[list(matlab_data.keys())[3]]
+            next(photometry_dir.glob("data*.mat")), simplify_cells=True)
+            matlab_data=matlab_data["data"]
         elif len(list(photometry_dir.glob("*timeseries_2.mat"))) > 0:
             data_format = "demux_matlab_data"
             demux_matlab_data: list[dict] = spio.loadmat(
                 next(photometry_dir.glob("*timeseries_2.mat")), simplify_cells=True
             )["timeSeries"]
-        else:
+        elif len(list(photometry_dir.glob("*.tdt"))) > 0:
             data_format = "tdt_data"
             tdt_data: tdt.StructType = tdt.read_block(photometry_dir)      
         
         ## Enter into different data format mode
         if data_format == "matlab_data":
+            #matlab_data
+            raw_sample_rate = meta_info.get("Processing_Parameters").get("sampling_frequency")
+
+            #Get index of traces
+            trace_indices = meta_info.get("Signal_Indices")
+            carrier_g_right = matlab_data[trace_indices.get("right").get("carrier_g", None)]
+            carrier_r_right =matlab_data[trace_indices.get("right").get("carrier_r", None)]
+            photom_g_right = matlab_data[trace_indices.get("right").get("photom_g", None)]
+            photom_r_right = matlab_data[trace_indices.get("right").get("photom_r", None)]
+            carrier_g_left = matlab_data[trace_indices.get("left").get("carrier_g", None)]
+            carrier_r_left = matlab_data[trace_indices.get("left").get("carrier_r", None)]
+            photom_g_left = matlab_data[trace_indices.get("left").get("photom_g", None)]
+            photom_r_left = matlab_data[trace_indices.get("left").get("photom_r", None)]
+
+            raw_photom_list: list[dict]=[photom_g_right, photom_r_right, 
+                                         photom_g_left, photom_r_left]
+            raw_carrier_list: list[dict]=[carrier_g_right, carrier_r_right,
+                                            carrier_g_left, carrier_r_left]
+
+            # Get processing parameters
+            processing_parameters = meta_info.get("Processing_Parameters")
+            beh_synch_signal = processing_parameters.get("behavior_offset", 0)
+            window = processing_parameters.get("z_window", 60)
+            #process_z = processing_parameters.get("z", False)
+            set_carrier_g_right = processing_parameters.get("left").get("carrier_frequency_g", 0)
+            set_carrier_r_right = processing_parameters.get("left").get("carrier_frequency_r", 0)
+            set_carrier_g_left = processing_parameters.get("right").get("carrier_frequency_g", 0)
+            set_carrier_r_left = processing_parameters.get("right").get("carrier_frequency_r", 0)
+            bp_bw = processing_parameters.get("bandpass_bandwidth", 0.5)
+            sampling_Hz = processing_parameters.get("sampling_frequency", None)
+            downsample_Hz = processing_parameters.get("downsample_frequency", 200)
+            transform = processing_parameters.get("transform", {})
+            num_perseg = processing_parameters.get("no_per_segment", 216)
+            n_overlap = processing_parameters.get("noverlap", 108)
+
+            window1 = round(window * sampling_Hz)
+            window2 = round(window * downsample_Hz)
+
+            set_carrier_list: list[dict]=[set_carrier_g_right, set_carrier_r_right,
+                                            set_carrier_g_left, set_carrier_r_left]
+            
+            # Get calculated carrier freqeuncy from matlab_data
+            calc_carry_list = demodulation.calc_carry(raw_carrier_list, sampling_Hz)
+            for i in range(len(set_carrier_list)):
+                    if calc_carry_list[i] != (set_carrier_list[i] >= calc_carry_list[i]+5 or set_carrier_list[i] <= calc_carry_list[i]-5):
+                        warnings.warn("Calculated carrier frequency does not match set carrier frequency. Using calculated carrier frequency.")
+                        set_carrier_list = calc_carry_list
+                    else:
+                        calc_carry_list = calc_carry_list
+            
+            four_list = demodulation.four(raw_photom_list)
+            #demodulate photometry data
+            z1_trace_list, power_spectra_list, t_list, spect_power_list = demodulation.process_trace(
+                                raw_photom_list, calc_carry_list,
+                                sampling_Hz, window1, num_perseg, n_overlap)
+
             del matlab_data
-            raw_sample_rate = None
-            beh_synch_signal = demux_matlab_data[0]["time_offset"]
             
         elif data_format == "demux_matlab_data":
             #demux_matlab_data
-            del demux_matlab_data
+            
             raw_sample_rate = None
             beh_synch_signal = demux_matlab_data[0]["time_offset"]
 
             #Get index of traces
             trace_indices = meta_info.get("Signal_Indices")
-            carrier_g_right = trace_indices.get("carrier_g_right", None)
-            carrier_r_right =trace_indices.get("carrier_r_right", None)
-            photom_g_right = trace_indices.get("photom_g_right", None)
-            photom_r_right = trace_indices.get("photom_r_right", None)
-            carrier_g_left = trace_indices.get("carrier_g_left", None)
-            carrier_r_left = trace_indices.get("carrier_r_left", None)
-            photom_g_left = trace_indices.get("photom_g_left", None)
-            photom_r_left = trace_indices.get("photom_r_left", None)
+            carrier_g_right = trace_indices.get("right").get("carrier_g", None)
+            carrier_r_right =trace_indices.get("right").get("carrier_r", None)
+            photom_g_right = trace_indices.get("right").get("photom_g", None)
+            photom_r_right = trace_indices.get("right").get("photom_r", None)
+            carrier_g_left = trace_indices.get("left").get("carrier_g", None)
+            carrier_r_left = trace_indices.get("left").get("carrier_r", None)
+            photom_g_left = trace_indices.get("left").get("photom_g", None)
+            photom_r_left = trace_indices.get("left").get("photom_r", None)
 
             # Get demodulated sample rate
             demod_sample_rate_g_left = demux_matlab_data[carrier_g_left]["demux_freq"]
@@ -150,9 +205,13 @@ class FiberPhotometry(dj.Imported):
             demod_sample_rate_r_right = demux_matlab_data[carrier_r_right]["demux_freq"]
             
 
-            fiber_id = meta_info.get("Experimental_Details").get("Fiber")
-            hemisphere = meta_info.get("Experimental_Details").get("hemisphere")
-            fiber_notes = meta_info.get("Experimental_Details").get("notes", None)
+            fiber_id = meta_info.get("Fiber").get("fiber_diameter")
+            hemisphere = meta_info.get("Experiment").get("hemisphere")
+            fiber_notes_left = meta_info.get("Fiber").get("implantation").get(
+                "left").get("notes", None)
+            fiber_notes_right = meta_info.get("Fiber").get("implantation").get(
+                "right").get("notes", None)
+            fiber_notes = fiber_notes_left + fiber_notes_right
 
             fiber_list.append(
                 {
@@ -163,38 +222,39 @@ class FiberPhotometry(dj.Imported):
                 }
                  )
              # Populate EmissionColor if present
+            fiber_details = meta_info.get("Fiber")
                 
             emission_wavelength_g_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_wavelength_g_left", None)
+                    fiber_details.get("implantation")
+                    .get("left").get("emission_wavelength_g", None)
                 )
             emission_wavelength_r_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_wavelength_r_left", None)
+                    fiber_details.get("implantation")
+                    .get("left").get("emission_wavelength_r", None)
                 )
             emission_color_g_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_color_g_left", None)
+                    fiber_details.get("implantation")
+                    .get("left").get("emission_color_g", None)
                 )
             emission_color_r_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_color_r_left", None)
+                    fiber_details.get("implantation")
+                    .get("left").get("emission_color_r", None)
                 )
             emission_wavelength_g_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_wavelength_g_right", None)
+                   fiber_details.get("implantation")
+                    .get("right").get("emission_wavelength_g", None)
                 )
             emission_wavelength_r_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_wavelength_r_right", None)
+                    fiber_details.get("implantation")
+                    .get("right").get("emission_wavelength_r", None)
                 )
             emission_color_g_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_color_g_right", None)
+                    fiber_details.get("implantation")
+                    .get("right").get("emission_color_g", None)
                 )
             emission_color_r_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_color_r_right", None)
+                    fiber_details.get("implantation")
+                    .get("right").get("emission_color_r", None)
                 )
 
 
@@ -212,21 +272,22 @@ class FiberPhotometry(dj.Imported):
                     skip_duplicates=True,
                 )
                 # Populate SensorProtein if present
+            virusInjection = meta_info.get("VirusInjection")
             sensor_protein_g_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("sensor_protein_name_g_left", None)
+                    virusInjection.get("left")
+                    .get("sensor_protein_g", {}, "")
                     )
             sensor_protein_r_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("sensor_protein_name_r_left", None)
+                    virusInjection.get("left")
+                    .get("sensor_protein_r", {}, "")
                     )
             sensor_protein_g_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("sensor_protein_name_g_right", None)
+                    virusInjection.get("right")
+                    .get("sensor_protein_g", {}, "")
                     )
             sensor_protein_r_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("sensor_protein_name_r_right", None)
+                    virusInjection.get("right")
+                    .get("sensor_protein_r", {}, "")
                     )
             if sensor_protein_g_left:
                     logger.info(
@@ -258,9 +319,10 @@ class FiberPhotometry(dj.Imported):
                     )
 
                 # Populate ExcitationWavelength if present
+            FiberInfo = meta_info.get("Fiber").get("implantation")
             excitation_wavelength_g_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("excitation_wavelength_g_left", {})
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_g", {}, "")
                 )
 
             if excitation_wavelength_g_left:
@@ -272,8 +334,8 @@ class FiberPhotometry(dj.Imported):
                         skip_duplicates=True,
                     )
             excitation_wavelength_r_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("excitation_wavelength_r_left", {})
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_r", {}, "" )
                     )
 
             if excitation_wavelength_r_left:
@@ -285,8 +347,8 @@ class FiberPhotometry(dj.Imported):
                         skip_duplicates=True,
                     )
             excitation_wavelength_g_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("excitation_wavelength_g_right", {})
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_g", {}, "")
                 )
 
             if excitation_wavelength_g_right:
@@ -298,8 +360,8 @@ class FiberPhotometry(dj.Imported):
                         skip_duplicates=True,
                     )
             excitation_wavelength_r_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("excitation_wavelength_r_right", {})
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_r", {}, "")
                 )
 
             if excitation_wavelength_r_right:
@@ -352,23 +414,43 @@ class FiberPhotometry(dj.Imported):
                         "trace_r_right": photometry_demux_r_right,
                     }
                 )
+                    
+                # Populate FiberPhotometry
+                    logger.info(f"Populate {__name__}.FiberPhotometry")
+                    self.insert1(
+                        {
+                            **key,
+                            "light_source_name": light_source_name,
+                            "raw_sample_rate": sampling_Hz,
+                            "beh_synch_signal": beh_synch_signal,
+                        }
+                    )
+
+                    # Populate FiberPhotometry.Fiber
+                    logger.info(f"Populate {__name__}.FiberPhotometry.Fiber")
+                    self.Fiber.insert(fiber_list)
+
+                    # Populate FiberPhotometry.DemodulatedTrace
+                    logger.info(f"Populate {__name__}.FiberPhotometry.DemodulatedTrace")
+                    self.DemodulatedTrace.insert(demodulated_trace_list)
+
+                    del demux_matlab_data
                 #demux_matlab_data
 
 
         elif data_format == "tdt_data":
             #tdt_data             
-            del tdt_data
-            
+                        
             # Get trace indices from meta_info
             trace_indices = meta_info.get("Signal_Indices")
-            carrier_g_right = tdt_data.streams.Fi1r.data[trace_indices.get("carrier_g_right", None)]
-            carrier_r_right =tdt_data.streams.Fi1r.data[trace_indices.get("carrier_r_right", None)]
-            photom_g_right = tdt_data.streams.Fi1r.data[trace_indices.get("photom_g_right", None)]
-            photom_r_right = tdt_data.streams.Fi1r.data[trace_indices.get("photom_r_right", None)]
-            carrier_g_left = tdt_data.streams.Fi2r.data[trace_indices.get("carrier_g_left", None)]
-            carrier_r_left = tdt_data.streams.Fi2r.data [trace_indices.get("carrier_r_left", None)]
-            photom_g_left = tdt_data.streams.Fi2r.data[trace_indices.get("photom_g_left", None)]
-            photom_r_left = tdt_data.streams.Fi2r.data[trace_indices.get("photom_r_left", None)]
+            carrier_g_right = tdt_data.streams.Fi1r.data[trace_indices.get("right").get("carrier_g", None)]
+            carrier_r_right =tdt_data.streams.Fi1r.data[trace_indices.get("right").get("carrier_r", None)]
+            photom_g_right = tdt_data.streams.Fi1r.data[trace_indices.get("right").get("photom_g", None)]
+            photom_r_right = tdt_data.streams.Fi1r.data[trace_indices.get("right").get("photom_r", None)]
+            carrier_g_left = tdt_data.streams.Fi2r.data[trace_indices.get("left").get("carrier_g", None)]
+            carrier_r_left = tdt_data.streams.Fi2r.data [trace_indices.get("left").get("carrier_r", None)]
+            photom_g_left = tdt_data.streams.Fi2r.data[trace_indices.get("left").get("photom_g", None)]
+            photom_r_left = tdt_data.streams.Fi2r.data[trace_indices.get("left").get("photom_r", None)]
 
             #Get trace names and store in this list for ingestion
             raw_photom_list: list[dict]=[photom_g_right, photom_r_right, 
@@ -382,10 +464,10 @@ class FiberPhotometry(dj.Imported):
             beh_synch_signal = processing_parameters.get("behavior_offset", 0)
             window = processing_parameters.get("z_window", 60)
             process_z = processing_parameters.get("z", False)
-            set_carrier_g_right = processing_parameters.get("carrier_frequency_g_left", 0)
-            set_carrier_r_right = processing_parameters.get("carrier_frequency_r_left", 0)
-            set_carrier_g_left = processing_parameters.get("carrier_frequency_g_right", 0)
-            set_carrier_r_left = processing_parameters.get("carrier_frequency_r_right", 0)
+            set_carrier_g_right = processing_parameters.get("left").get("carrier_frequency_g", 0)
+            set_carrier_r_right = processing_parameters.get("left").get("carrier_frequency_r", 0)
+            set_carrier_g_left = processing_parameters.get("right").get("carrier_frequency_g", 0)
+            set_carrier_r_left = processing_parameters.get("right").get("carrier_frequency_r", 0)
             bp_bw = processing_parameters.get("bandpass_bandwidth", 0.5)
             sampling_Hz = processing_parameters.get("sampling_frequency", None)
             downsample_Hz = processing_parameters.get("downsample_frequency", 200)
@@ -414,10 +496,10 @@ class FiberPhotometry(dj.Imported):
                     calc_carry_list = calc_carry_list
 
                 four_list = demodulation.four(raw_photom_list)
-                z1_trace_list, power_spectra_list, t_list = demodulation.process_trace(
+                z1_trace_list, power_spectra_list, t_list, spect_power_list = demodulation.process_trace(
                                 raw_photom_list, calc_carry_list,
                                 sampling_Hz, window1, num_perseg, n_overlap)                 
-            else:
+            elif transform == "hilbert":
                 fiber_to_side_mapping = {1: "right", 2: "left"}
                 color_mapping = {"g": "green", "r": "red", "b": "blue"}
                 synch_signal_names = ["toBehSys", "fromBehSys"]
@@ -435,9 +517,13 @@ class FiberPhotometry(dj.Imported):
             demodulated_trace_list: list[dict] = []
                    
         # Get photometry traces for each fiber
-            fiber_id = meta_info.get("Experimental_Details").get("Fiber")
-            hemisphere = meta_info.get("Experimental_Details").get("hemisphere")
-            fiber_notes = meta_info.get("Experimental_Details").get("notes", None)
+            fiber_id = meta_info.get("Fiber").get("fiber_diameter", None)
+            hemisphere = meta_info.get("Experiment").get("hemisphere")
+            fiber_notes_left = meta_info.get("Fiber").get("implantation").get(
+                "left").get("notes", None)
+            fiber_notes_right = meta_info.get("Fiber").get("implantation").get(
+                "right").get("notes", None)
+            fiber_notes = fiber_notes_left + fiber_notes_right
 
             fiber_list.append(
                 {
@@ -447,40 +533,59 @@ class FiberPhotometry(dj.Imported):
                     "notes": fiber_notes,
                 }
                  )
-             # Populate EmissionColor if present
-                
-            emission_wavelength_g_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_wavelength_g_left", None)
+            FiberInfo = meta_info.get("Fiber").get("implantation")
+            excitation_wavelength_g_left = (
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_g", {}, "")
                 )
-            emission_wavelength_r_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_wavelength_r_left", None)
+
+            if excitation_wavelength_g_left:
+                    logger.info(
+                        f"{excitation_wavelength_g_left} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_g_left": excitation_wavelength_g_left},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_r_left = (
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_r", {}, "" )
+                    )
+
+            if excitation_wavelength_r_left:
+                    logger.info(
+                        f"{excitation_wavelength_r_left} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_r_left": excitation_wavelength_r_left},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_g_right = (
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_g", {}, "")
                 )
-            emission_color_g_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_color_g_left", None)
+
+            if excitation_wavelength_g_right:
+                    logger.info(
+                        f"{excitation_wavelength_g_right} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_g_right": excitation_wavelength_g_right},
+                        skip_duplicates=True,
+                    )
+            excitation_wavelength_r_right = (
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_r", {}, "")
                 )
-            emission_color_r_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_color_r_left", None)
-                )
-            emission_wavelength_g_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_wavelength_g_right", None)
-                )
-            emission_wavelength_r_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_wavelength_r_right", None)
-                )
-            emission_color_g_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_color_g_right", None)
-                )
-            emission_color_r_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("emission_color_r_right", None)
-                )
+
+            if excitation_wavelength_r_right:
+                    logger.info(
+                        f"{excitation_wavelength_r_right} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength_r_right": excitation_wavelength_r_right},
+                        skip_duplicates=True,
+                    )
 
 
             EmissionColor.insert1(
@@ -496,22 +601,24 @@ class FiberPhotometry(dj.Imported):
                     },
                     skip_duplicates=True,
                     )
+            
                 # Populate SensorProtein if present
+            virusInjection = meta_info.get("VirusInjection")
             sensor_protein_g_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("sensor_protein_name_g_left", None)
+                    virusInjection.get("left")
+                    .get("sensor_protein_g", {}, "")
                     )
             sensor_protein_r_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("sensor_protein_name_r_left", None)
+                    virusInjection.get("left")
+                    .get("sensor_protein_r", {}, "")
                     )
             sensor_protein_g_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("sensor_protein_name_g_right", None)
+                    virusInjection.get("right")
+                    .get("sensor_protein_g", {}, "")
                     )
             sensor_protein_r_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("sensor_protein_name_r_right", None)
+                    virusInjection.get("right")
+                    .get("sensor_protein_r", {}, "")
                     )
             if sensor_protein_g_left:
                     logger.info(
@@ -542,10 +649,12 @@ class FiberPhotometry(dj.Imported):
                         {"sensor_protein_name_r_right": sensor_protein_r_right}, skip_duplicates=True
                     )
 
+
                 # Populate ExcitationWavelength if present
+            FiberInfo = meta_info.get("Fiber").get("implantation")
             excitation_wavelength_g_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("excitation_wavelength_g_left", {})
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_g", {}, "")
                 )
 
             if excitation_wavelength_g_left:
@@ -557,8 +666,8 @@ class FiberPhotometry(dj.Imported):
                         skip_duplicates=True,
                     )
             excitation_wavelength_r_left = (
-                    meta_info.get("Experimental_Details")
-                    .get("excitation_wavelength_r_left", {})
+                    FiberInfo.get("left")
+                    .get("excitation_wavelength_r", {}, "" )
                     )
 
             if excitation_wavelength_r_left:
@@ -570,8 +679,8 @@ class FiberPhotometry(dj.Imported):
                         skip_duplicates=True,
                     )
             excitation_wavelength_g_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("excitation_wavelength_g_right", {})
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_g", {}, "")
                 )
 
             if excitation_wavelength_g_right:
@@ -583,8 +692,8 @@ class FiberPhotometry(dj.Imported):
                         skip_duplicates=True,
                     )
             excitation_wavelength_r_right = (
-                    meta_info.get("Experimental_Details")
-                    .get("excitation_wavelength_r_right", {})
+                    FiberInfo.get("right")
+                    .get("excitation_wavelength_r", {}, "")
                 )
 
             if excitation_wavelength_r_right:
@@ -595,9 +704,7 @@ class FiberPhotometry(dj.Imported):
                         {"excitation_wavelength_r_right": excitation_wavelength_r_right},
                         skip_duplicates=True,
                     )
-
-            demodulated_trace_list = power_spectra_list
-                    
+                   
             demodulated_trace_list.append(
                     {
                         **key,
@@ -626,28 +733,28 @@ class FiberPhotometry(dj.Imported):
                         "trace_r_right": photometry_demux_r_right,
                     }
                 )
-                    #tdt_data
+            
 
-##Keep TDT blocks and MATLAB blocks completely seperate 
+            # Populate FiberPhotometry
+            logger.info(f"Populate {__name__}.FiberPhotometry")
+            self.insert1(
+                {
+                    **key,
+                    "light_source_name": light_source_name,
+                    "raw_sample_rate": sampling_Hz,
+                    "beh_synch_signal": beh_synch_signal,
+                }
+            )
 
-        # Populate FiberPhotometry
-        logger.info(f"Populate {__name__}.FiberPhotometry")
-        self.insert1(
-            {
-                **key,
-                "light_source_name": light_source_name,
-                "raw_sample_rate": raw_sample_rate,
-                "beh_synch_signal": beh_synch_signal,
-            }
-        )
+            # Populate FiberPhotometry.Fiber
+            logger.info(f"Populate {__name__}.FiberPhotometry.Fiber")
+            self.Fiber.insert(fiber_list)
 
-        # Populate FiberPhotometry.Fiber
-        logger.info(f"Populate {__name__}.FiberPhotometry.Fiber")
-        self.Fiber.insert(fiber_list)
-
-        # Populate FiberPhotometry.DemodulatedTrace
-        logger.info(f"Populate {__name__}.FiberPhotometry.DemodulatedTrace")
-        self.DemodulatedTrace.insert(demodulated_trace_list)
+            # Populate FiberPhotometry.DemodulatedTrace
+            logger.info(f"Populate {__name__}.FiberPhotometry.DemodulatedTrace")
+            self.DemodulatedTrace.insert(spect_power_list)
+            del tdt_data
+            #tdt_data
 
 
 @schema

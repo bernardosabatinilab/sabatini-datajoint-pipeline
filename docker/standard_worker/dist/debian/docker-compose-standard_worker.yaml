@@ -27,9 +27,10 @@ services:
       - ${ROOT_DATA_DIR}:/home/${CONTAINER_USER}/inbox
       - ${PROCESSED_DATA_DIR}:/home/${CONTAINER_USER}/outbox
     scale: ${WORKER_COUNT:-1}
-    command:
+    command:  #comment out run_workflow, tail line keeps container
+    # alive for testing then exec and run ipython and test, but you have to down the container after
       - /bin/bash
       - -c
       - |
-        run_workflow standard_worker &
+     #   run_workflow standard_worker &
         tail -f /dev/null

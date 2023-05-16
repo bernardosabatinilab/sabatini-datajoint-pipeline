@@ -219,21 +219,22 @@ def spec_demodulate(z1_trace_list, calc_carry_list, sampling_Hz, num_perseg, n_o
                 for i in range(len(z1_trace_list)):
                     f, t, sxx = signal.spectrogram(z1_trace_list[i], 
                                                    fs = sampling_Hz, nperseg=num_perseg, noverlap=n_overlap)
-                    freq_ind = np.argmin(np.abs(f - calc_carry_list[i]))
+                    freq_ind = np.argmin(np.abs(f - calc_carry_list))
                     demodulated_trace = sxx[freq_ind, :]
                     demodulated_trace_list.append(demodulated_trace)
                 return demodulated_trace_list
             
 def calc_carry(raw_carrier_list, sampling_Hz):
                 calc_carry_list = []
+                points_2_process = 2**14
                 for i in range(len(raw_carrier_list)):
-                    fft_carrier = np.fft.fft(raw_carrier_list[i])
-                    N = len(fft_carrier)
-                    P2 = abs(fft_carrier)/N
-                    P1 = P2/2+1
+                    fft_carrier = np.fft.fft(raw_carrier_list[i][0:points_2_process])
+                    P2 = fft_carrier/points_2_process
+                    P1 = abs(P2/2+1)
                     P1[1:-1] = 2*P1[1:-1]
+                    f = sampling_Hz * np.arange(points_2_process // 2) / points_2_process
                     ind = np.argmax(P1, axis=None)
-                    processed_carrier = abs(fft_carrier[ind]/sampling_Hz)
+                    processed_carrier = round(f[ind])
                     calc_carry_list.append(processed_carrier)
                 return calc_carry_list
 
@@ -264,12 +265,14 @@ def process_trace(raw_photom_list, calc_carry_list,
                     power_spectra_list, t_list = rolling_demodulation(z1_trace_list,
                                                                       calc_carry_list,
                                                                     sampling_Hz, num_perseg, n_overlap)
-                return z1_trace_list, power_spectra_list, t_list
+                    spect_power_list = spect_power(power_spectra_list)
+                return z1_trace_list, power_spectra_list, t_list, spect_power_list
 
 def rolling_demodulation(z1_trace_list, calc_carry_list, sampling_Hz, nperseg, noverlap):
     power_spectra_list = []
     t_list = []
     win = signal.hamming(nperseg, 'periodic')
+    calc_carry_list = np.array(calc_carry_list)
     for x in z1_trace_list:
         power_spectra = []
         t = []
@@ -279,16 +282,21 @@ def rolling_demodulation(z1_trace_list, calc_carry_list, sampling_Hz, nperseg, n
             t.append(t_)
         t = np.concatenate(t)
         power_spectra = np.concatenate(power_spectra, axis=1)
-        freq_ind = np.argmin(np.abs(f - calc_carry_list))
+        freq_ind = np.argmin(np.abs(f - calc_carry_list.reshape((-1, 1))), axis=0)
         rolling_demod = power_spectra[freq_ind, :]
         power_spectra_list.append(rolling_demod)
         t_list.append(t)
+    power_spectra_list = np.array(power_spectra_list)
+    t_list = np.array(t_list)
     return power_spectra_list, t_list
 
-
-
-                
-
+def spect_power(power_spectra_list):
+    spect_power_list = []
+    for i in range(len(power_spectra_list)):
+        spect_power = np.mean(power_spectra_list[i], axis=0)
+        spect_power_list.append(spect_power)
+    return spect_power_list
+              
 
 def demodulate(
     x,
