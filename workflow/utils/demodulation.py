@@ -1,7 +1,7 @@
 """
 Created on Fri Apr 15 16:01:51 2022
 
-@author: celiaberon
+@author: celiaberon and janetberrios
 """
 from __future__ import annotations
 import pandas as pd
