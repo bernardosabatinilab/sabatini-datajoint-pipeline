@@ -215,14 +215,18 @@ def fit_reference(
 
 
 def spec_demodulate(z1_trace_list, calc_carry_list, sampling_Hz, num_perseg, n_overlap):
-                demodulated_trace_list = []
-                for i in range(len(z1_trace_list)):
-                    f, t, sxx = signal.spectrogram(z1_trace_list[i], 
-                                                   fs = sampling_Hz, nperseg=num_perseg, noverlap=n_overlap)
-                    freq_ind = np.argmin(np.abs(f - calc_carry_list))
-                    demodulated_trace = sxx[freq_ind, :]
-                    demodulated_trace_list.append(demodulated_trace)
-                return demodulated_trace_list
+    demodulated_trace_list = []
+    for z1_trace in z1_trace_list:
+        f, t, sxx = signal.spectrogram(
+            z1_trace, 
+            fs=sampling_Hz, 
+            nperseg=num_perseg, 
+            noverlap=n_overlap
+        )
+        freq_ind = np.argmin(np.abs(f - calc_carry_list))
+        demodulated_trace = sxx[freq_ind, :]
+        demodulated_trace_list.append(demodulated_trace)
+    return demodulated_trace_list
             
 def calc_carry(raw_carrier_list, sampling_Hz):
                 calc_carry_list = []
