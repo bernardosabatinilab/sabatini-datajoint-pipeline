@@ -249,14 +249,14 @@ def four(z1_trace_list):
                 return four_list
 
 def bandpass_demod(demodulated_trace_list, calc_carry_list, sampling_Hz, bp_bw):
-                bp_trace_list = [] 
-                for i in range(len(demodulated_trace_list)):
-                     bp_trace = bandpass_signal(demodulated_trace_list[i], center_fs=calc_carry_list[i],
-                                                              fs=sampling_Hz,
-                                                               attenuation=40,
-                                                                bw= bp_bw)
-                     bp_trace_list.append(bp_trace)
-                return bp_trace_list                
+    return [
+        bandpass_signal(
+            trace, 
+            center_fs=calc_carry,
+            fs=sampling_Hz,
+            attenuation=40,
+            bw=bp_bw)
+        for trace, calc_carry in zip(demodulated_trace_list, calc_carry_list)]
 
 def process_trace(raw_photom_list, calc_carry_list,
                                 sampling_Hz, window1,
