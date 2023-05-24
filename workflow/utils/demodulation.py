@@ -243,10 +243,7 @@ def calc_carry(raw_carrier_list, sampling_Hz):
                 return calc_carry_list
 
 def four(z1_trace_list):
-                four_list = []
-                for i in range(len(z1_trace_list)):
-                    four_list.append(np.fft.fft(z1_trace_list[i]))
-                return four_list
+                return [np.fft.fft(trace) for trace in z1_trace_list] 
 
 def bandpass_demod(demodulated_trace_list, calc_carry_list, sampling_Hz, bp_bw):
     return [
