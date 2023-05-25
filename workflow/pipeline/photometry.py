@@ -53,6 +53,14 @@ class EmissionColor(dj.Lookup):
     wavelength=null    : smallint  # (nm)
     """
 
+@schema
+class CarrierFrequency(dj.Lookup):
+    definition = """
+    carrier_frequency     : smallint 
+    ---
+    wavelength=null    : smallint  # (nm)
+    """
+
 
 @schema
 class FiberPhotometry(dj.Imported):
@@ -81,7 +89,7 @@ class FiberPhotometry(dj.Imported):
         ---
         -> [nullable] SensorProtein          
         -> [nullable] ExcitationWavelength
-        -> [nullable] carrierFrequency
+        -> [nullable] CarrierFrequency
         demod_sample_rate   : float       # sample rate of the demodulated data (in Hz) 
         trace               : longblob    # demodulated photometry traces
         """
@@ -182,107 +190,124 @@ class FiberPhotometry(dj.Imported):
             # Store data in this list for ingestion
             fiber_list: list[dict] = []
             demodulated_trace_list: list[dict] = []
-                   
+
+            fibers: list[str] = [ "right", "left"]
+
+            side_to_fiber_id_mapping = {"right": 1, "left": 2}
+            color_mapping = {"g": "green", "r": "red", "b": "blue"}
+
         # Get photometry traces for each fiber
-            Fiber_implant = meta_info.get("Fiber").get("implantation")
-            fiber_id = meta_info.get("Fiber").get("fiber_diameter", None)
-            hemisphere = meta_info.get("Experiment").get("hemisphere")
-            fiber_notes: list[str]=[]
-            for notes in Fiber_implant:
-                fiber_notes_left = Fiber_implant.get("left").get("notes", None)
-                fiber_notes_right = Fiber_implant.get("right").get("notes", None)
-            fiber_notes.append(fiber_notes_left)
-            fiber_notes.append(fiber_notes_right)
-
-            fiber_list.append(
-                {
-                    **key,
-                    "fiber_id": fiber_id,
-                    "hemisphere": hemisphere,
-                    "notes": fiber_notes,
-                }
-                 )
-            FiberInfo = meta_info.get("Fiber").get("implantation")
-            excitation_wavelength: list[str]=[]
-            for excitation in FiberInfo:
-                  g_left = FiberInfo.get("left").get("excitation_wavelength_g", {})
-                  g_right = FiberInfo.get("right").get("excitation_wavelength_g", {})
-                  r_left = FiberInfo.get("left").get("excitation_wavelength_r", {})
-                  r_right = FiberInfo.get("right").get("excitation_wavelength_r", {})
-            excitation_wavelength.append(g_right)
-            excitation_wavelength.append(r_right)
-            excitation_wavelength.append(g_left)
-            excitation_wavelength.append(r_left)
-
-            if excitation_wavelength:
-                    logger.info(
-                        f"{excitation_wavelength} is inserted into {__name__}.ExcitationWavelength"
-                    )
-            ExcitationWavelength.insert1(
-                        {"excitation_wavelength": excitation_wavelength},
-                        skip_duplicates=True,
-                    )
-            emission_color: list[str]=[]
-            for color in FiberInfo:
-                  g_left = FiberInfo.get("left").get("emission_wavelength_g", {})
-                  g_right = FiberInfo.get("right").get("emission_wavelength_g", {})
-                  r_left = FiberInfo.get("left").get("emission_wavelength_r", {})
-                  r_right = FiberInfo.get("right").get("emission_wavelength_r", {})
-            emission_color.append(g_right)
-            emission_color.append(r_right)
-            emission_color.append(g_left)
-            emission_color.append(r_left)
-
-            EmissionColor.insert1(
-                    {"emission_color":emission_color},
-                    skip_duplicates=True,
+            for fiber in fibers:
+                 
+                fiber_notes = meta_info.get("Fiber").get("implantation").get(f'{fiber}').get("notes", None)
+                #fiber_diam = meta_info.get("Fiber").get("fiber_diameter", None)
+                #hemisphere = meta_info.get("Experiment").get("hemisphere")
+                fiber_list.append(
+                    {
+                        **key,
+                        "fiber_id": side_to_fiber_id_mapping[fiber],
+                        "hemisphere": fiber,
+                        "notes": fiber_notes,
+                    }
                     )
             
+            trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
+            for trace_name in trace_names:
+
+                # Populate EmissionColor if present
+                emission_color = color_mapping[trace_name.split("_")[1][0]]
+
+                emission_wavelength = (
+                    meta_info.get("Fiber", {})
+                    .get("implantation")
+                    .get(f'{fiber}')
+                    .get("emission_wavelength", {})
+                    .get(emission_color, None)
+                )
+
+                EmissionColor.insert1(
+                    {
+                        "emission_color": emission_color,
+                        "wavelength": emission_wavelength,
+                    },
+                    skip_duplicates=True,
+                )
+
                 # Populate SensorProtein if present
-            virusInjection = meta_info.get("VirusInjection")
-            sensor_protein: list[str] = []
-            for sensor in virusInjection:
-                g_left = virusInjection.get("left").get("sensor_protein_g", {})
-                g_right = virusInjection.get("right").get("sensor_protein_g", {})
-                r_left = virusInjection.get("left").get("sensor_protein_r", {})
-                r_right = virusInjection.get("right").get("sensor_protein_r", {})
-            sensor_protein.append(g_right)
-            sensor_protein.append(r_right)
-            sensor_protein.append(g_left)
-            sensor_protein.append(r_left)
-
-
-            if sensor_protein:
+                sensor_protein = (
+                    meta_info.get("VirusInjection", {})
+                    .get(f'{fiber}', {})
+                    .get("sensor_protein", {})
+                    .get(emission_color, None)
+                )
+                if sensor_protein:
                     logger.info(
                         f"{sensor_protein} is inserted into {__name__}.SensorProtein"
                     )
                     SensorProtein.insert1(
-                        {"sensor_protein": sensor_protein}, skip_duplicates=True)
-                   
-            demodulated_trace_list.append(
+                        {"sensor_protein_name": sensor_protein}, skip_duplicates=True
+                    )
+
+                # Populate ExcitationWavelength if present
+                excitation_wavelength = (
+                    meta_info.get("Fiber", {})
+                    .get("implantation")
+                    .get(f'{fiber}')
+                    .get("excitation_wavelength", {})
+                    .get(emission_color, None)
+                )
+
+                if excitation_wavelength:
+                    logger.info(
+                        f"{excitation_wavelength} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength": excitation_wavelength},
+                        skip_duplicates=True,
+                    )
+                
+                raw_photom_list: list[dict]=[photom_g_right, photom_r_right, 
+                                         photom_g_left, photom_r_left]
+                raw_carrier_list: list[dict]=[carrier_g_right, carrier_r_right,
+                                            carrier_g_left, carrier_r_left]
+                carrier_ind = {"g_right":0, "r_right":1, "g_left":2, "r_left":3}
+                carrier_frequency = calc_carry_list[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+
+                demod_trace = spect_power_list[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+
+                if carrier_frequency:
+                    logger.info(
+                        f"{carrier_frequency} is inserted into {__name__}.CarrierFrequency"
+                    )
+                    CarrierFrequency.insert1(
+                        {"carrier_frequency": carrier_frequency},
+                        skip_duplicates=True,
+                    )
+                    
+                demodulated_trace_list.append(
                     {
                         **key,
-                        "fiber_id": fiber_id,
-                        "hemisphere": hemisphere,
+                        "fiber_id": side_to_fiber_id_mapping[fiber],
+                        "hemisphere": fiber,
                         "trace_name": trace_name.split("_")[0],
                         "emission_color": emission_color,
                         "sensor_protein_name": sensor_protein,
                         "excitation_wavelength": excitation_wavelength,
-                        "demod_sample_rate": sampling_Hz,
-                        "carrierFrequency": calc_carry_list,
-                        "trace": spect_power_list + hemisphere[0].upper().values,
+                        "carrier_frequency": carrier_frequency,
+                        "trace": demod_trace,
                     }
                 )
+
             # Populate FiberPhotometry
             logger.info(f"Populate {__name__}.FiberPhotometry")
             self.insert1(
-                    {
-                        **key,
-                        "light_source_name": light_source_name,
-                        "raw_sample_rate": raw_sample_rate,
-                        "beh_synch_signal": beh_synch_signal,
-                    }
-                )
+                {
+                    **key,
+                    "light_source_name": light_source_name,
+                    "raw_sample_rate": raw_sample_rate,
+                    "beh_synch_signal": beh_synch_signal,
+                }
+            )
 
             # Populate FiberPhotometry.Fiber
             logger.info(f"Populate {__name__}.FiberPhotometry.Fiber")
@@ -294,6 +319,7 @@ class FiberPhotometry(dj.Imported):
             
 
             del matlab_data
+            #matlab_data
             
         elif data_format == "demux_matlab_data":
             #demux_matlab_data
@@ -319,90 +345,90 @@ class FiberPhotometry(dj.Imported):
                 demod_sample_rate_r_left = demux_matlab_data[carrier_r_left]["demux_freq"]
                 demod_sample_rate_g_right = demux_matlab_data[carrier_g_right]["demux_freq"]
                 demod_sample_rate_r_right = demux_matlab_data[carrier_r_right]["demux_freq"]
-            demod_sampling.append(demod_sample_rate_g_left)
-            demod_sampling.append(demod_sample_rate_r_left)
             demod_sampling.append(demod_sample_rate_g_right)
             demod_sampling.append(demod_sample_rate_r_right)
+            demod_sampling.append(demod_sample_rate_g_left)
+            demod_sampling.append(demod_sample_rate_r_left)
+            
             
             # Store data in this list for ingestion
             fiber_list: list[dict] = []
             demodulated_trace_list: list[dict] = []
 
+            fiber_list: list[dict] = []
+            demodulated_trace_list: list[dict] = []
+
+            fibers: list[str] = [ "right", "left"]
+
+            side_to_fiber_id_mapping = {"right": 1, "left": 2}
+            color_mapping = {"g": "green", "r": "red", "b": "blue"}
+
             # Get photometry traces for each fiber
-            Fiber_implant = meta_info.get("Fiber").get("implantation")
-            fiber_id = meta_info.get("Fiber").get("fiber_diameter", None)
-            hemisphere = meta_info.get("Experiment").get("hemisphere")
-            fiber_notes: list[str]=[]
-            for notes in Fiber_implant:
-                fiber_notes_left = Fiber_implant.get("left").get("notes", None)
-                fiber_notes_right = Fiber_implant.get("right").get("notes", None)
-            fiber_notes.append(fiber_notes_left)
-            fiber_notes.append(fiber_notes_right)
-
-            fiber_list.append(
-                {
-                    **key,
-                    "fiber_id": fiber_id,
-                    "hemisphere": hemisphere,
-                    "notes": fiber_notes,
-                }
-                )
-             # Populate EmissionColor if present
-            FiberInfo = meta_info.get("Fiber").get("implantation")
-            emission_color: list[str]=[]
-            for color in FiberInfo:
-                  g_left = FiberInfo.get("left").get("emission_wavelength_g", {})
-                  g_right = FiberInfo.get("right").get("emission_wavelength_g", {})
-                  r_left = FiberInfo.get("left").get("emission_wavelength_r", {})
-                  r_right = FiberInfo.get("right").get("emission_wavelength_r", {})
-            emission_color.append(g_right)
-            emission_color.append(r_right)
-            emission_color.append(g_left)
-            emission_color.append(r_left)
-
-            EmissionColor.insert1(
-                    {"emission_color":emission_color},
-                    skip_duplicates=True,
+            for fiber in fibers:
+                 
+                fiber_notes = meta_info.get("Fiber").get("implantation").get(f'{fiber}').get("notes", None)
+                #fiber_diam = meta_info.get("Fiber").get("fiber_diameter", None)
+                #hemisphere = meta_info.get("Experiment").get("hemisphere")
+                fiber_list.append(
+                    {
+                        **key,
+                        "fiber_id": side_to_fiber_id_mapping[fiber],
+                        "hemisphere": fiber,
+                        "notes": fiber_notes,
+                    }
                     )
+                
+            trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
+            for trace_name in trace_names:
+
+                # Populate EmissionColor if present
+                emission_color = color_mapping[trace_name.split("_")[1][0]]
+
+                emission_wavelength = (
+                    meta_info.get("Fiber", {})
+                    .get("implantation")
+                    .get(f'{fiber}')
+                    .get("emission_wavelength", {})
+                    .get(emission_color, None)
+                )
+
+                EmissionColor.insert1(
+                    {
+                        "emission_color": emission_color,
+                        "wavelength": emission_wavelength,
+                    },
+                    skip_duplicates=True,
+                )
 
                 # Populate SensorProtein if present
-            virusInjection = meta_info.get("VirusInjection")
-            sensor_protein: list[str] = []
-            for sensor in virusInjection:
-                g_left = virusInjection.get("left").get("sensor_protein_g", {})
-                g_right = virusInjection.get("right").get("sensor_protein_g", {})
-                r_left = virusInjection.get("left").get("sensor_protein_r", {})
-                r_right = virusInjection.get("right").get("sensor_protein_r", {})
-            sensor_protein.append(g_right)
-            sensor_protein.append(r_right)
-            sensor_protein.append(g_left)
-            sensor_protein.append(r_left)
-
-            if sensor_protein:
+                sensor_protein = (
+                    meta_info.get("VirusInjection", {})
+                    .get(f'{fiber}', {})
+                    .get("sensor_protein", {})
+                    .get(emission_color, None)
+                )
+                if sensor_protein:
                     logger.info(
                         f"{sensor_protein} is inserted into {__name__}.SensorProtein"
                     )
                     SensorProtein.insert1(
-                        {"sensor_protein": sensor_protein}, skip_duplicates=True)
-                    
-                # Populate ExcitationWavelength if present
-            FiberInfo = meta_info.get("Fiber").get("implantation")
-            excitation_wavelength: list[str]=[]
-            for excitation in FiberInfo:
-                  g_left = FiberInfo.get("left").get("excitation_wavelength_g", {})
-                  g_right = FiberInfo.get("right").get("excitation_wavelength_g", {})
-                  r_left = FiberInfo.get("left").get("excitation_wavelength_r", {})
-                  r_right = FiberInfo.get("right").get("excitation_wavelength_r", {})
-            excitation_wavelength.append(g_right)
-            excitation_wavelength.append(r_right)
-            excitation_wavelength.append(g_left)
-            excitation_wavelength.append(r_left)
+                        {"sensor_protein_name": sensor_protein}, skip_duplicates=True
+                    )
 
-            if excitation_wavelength:
+                # Populate ExcitationWavelength if present
+                excitation_wavelength = (
+                    meta_info.get("Fiber", {})
+                    .get("implantation")
+                    .get(f'{fiber}')
+                    .get("excitation_wavelength", {})
+                    .get(emission_color, None)
+                )
+
+                if excitation_wavelength:
                     logger.info(
                         f"{excitation_wavelength} is inserted into {__name__}.ExcitationWavelength"
                     )
-            ExcitationWavelength.insert1(
+                    ExcitationWavelength.insert1(
                         {"excitation_wavelength": excitation_wavelength},
                         skip_duplicates=True,
                     )
@@ -420,23 +446,37 @@ class FiberPhotometry(dj.Imported):
                     else:
                         raise ValueError("Sensor Protein must be g or r")
             demux_trace_list: list[dict] = []
-            demux_trace_list.append(photometry_demux_g_left)
-            demux_trace_list.append(photometry_demux_r_left)
             demux_trace_list.append(photometry_demux_g_right)
             demux_trace_list.append(photometry_demux_r_right)
-                        
+            demux_trace_list.append(photometry_demux_g_left)
+            demux_trace_list.append(photometry_demux_r_left)
+
+            carrier_ind = {"g_right":0, "r_right":1, "g_left":2, "r_left":3}
+            carrier_frequency = demod_sampling[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+
+            demod_trace = demux_trace_list[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+
+            if carrier_frequency:
+                logger.info(
+                    f"{carrier_frequency} is inserted into {__name__}.CarrierFrequency"
+                )
+                CarrierFrequency.insert1(
+                    {"carrier_frequency": carrier_frequency},
+                    skip_duplicates=True,
+                )
+            
+                            
             demodulated_trace_list.append(
                     {
                         **key,
-                        "fiber_id": fiber_id,
-                        "hemisphere": hemisphere,
+                        "fiber_id": side_to_fiber_id_mapping[fiber],
+                        "hemisphere": fiber,
                         "trace_name": trace_name.split("_")[0],
                         "emission_color": emission_color,
                         "sensor_protein_name": sensor_protein,
                         "excitation_wavelength": excitation_wavelength,
-                        "demod_sample_rate": raw_sample_rate,
-                        "carrierFrequency": demod_sampling,
-                        "trace": demux_trace_list + hemisphere[0].upper().values,
+                        "carrier_frequency": carrier_frequency,
+                        "trace": demod_trace,
                     }
                 )
                     
@@ -547,97 +587,110 @@ class FiberPhotometry(dj.Imported):
             fiber_list: list[dict] = []
             demodulated_trace_list: list[dict] = []
                    
+            fibers: list[str] = [ "right", "left"]
+
+            side_to_fiber_id_mapping = {"right": 1, "left": 2}
+            color_mapping = {"g": "green", "r": "red", "b": "blue"}
+
         # Get photometry traces for each fiber
-            Fiber_implant = meta_info.get("Fiber").get("implantation")
-            fiber_id = meta_info.get("Fiber").get("fiber_diameter", None)
-            hemisphere = meta_info.get("Experiment").get("hemisphere")
-            fiber_notes: list[str]=[]
-            for notes in Fiber_implant:
-                fiber_notes_left = Fiber_implant.get("left").get("notes", None)
-                fiber_notes_right = Fiber_implant.get("right").get("notes", None)
-            fiber_notes.append(fiber_notes_left)
-            fiber_notes.append(fiber_notes_right)
+            for fiber in fibers:
+                 
+                fiber_notes = meta_info.get("Fiber").get("implantation").get(f'{fiber}').get("notes", None)
+                #fiber_diam = meta_info.get("Fiber").get("fiber_diameter", None)
+                #hemisphere = meta_info.get("Experiment").get("hemisphere")
+                fiber_list.append(
+                    {
+                        **key,
+                        "fiber_id": side_to_fiber_id_mapping[fiber],
+                        "hemisphere": fiber,
+                        "notes": fiber_notes,
+                    }
+                    )
+            
+            trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
+            for trace_name in trace_names:
 
-            fiber_list.append(
-                {
-                    **key,
-                    "fiber_id": fiber_id,
-                    "hemisphere": hemisphere,
-                    "notes": fiber_notes,
-                }
+                # Populate EmissionColor if present
+                emission_color = color_mapping[trace_name.split("_")[1][0]]
+
+                emission_wavelength = (
+                    meta_info.get("Fiber", {})
+                    .get("implantation")
+                    .get(f'{fiber}')
+                    .get("emission_wavelength", {})
+                    .get(emission_color, None)
                 )
-            
-            FiberInfo = meta_info.get("Fiber").get("implantation")
-            excitation_wavelength: list[str]=[]
-            for excitation in FiberInfo:
-                  g_left = FiberInfo.get("left").get("excitation_wavelength_g", {})
-                  g_right = FiberInfo.get("right").get("excitation_wavelength_g", {})
-                  r_left = FiberInfo.get("left").get("excitation_wavelength_r", {})
-                  r_right = FiberInfo.get("right").get("excitation_wavelength_r", {})
-            excitation_wavelength.append(g_right)
-            excitation_wavelength.append(r_right)
-            excitation_wavelength.append(g_left)
-            excitation_wavelength.append(r_left)
 
-            if excitation_wavelength:
-                    logger.info(
-                        f"{excitation_wavelength} is inserted into {__name__}.ExcitationWavelength"
-                    )
-            ExcitationWavelength.insert1(
-                        {"excitation_wavelength": excitation_wavelength},
-                        skip_duplicates=True,
-                    )
-
-
-            emission_color: list[str]=[]
-            for color in FiberInfo:
-                  g_left = FiberInfo.get("left").get("emission_wavelength_g", {})
-                  g_right = FiberInfo.get("right").get("emission_wavelength_g", {})
-                  r_left = FiberInfo.get("left").get("emission_wavelength_r", {})
-                  r_right = FiberInfo.get("right").get("emission_wavelength_r", {})
-            emission_color.append(g_right)
-            emission_color.append(r_right)
-            emission_color.append(g_left)
-            emission_color.append(r_left)
-
-            EmissionColor.insert1(
-                    {"emission_color":emission_color},
+                EmissionColor.insert1(
+                    {
+                        "emission_color": emission_color,
+                        "wavelength": emission_wavelength,
+                    },
                     skip_duplicates=True,
-                    )
-            
-                # Populate SensorProtein if present
-            virusInjection = meta_info.get("VirusInjection")
-            sensor_protein: list[str] = []
-            for sensor in virusInjection:
-                g_left = virusInjection.get("left").get("sensor_protein_g", {})
-                g_right = virusInjection.get("right").get("sensor_protein_g", {})
-                r_left = virusInjection.get("left").get("sensor_protein_r", {})
-                r_right = virusInjection.get("right").get("sensor_protein_r", {})
-            sensor_protein.append(g_right)
-            sensor_protein.append(r_right)
-            sensor_protein.append(g_left)
-            sensor_protein.append(r_left)
+                )
 
-            if sensor_protein:
+                # Populate SensorProtein if present
+                sensor_protein = (
+                    meta_info.get("VirusInjection", {})
+                    .get(f'{fiber}', {})
+                    .get("sensor_protein", {})
+                    .get(emission_color, None)
+                )
+                if sensor_protein:
                     logger.info(
                         f"{sensor_protein} is inserted into {__name__}.SensorProtein"
                     )
                     SensorProtein.insert1(
-                        {"sensor_protein": sensor_protein}, skip_duplicates=True)
-                   
-            demodulated_trace_list.append(
+                        {"sensor_protein_name": sensor_protein}, skip_duplicates=True
+                    )
+
+                # Populate ExcitationWavelength if present
+                excitation_wavelength = (
+                    meta_info.get("Fiber", {})
+                    .get("implantation")
+                    .get(f'{fiber}')
+                    .get("excitation_wavelength", {})
+                    .get(emission_color, None)
+                )
+
+                if excitation_wavelength:
+                    logger.info(
+                        f"{excitation_wavelength} is inserted into {__name__}.ExcitationWavelength"
+                    )
+                    ExcitationWavelength.insert1(
+                        {"excitation_wavelength": excitation_wavelength},
+                        skip_duplicates=True,
+                    )
+                
+                raw_photom_list: list[dict]=[photom_g_right, photom_r_right, 
+                                         photom_g_left, photom_r_left]
+                raw_carrier_list: list[dict]=[carrier_g_right, carrier_r_right,
+                                            carrier_g_left, carrier_r_left]
+                carrier_ind = {"g_right":0, "r_right":1, "g_left":2, "r_left":3}
+                carrier_frequency = calc_carry_list[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+
+                demod_trace = spect_power_list[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+
+                if carrier_frequency:
+                    logger.info(
+                        f"{carrier_frequency} is inserted into {__name__}.CarrierFrequency"
+                    )
+                    CarrierFrequency.insert1(
+                        {"carrier_frequency": carrier_frequency},
+                        skip_duplicates=True,
+                    )
+                    
+                demodulated_trace_list.append(
                     {
                         **key,
-                        "fiber_id": fiber_id,
-                        "hemisphere": hemisphere,
+                        "fiber_id": side_to_fiber_id_mapping[fiber],
+                        "hemisphere": fiber,
                         "trace_name": trace_name.split("_")[0],
                         "emission_color": emission_color,
                         "sensor_protein_name": sensor_protein,
                         "excitation_wavelength": excitation_wavelength,
-                        "demod_sample_rate": sampling_Hz,
-                        "carrierFrequency": calc_carry_list,
-                        "trace": (spect_power_list + hemisphere[0].upper().values) or
-                                  (photometry_df[trace_name + hemisphere[0].upper()].values),
+                        "carrier_frequency": carrier_frequency,
+                        "trace": demod_trace,
                     }
                 )
             
