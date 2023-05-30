@@ -968,12 +968,6 @@ class FiberPhotometrySynced(dj.Imported):
                 data1 = data.loc[sessionStart:sessionEnd].reset_index(drop=True)
                 syncedData.append(data1)
             
-            # ds_photom = []
-            # for i in range(len(syncedData)):
-            #     ds_data = pd.DataFrame(signal.resample_poly(
-            #             syncedData[i],100,round(beh_ds_factor*100)),columns=syncedData[i].keys())
-            #     ds_photom.append(ds_data)
-            
             #one more z-score over the window length
             alignedData = []
             win = round(meta_info.get("Processing_Parameters").get("z_window", 60)*behavior_sampling)
@@ -984,11 +978,18 @@ class FiberPhotometrySynced(dj.Imported):
                     aligned_photom = demodulation.rolling_z(np_dsPhotom, wn=win)
                     alignedData.append(aligned_photom)
 
+            # get timestamps from matlab data
+            if len(list(behavior_dir.glob("*.parquet"))) > 0:
+                data_format = "matlab_data"
+                matlab_data: list[dict] = pd.read_parquet(
+                    next(behavior_dir.glob("*.parquet")), engine='fastparquet'
+                )
+
             # Populate FiberPhotometrySynced
             self.insert1(
                 {
                     **key,
-                    "timestamps": downsampled_states_df["session_clock"].values, #this will be adapted for different behavir files
+                    "timestamps": matlab_data["time"].values,
                     "time_offset": behavior_sync_signal,
                     "sample_rate": target_downsample_rate,
                 }
