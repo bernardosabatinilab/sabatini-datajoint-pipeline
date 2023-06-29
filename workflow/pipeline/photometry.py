@@ -294,6 +294,7 @@ class FiberPhotometry(dj.Imported):
                             "sensor_protein_name": sensor_protein,
                             "excitation_wavelength": excitation_wavelength,
                             "carrier_frequency": carrier_frequency,
+                            "demod_sample_rate": carrier_frequency,
                             "trace": demod_trace,
                         }
                     )
@@ -325,6 +326,7 @@ class FiberPhotometry(dj.Imported):
             #demux_matlab_data
             
             raw_sample_rate = None
+            sampling_Hz = 2000
             beh_synch_signal = demux_matlab_data[0]["time_offset"]
 
             #Get index of traces
@@ -468,6 +470,7 @@ class FiberPhotometry(dj.Imported):
                             "sensor_protein_name": sensor_protein,
                             "excitation_wavelength": excitation_wavelength,
                             "carrier_frequency": carrier_frequency,
+                            "demod_sample_rate": carrier_frequency,
                             "trace": demod_trace,
                         }
                     )
@@ -682,6 +685,7 @@ class FiberPhotometry(dj.Imported):
                             "sensor_protein_name": sensor_protein,
                             "excitation_wavelength": excitation_wavelength,
                             "carrier_frequency": carrier_frequency,
+                            "demod_sample_rate": carrier_frequency,
                             "trace": demod_trace,
                         }
                     )
@@ -703,7 +707,7 @@ class FiberPhotometry(dj.Imported):
 
             # Populate FiberPhotometry.DemodulatedTrace
             logger.info(f"Populate {__name__}.FiberPhotometry.DemodulatedTrace")
-            self.DemodulatedTrace.insert(spect_power_list)
+            self.DemodulatedTrace.insert(demodulated_trace_list)
             
             del tdt_data
             #tdt_data
@@ -921,7 +925,7 @@ class FiberPhotometrySynced(dj.Imported):
                 if s.lower().startswith("r")
                 else None
             )
-
+            color_mapping = {"green": "green", "red": "red"}
             sampling_Hz = meta_info.get("Processing_Parameters").get("sampling_frequency", 2000)
             behavior_sync_signal = meta_info.get("Processing_Parameters").get("behavior_offset", 0)
             behavior_sampling = meta_info.get("Processing_Parameters").get("behavior_sampling", 200)
@@ -949,22 +953,23 @@ class FiberPhotometrySynced(dj.Imported):
                 trace = row["trace"]
                 photometry_dict[trace_name] = trace
 
-            photometry_sync = pd.DataFrame(
-                (FiberPhotometry & key).fetch1("beh_synch_signal") | photometry_dict
-            )
+            photometry_sync = behavior_sync_signal
             # Get trace names e.g., ["detrend_grnR", "raw_grnR"]
-            trace_names: list[str] = photometry_sync.columns.drop(synch_signal_name).tolist()
+            trace_names: list[str] = photometry_dict.keys()
+
+            #grab first key
+            first_key = next(iter(photometry_dict))
 
             #sync to behavior offset and downsample to behavior sampling rate
             sessionStart = behavior_sync_signal
-            sessionEnd = len(spect_power_list[0]) ##will spect_power_list carry over? switch to trace_names?
+            sessionEnd = len(photometry_dict[first_key]) ##will spect_power_list carry over? switch to trace_names?
             syncedData = []
 
-            for spect_power_array in spect_power_list:
-                data = pd.DataFrame(spect_power_array)
-                data1 = data.loc[sessionStart:sessionEnd].reset_index(drop=True)
-                syncedData.append(data1)
-            
+            for key, value in photometry_dict.items():
+                data = pd.DataFrame(value)  # Convert the array to a DataFrame
+                data1 = data.loc[sessionStart:sessionEnd].reset_index(drop=True)  # Trim the data using sessionStart and sessionEnd
+                syncedData.append(data1) 
+                        
             #one more z-score over the window length
             alignedData = []
             win = round(meta_info.get("Processing_Parameters").get("z_window", 60)*behavior_sampling)
