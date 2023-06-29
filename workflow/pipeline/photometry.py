@@ -342,15 +342,11 @@ class FiberPhotometry(dj.Imported):
 
             # Get demodulated sample rate
             demod_sampling: list[float] = []
-            demod_sample_rate_g_left = demux_matlab_data[carrier_g_left]["demux_freq"]
-            demod_sample_rate_r_left = demux_matlab_data[carrier_r_left]["demux_freq"]
-            demod_sample_rate_g_right = demux_matlab_data[carrier_g_right]["demux_freq"]
-            demod_sample_rate_r_right = demux_matlab_data[carrier_r_right]["demux_freq"]
-            demod_sampling.append(demod_sample_rate_g_right)
-            demod_sampling.append(demod_sample_rate_r_right)
-            demod_sampling.append(demod_sample_rate_g_left)
-            demod_sampling.append(demod_sample_rate_r_left)
-            
+            demod_sampling.append(demux_matlab_data[carrier_g_right]["demux_freq"])
+            demod_sampling.append(demux_matlab_data[carrier_r_right]["demux_freq"])
+            demod_sampling.append(demux_matlab_data[carrier_g_left]["demux_freq"])
+            demod_sampling.append(demux_matlab_data[carrier_r_left]["demux_freq"])
+                       
             
             # Store data in this list for ingestion
             fiber_list: list[dict] = []
@@ -926,10 +922,10 @@ class FiberPhotometrySynced(dj.Imported):
                 else None
             )
             color_mapping = {"green": "green", "red": "red"}
-            sampling_Hz = meta_info.get("Processing_Parameters").get("sampling_frequency", 2000)
-            behavior_sync_signal = meta_info.get("Processing_Parameters").get("behavior_offset", 0)
-            behavior_sampling = meta_info.get("Processing_Parameters").get("behavior_sampling", 200)
-            target_downsample_rate = meta_info.get("Processing_Parameters").get("downsample_frequency", 50)
+            sampling_Hz = processing_parameters.get("sampling_frequency", 2000)
+            behavior_sync_signal = processing_parameters.get("behavior_offset", 0)
+            behavior_sampling = processing_parameters.get("behavior_sampling", 200)
+            target_downsample_rate = processing_parameters.get("downsample_frequency", 50)
             downsample_factor = round(behavior_sampling // target_downsample_rate)
             beh_ds_factor = round(sampling_Hz // behavior_sampling)
 
@@ -1016,42 +1012,42 @@ class FiberPhotometrySynced(dj.Imported):
             self.SyncedTrace.insert(synced_trace_list)
 
 
-    def _split_penalty_states(
-        df: pd.DataFrame, behavior_df: pd.DataFrame, penalty: str = "ENLP"
-        ) -> None:
-        """Handle penalties. Label preceding states as different from those without penalties"""
-        penalty_trials = df.loc[df[penalty] == 1].nTrial.unique()
+def _split_penalty_states(
+    df: pd.DataFrame, behavior_df: pd.DataFrame, penalty: str = "ENLP"
+    ) -> None:
+    """Handle penalties. Label preceding states as different from those without penalties"""
+    penalty_trials = df.loc[df[penalty] == 1].nTrial.unique()
 
-        if len(penalty_trials) > 1:
-            penalty_groups = df.loc[df.nTrial.isin(penalty_trials)].groupby(
-                "nTrial", as_index=False
-            )
-
-            mask = penalty_groups.apply(
-                lambda x: x[f"n{penalty[:-1]}"]
-                < behavior_df.loc[behavior_df.nTrial == x.nTrial.iloc[0].squeeze()][
-                    f"n_{penalty[:-1]}"
-                ].squeeze()
-            )
-
-        else:
-            mask = (
-                df.loc[df.nTrial.isin(penalty_trials), f"n{penalty[:-1]}"]
-                < behavior_df.loc[behavior_df.nTrial.isin(penalty_trials)][
-                    f"n_{penalty[:-1]}"
-                ].squeeze()
-            )
-
-        # Label pre-penalty states as penalties
-        df[f"state_{penalty}"] = 0
-        df.loc[df.nTrial.isin(penalty_trials), f"state_{penalty}"] = (
-            mask.values * df.loc[df.nTrial.isin(penalty_trials), f"{penalty[:-1]}"]
+    if len(penalty_trials) > 1:
+        penalty_groups = df.loc[df.nTrial.isin(penalty_trials)].groupby(
+            "nTrial", as_index=False
         )
 
-        # Remove pre-penalty states from true states
-        df.loc[df.nTrial.isin(penalty_trials), f"{penalty[:-1]}"] = (
-            1 - mask.values
-        ) * df.loc[df.nTrial.isin(penalty_trials), f"{penalty[:-1]}"]
+        mask = penalty_groups.apply(
+            lambda x: x[f"n{penalty[:-1]}"]
+            < behavior_df.loc[behavior_df.nTrial == x.nTrial.iloc[0].squeeze()][
+                f"n_{penalty[:-1]}"
+            ].squeeze()
+        )
+
+    else:
+        mask = (
+            df.loc[df.nTrial.isin(penalty_trials), f"n{penalty[:-1]}"]
+            < behavior_df.loc[behavior_df.nTrial.isin(penalty_trials)][
+                f"n_{penalty[:-1]}"
+            ].squeeze()
+        )
+
+    # Label pre-penalty states as penalties
+    df[f"state_{penalty}"] = 0
+    df.loc[df.nTrial.isin(penalty_trials), f"state_{penalty}"] = (
+        mask.values * df.loc[df.nTrial.isin(penalty_trials), f"{penalty[:-1]}"]
+    )
+
+    # Remove pre-penalty states from true states
+    df.loc[df.nTrial.isin(penalty_trials), f"{penalty[:-1]}"] = (
+        1 - mask.values
+    ) * df.loc[df.nTrial.isin(penalty_trials), f"{penalty[:-1]}"]
         
    
 
