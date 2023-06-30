@@ -729,7 +729,8 @@ class FiberPhotometrySynced(dj.Imported):
         """
 
     def make(self, key):
-        
+
+        session_dir = (session.SessionDirectory & key).fetch1("session_dir")
         session_full_dir: Path = find_full_path(get_raw_root_data_dir(), session_dir)
         behavior_dir = session_full_dir / "Behavior"
         # Get meta info
