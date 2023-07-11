@@ -221,8 +221,7 @@ class FiberPhotometry(dj.Imported):
                         meta_info.get("Fiber", {})
                         .get("implantation")
                         .get(f'{fiber}')
-                        .get("emission_wavelength", {})
-                        .get(emission_color, None)
+                        .get("emission_wavelength_" + emission_color, {})
                     )
 
                     EmissionColor.insert1(
@@ -237,8 +236,7 @@ class FiberPhotometry(dj.Imported):
                     sensor_protein = (
                         meta_info.get("VirusInjection", {})
                         .get(f'{fiber}', {})
-                        .get("sensor_protein", {})
-                        .get(emission_color, None)
+                        .get("sensor_protein_" + emission_color, {})
                     )
                     if sensor_protein:
                         logger.info(
@@ -253,8 +251,7 @@ class FiberPhotometry(dj.Imported):
                         meta_info.get("Fiber", {})
                         .get("implantation")
                         .get(f'{fiber}')
-                        .get("excitation_wavelength", {})
-                        .get(emission_color, None)
+                        .get("excitation_wavelength_" + emission_color, {})
                     )
 
                     if excitation_wavelength:
@@ -385,8 +382,7 @@ class FiberPhotometry(dj.Imported):
                         meta_info.get("Fiber", {})
                         .get("implantation")
                         .get(f'{fiber}')
-                        .get("emission_wavelength", {})
-                        .get(emission_color, None)
+                        .get("emission_wavelength_" + emission_color, {})
                     )
 
                     EmissionColor.insert1(
@@ -401,8 +397,7 @@ class FiberPhotometry(dj.Imported):
                     sensor_protein = (
                         meta_info.get("VirusInjection", {})
                         .get(f'{fiber}', {})
-                        .get("sensor_protein", {})
-                        .get(emission_color, None)
+                        .get("sensor_protein_" + emission_color, {})
                     )
                     if sensor_protein:
                         logger.info(
@@ -417,8 +412,7 @@ class FiberPhotometry(dj.Imported):
                         meta_info.get("Fiber", {})
                         .get("implantation")
                         .get(f'{fiber}')
-                        .get("excitation_wavelength", {})
-                        .get(emission_color, None)
+                        .get("excitation_wavelength_" + emission_color, {})
                     )
 
                     if excitation_wavelength:
@@ -431,45 +425,45 @@ class FiberPhotometry(dj.Imported):
                         )
 
                     ##pull out the data from the matlab file
-                photometry_demux_g_left = demux_matlab_data[photom_g_left]['data']
-                photometry_demux_r_left = demux_matlab_data[photom_r_left]['data']
-                photometry_demux_g_right = demux_matlab_data[photom_g_right]['data']
-                photometry_demux_r_right = demux_matlab_data[photom_r_right]['data']
-                demux_trace_list: list[dict] = []
-                demux_trace_list.append(photometry_demux_g_right)
-                demux_trace_list.append(photometry_demux_r_right)
-                demux_trace_list.append(photometry_demux_g_left)
-                demux_trace_list.append(photometry_demux_r_left)
+                    photometry_demux_g_left = demux_matlab_data[photom_g_left]['data']
+                    photometry_demux_r_left = demux_matlab_data[photom_r_left]['data']
+                    photometry_demux_g_right = demux_matlab_data[photom_g_right]['data']
+                    photometry_demux_r_right = demux_matlab_data[photom_r_right]['data']
+                    demux_trace_list: list[dict] = []
+                    demux_trace_list.append(photometry_demux_g_right)
+                    demux_trace_list.append(photometry_demux_r_right)
+                    demux_trace_list.append(photometry_demux_g_left)
+                    demux_trace_list.append(photometry_demux_r_left)
 
-                carrier_ind = {"g_right":0, "r_right":1, "g_left":2, "r_left":3}
-                carrier_frequency = demod_sampling[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+                    carrier_ind = {"g_right":0, "r_right":1, "g_left":2, "r_left":3}
+                    carrier_frequency = demod_sampling[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
 
-                demod_trace = demux_trace_list[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+                    demod_trace = demux_trace_list[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
 
-                if carrier_frequency:
-                    logger.info(
-                        f"{carrier_frequency} is inserted into {__name__}.CarrierFrequency"
-                    )
-                    CarrierFrequency.insert1(
-                        {"carrier_frequency": carrier_frequency},
-                        skip_duplicates=True,
-                    )
-                
-                                
-                demodulated_trace_list.append(
-                        {
-                            **key,
-                            "fiber_id": side_to_fiber_id_mapping[fiber],
-                            "hemisphere": fiber,
-                            "trace_name": trace_name.split("_")[0],
-                            "emission_color": emission_color,
-                            "sensor_protein_name": sensor_protein,
-                            "excitation_wavelength": excitation_wavelength,
-                            "carrier_frequency": carrier_frequency,
-                            "demod_sample_rate": carrier_frequency,
-                            "trace": demod_trace,
-                        }
-                    )
+                    if carrier_frequency:
+                        logger.info(
+                            f"{carrier_frequency} is inserted into {__name__}.CarrierFrequency"
+                        )
+                        CarrierFrequency.insert1(
+                            {"carrier_frequency": carrier_frequency},
+                            skip_duplicates=True,
+                        )
+                    
+                                    
+                    demodulated_trace_list.append(
+                            {
+                                **key,
+                                "fiber_id": side_to_fiber_id_mapping[fiber],
+                                "hemisphere": fiber,
+                                "trace_name": trace_name.split("_")[0],
+                                "emission_color": emission_color,
+                                "sensor_protein_name": sensor_protein,
+                                "excitation_wavelength": excitation_wavelength,
+                                "carrier_frequency": carrier_frequency,
+                                "demod_sample_rate": carrier_frequency,
+                                "trace": demod_trace,
+                            }
+                        )
                     
                 # Populate FiberPhotometry
             logger.info(f"Populate {__name__}.FiberPhotometry")
@@ -928,6 +922,7 @@ class FiberPhotometrySynced(dj.Imported):
             behavior_sampling = processing_parameters.get("behavior_sampling", 200)
             target_downsample_rate = processing_parameters.get("downsample_frequency", 50)
             downsample_factor = round(behavior_sampling // target_downsample_rate)
+            final_z = processing_parameters.get("final_z", False)
             beh_ds_factor = round(sampling_Hz // behavior_sampling)
 
             # Find data dir
@@ -952,42 +947,46 @@ class FiberPhotometrySynced(dj.Imported):
 
             photometry_sync = behavior_sync_signal
             # Get trace names e.g., ["detrend_grnR", "raw_grnR"]
-            trace_names: list[str] = photometry_dict.keys()
+            trace_names: list[dict] = photometry_dict.keys()
 
             #grab first key
             first_key = next(iter(photometry_dict))
 
             #sync to behavior offset and downsample to behavior sampling rate
             sessionStart = behavior_sync_signal
-            sessionEnd = len(photometry_dict[first_key]) ##will spect_power_list carry over? switch to trace_names?
+            sessionEnd = len(photometry_dict[first_key])
             syncedData = []
 
-            for key, value in photometry_dict.items():
+            for value in photometry_dict.items():
                 data = pd.DataFrame(value)  # Convert the array to a DataFrame
                 data1 = data.loc[sessionStart:sessionEnd].reset_index(drop=True)  # Trim the data using sessionStart and sessionEnd
                 syncedData.append(data1) 
                         
             #one more z-score over the window length
-            alignedData = []
-            win = round(meta_info.get("Processing_Parameters").get("z_window", 60)*behavior_sampling)
-            for ii in range(len(syncedData)):
-                    data = syncedData[ii]
-                    np_dsPhotom = data.to_numpy()
-                    np_dsPhotom = np_dsPhotom.flatten()
+            alignedData = [] 
+            if final_z == True:
+                win = round(meta_info.get("Processing_Parameters").get("z_window", 60)*behavior_sampling)
+                for data in syncedData:
+                    np_dsPhotom = data.iloc[1].to_numpy()[0]
                     aligned_photom = demodulation.rolling_z(np_dsPhotom, wn=win)
                     alignedData.append(aligned_photom)
+            else:
+                for data in syncedData:
+                    np_dsPhotom = data.iloc[1].to_numpy()[0]
+                    alignedData.append(np_dsPhotom)
 
             # get timestamps from matlab data
             if len(list(behavior_dir.glob("*.parquet"))) > 0:
                 data_format = "matlab_data"
                 matlab_data: list[dict] = pd.read_parquet(
                     next(behavior_dir.glob("*.parquet")), engine='fastparquet'
-                )
+                ).to_dict(orient='records')
 
             # Populate FiberPhotometrySynced
             self.insert1(
                 {
                     **key,
+                    #"timestamps": [item["time"] for item in matlab_data],
                     "timestamps": matlab_data["time"].values,
                     "time_offset": behavior_sync_signal,
                     "sample_rate": target_downsample_rate,
@@ -1006,7 +1005,8 @@ class FiberPhotometrySynced(dj.Imported):
                         "hemisphere": {"R": "right", "L": "left"}[trace_name[-1]],
                         "trace_name": trace_name.split("_")[0],
                         "emission_color": get_color(trace_name.split("_")[1][0]),
-                        "trace": alignedData[trace_name].values,
+                        #"trace": alignedData[trace_names.index(trace_name)].values
+                        "trace": alignedData[trace_name],
                     }
                 )
 
