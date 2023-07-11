@@ -781,7 +781,7 @@ class FiberPhotometrySynced(dj.Imported):
                 (FiberPhotometry & key).fetch1("beh_synch_signal") | photometry_dict
             )
             # Get trace names e.g., ["detrend_grnR", "raw_grnR"]
-            trace_names: list[str] = photometry_df.columns.drop(synch_signal_names).tolist()
+            trace_names: list[dict] = photometry_df.columns.drop(synch_signal_names).tolist()
 
             # Update df to start with first trial pulse from behavior system
             photometry_df = pp.handshake_behav_recording_sys(photometry_df)
