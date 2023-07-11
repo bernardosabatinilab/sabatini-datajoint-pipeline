@@ -905,7 +905,7 @@ class FiberPhotometrySynced(dj.Imported):
             self.SyncedTrace.insert(synced_trace_list)
 
         elif transform == "spectrogram":
-             # Parameters
+            # Parameters
             get_fiber_id = (
                 lambda side: 1 if side.lower().startswith("r") else 2
             )  # map hemisphere to fiber id
@@ -986,8 +986,8 @@ class FiberPhotometrySynced(dj.Imported):
             self.insert1(
                 {
                     **key,
-                    #"timestamps": [item["time"] for item in matlab_data],
-                    "timestamps": matlab_data["time"].values,
+                    "timestamps": [item["time"] for item in matlab_data],
+                    #"timestamps": matlab_data["time"].values,
                     "time_offset": behavior_sync_signal,
                     "sample_rate": target_downsample_rate,
                 }
