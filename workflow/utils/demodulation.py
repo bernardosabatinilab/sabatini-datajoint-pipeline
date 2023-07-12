@@ -1,7 +1,7 @@
 """
 Created on Fri Apr 15 16:01:51 2022
 
-@author: celiaberon
+@author: celiaberon and janetberrios
 """
 from __future__ import annotations
 import pandas as pd
@@ -18,6 +18,7 @@ from scipy import stats
 from scipy import signal
 from scipy import interpolate
 from scipy import optimize
+from scipy.signal.windows import hamming
 from copy import deepcopy
 
 
@@ -213,6 +214,94 @@ def fit_reference(
     return new_params, gen_sine(new_params, timestamps), ref
 
 
+def spec_demodulate(z1_trace_list, calc_carry_list, sampling_Hz, num_perseg, n_overlap):
+    demodulated_trace_list = []
+    for z1_trace in z1_trace_list:
+        f, t, sxx = signal.spectrogram(
+            z1_trace, 
+            fs=sampling_Hz, 
+            nperseg=num_perseg, 
+            noverlap=n_overlap
+        )
+        freq_ind = np.argmin(np.abs(f - calc_carry_list))
+        demodulated_trace = sxx[freq_ind, :]
+        demodulated_trace_list.append(demodulated_trace)
+    return demodulated_trace_list
+            
+def calc_carry(raw_carrier_list, sampling_Hz):
+                calc_carry_list = []
+                points_2_process = 2**14
+                for i in range(len(raw_carrier_list)):
+                    fft_carrier = abs(np.fft.fft(raw_carrier_list[i][0:points_2_process]))
+                    P2 = fft_carrier/points_2_process
+                    P1 = abs(P2/2+1)
+                    P1[1:-1] = 2*P1[1:-1]
+                    f = sampling_Hz * np.arange(points_2_process // 2) / points_2_process
+                    ind = np.argmax(P1, axis=None)
+                    processed_carrier = round(f[ind])
+                    calc_carry_list.append(processed_carrier)
+                return calc_carry_list
+
+def four(z1_trace_list):
+                four_list = []
+                for i in range(len(z1_trace_list)):
+                    four_list.append(np.fft.fft(z1_trace_list[i]))
+                return four_list 
+
+def bandpass_demod(demodulated_trace_list, calc_carry_list, sampling_Hz, bp_bw):
+    return [
+        bandpass_signal(
+            trace, 
+            center_fs=calc_carry,
+            fs=sampling_Hz,
+            attenuation=40,
+            bw=bp_bw)
+        for trace, calc_carry in zip(demodulated_trace_list, calc_carry_list)]
+
+def process_trace(raw_photom_list, calc_carry_list,
+                                sampling_Hz, window1,
+                                num_perseg, n_overlap):
+                z1_trace_list = [] ##create a dict for each step of the process
+                ##create a dict for each step of the process   
+                for i in range(len(raw_photom_list)):
+                    z_trace = rolling_z(raw_photom_list[i], window1)
+                    z1_trace_list.append(z_trace)
+                    power_spectra_list, t_list = rolling_demodulation(z1_trace_list,
+                                                                      calc_carry_list,
+                                                                    sampling_Hz, num_perseg, n_overlap)
+                    spect_power_list = spect_power(power_spectra_list)
+                return z1_trace_list, power_spectra_list, t_list, spect_power_list
+
+def rolling_demodulation(z1_trace_list, calc_carry_list, sampling_Hz, nperseg, noverlap):
+    power_spectra_list = []
+    t_list = []
+    win = signal.hamming(nperseg, 'periodic')
+    calc_carry_list = np.array(calc_carry_list)
+    for x in z1_trace_list:
+        power_spectra = []
+        t = []
+        for ii in range(0, len(x) - nperseg + 1, noverlap):
+            f, t_, Zxx = signal.spectrogram(x[ii:ii+nperseg], sampling_Hz, window=win, nperseg=nperseg, noverlap=noverlap)
+            power_spectra.append(np.abs(Zxx))
+            t.append(t_)
+        t = np.concatenate(t)
+        power_spectra = np.concatenate(power_spectra, axis=1)
+        freq_ind = np.argmin(np.abs(f - calc_carry_list.reshape((-1, 1))), axis=0)
+        rolling_demod = power_spectra[freq_ind, :]
+        power_spectra_list.append(rolling_demod)
+        t_list.append(t)
+    power_spectra_list = np.array(power_spectra_list)
+    t_list = np.array(t_list)
+    return power_spectra_list, t_list
+
+def spect_power(power_spectra_list):
+    spect_power_list = []
+    for i in range(len(power_spectra_list)):
+        spect_power = np.mean(power_spectra_list[i], axis=0)
+        spect_power_list.append(spect_power)
+    return spect_power_list
+              
+
 def demodulate(
     x,
     center_fs,
@@ -315,144 +404,73 @@ def rolling_z(x, wn):
     return z.values
 
 
-def offline_demodulation(
-    data: tdt.StructType, tau, z=True, downsample_fs=600, bandpass_bw=50, **kwargs
-) -> tuple[pd.DataFrame, list[str], float]:
 
-    # tau: 1/cutoff freq of lowpass filter
-    # downsample_fs: new downsampled freq
-    # bandpass_bw: bandwith of bandpass filter centered around carrier freq
-    fibers = [i for i in [1, 2] if np.std(data.streams[f"Fi{i}r"].data[0][5:] > 0.05)]
-    # print(f'using fibers {fibers}')
-
-    ref_fs, sig, online, tstamps, ref, demod_sig = {}, {}, {}, {}, {}, {}
-
-    fs = data.streams[f"Fi{fibers[0]}r"].fs  # sampling freq ~6103 Hz
-    # online_fs = data.streams[f'grn{fibers[0]}'].fs # online demod sampling freq
-
-    for fiber in fibers:
-
-        k = f"pmt_{fiber}"
-        ref_fs[k] = detect_fs(
-            data.streams[f"Fi{fiber}r"].data[0], 1.0 / fs
-        )  # CB: channel 1 reference frequency from fft (should be same as from scalars)
-        # print(f'carrier freq fiber {fiber} = {ref_fs[k]}')
-
-        sig[k] = data.streams[f"Fi{fiber}r"].data[
-            2
-        ]  # CB: raw data (signal convolved with carrier frequency), ch1
-
-        if z:
-            sig[k] = rolling_z(sig[k], wn=round(60 * fs))
-            # print('applying first z-score with a 60s rolling window')
-
-        # online[k] = data.streams[f'grn{fiber}'].data # CB: demodulated and low-pass filtered data, by TDT, ch1
-
-        tstamps[k] = np.arange(len(sig[k])) / fs  # CB: timestamps to track samples
-    # tstamps["online"] = np.arange(len(online[k])) / online_fs # CB: timestamps to track samples, necessary if downsampling TDT pp
-
+def offline_demodulation(data, metadata, tau=20, z=True, z_window=60, downsample_fs=600, 
+                         bandpass_bw=50, **kwargs):
+        
     # use a short snippet of the signal to fit our offline reference
-    use_points = int(1e4)
-    for k, v in sig.items():  # CB: iterate over raw data channels
-        ref[k] = {}
+    use_points = int(1e4)     
+            
+    tstamps, ref, demod_sig = {}, {}, {}
+        
+    if metadata.task_ID.values[0].startswith('hf'):
+        threshold = 0.5# ... # 0.5?
+        toBeh = (downsample(data['toBeh'], metadata.sampling_freq.values[0], downsample_fs, 
+                            method='polyphase') > threshold).astype('int')
+        froG = (downsample(data['froG'], metadata.sampling_freq.values[0], downsample_fs, 
+                             method='polyphase') > threshold)
+    
+    demod_df = pd.DataFrame(data={'toBehSys':toBeh, 
+                                  'fromBehSys':froG})
+    
+    for fiber in [col for col in data.columns if col.startswith('fiber')]:
+    
+        sig = data[fiber].values # photometry signal
+        ref_fs = metadata.loc[fiber, 'carrier_freq']
+        fs = metadata.loc[fiber, 'sampling_freq']
+        if z:
+            sig = rolling_z(sig, wn=round(z_window*fs))
+            print('applying first z-score with a 60s rolling window')
+             
+        tstamps = np.arange(len(sig)) / fs # CB: timestamps to track samples
 
-        results = fit_reference(
-            v[
-                int(60 * fs) : int(60 * fs) + use_points
-            ],  # jump over z-score window tails (or equivalent to match)
-            tstamps[k][int(60 * fs) : int(60 * fs) + use_points],
-            expected_fs=ref_fs[k],
-        )  # CB: TBD but think this is fitting sine measured wave in raw data
-        # and comparing to input sine wave parameters for driver; outputs fit params
-        (
-            ref[k]["params_x"],
-            _,
-            ref[k]["ref_clean"],
-        ) = results  # CB: deconstruct above into fit params and bp filtered data
+        results = fit_reference(sig[int(z_window*fs):int(z_window*fs)+use_points],  # jump over z-score window tails (or equivalent to match)
+                                tstamps[int(z_window*fs):int(z_window*fs)+use_points], 
+                                expected_fs=ref_fs) # CB: TBD but think this is fitting sine measured wave in raw data
+                                                       # and comparing to input sine wave parameters for driver; outputs fit params
+        ref["params_x"], _, _ = results # CB: deconstruct above into fit params and bp filtered data
         # remember y has a 90 degree phase shift
-        ref[k]["params_y"] = (
-            ref[k]["params_x"][0],  #
-            ref[k]["params_x"][1],
-            ref[k]["params_x"][2] + np.pi / 2,
-            ref[k]["params_x"][3],
-        )
-        ref[k]["ref_x"] = gen_sine(
-            ref[k]["params_x"], tstamps[k]
-        )  # CB: generate new reference sine using fit params for data
-        ref[k]["ref_y"] = gen_sine(
-            ref[k]["params_y"], tstamps[k]
-        )  # CB: same but for shifted 90 deg
+        ref["params_y"] = (ref["params_x"][0], #
+                           ref["params_x"][1],
+                           ref["params_x"][2] + np.pi / 2,
+                           ref["params_x"][3])
+        ref["ref_x"] = gen_sine(ref["params_x"], tstamps) # CB: generate new reference sine using fit params for data
+        ref["ref_y"] = gen_sine(ref["params_y"], tstamps) # CB: same but for shifted 90 deg
 
-        int_x, int_y, r, downsample_fs = demodulate(
-            v,
-            ref_fs[k],  # is this the center_fs? and what is the center_fs
-            ref_x=ref[k]["ref_x"],
-            ref_y=ref[k]["ref_y"],
-            demod_tau=tau,
-            downsample_fs=downsample_fs,
-            bandpass_bw=bandpass_bw,
-        )
-        demod_sig[k] = r
-
-    for k, v in demod_sig.items():
-        demod_sig[k][: int(60 * downsample_fs)] = np.nan
-        demod_sig[k][-int(60 * downsample_fs) :] = np.nan
-
-    tstamps["demod"] = np.arange(len(demod_sig[f"pmt_{fiber}"])) / downsample_fs
-
-    toBeh = (
-        downsample(data.streams.toGG.data, fs, downsample_fs, method="polyphase") > 0.25
-    ).astype("int")
-    froG = 1 - (
-        downsample(data.streams.froG.data, fs, downsample_fs, method="polyphase") < 0.25
-    )
-
-    # print(len(data.streams.toGG.data), len(data.streams.froG.data))
-    # print(len(toBeh), len(froG))
-
-    demod_df = pd.DataFrame(
-        data={  #'grnR':demod_sig['pmt_1'],
-            #'grnL':demod_sig['pmt_2'],
-            "toBehSys": toBeh,
-            "fromBehSys": froG,
-        }
-    )
-
-    fiber_to_side_keys = {1: "R", 2: "L"}
-
-    for fiber in fibers:
-        side = fiber_to_side_keys[fiber]
-
-        if len(demod_sig[f"pmt_{fiber}"]) < len(toBeh):
-            # why are fiber data lengths sometimes different? sometimes turn off or on fiber later...how to align?
-            # print(f'padding fiber {fiber} with extra NaNs')
-            length_difference = len(toBeh) - len(demod_sig[f"pmt_{fiber}"])
-            # print(length_difference)
-            demod_sig[f"pmt_{fiber}"].extend([np.nan] * length_difference)
-
-        demod_df[f'{"detrend_" if z else ""}grn{side}'] = demod_sig[f"pmt_{fiber}"]
-
-    start_idx = demod_df[f'{"detrend_" if z else ""}grn{side}'].first_valid_index()
-    end_idx = demod_df[f'{"detrend_" if z else ""}grn{side}'].last_valid_index()
-
+        _, _, demod_sig, _ = demodulate(sig, 
+                                         ref_fs, #is this the center_fs? and what is the center_fs
+                                         ref_x=ref["ref_x"],
+                                         ref_y=ref["ref_y"],
+                                         demod_tau=tau,
+                                         downsample_fs=downsample_fs,
+                                         bandpass_bw=bandpass_bw)
+              
+        demod_sig[:int(z_window*downsample_fs)] = np.nan
+        demod_sig[-int(z_window*downsample_fs):] = np.nan
+        demod_df[fiber.replace('fiber', 'detrend')] = demod_sig
+            
+    start_idx = demod_df[fiber.replace('fiber', 'detrend')].first_valid_index()
+    end_idx = demod_df[fiber.replace('fiber', 'detrend')].last_valid_index()
     demod_df = demod_df[start_idx:end_idx].reset_index(drop=True)
-
-    # demod_df = demod_df.dropna().reset_index(drop=True)
-
+                     
     if z:
-        raw_df, _, _ = offline_demodulation(
-            data,
-            tau,
-            z=False,
-            downsample_fs=downsample_fs,
-            bandpass_bw=bandpass_bw,
-            **kwargs,
-        )
-        assert demod_df[["toBehSys", "fromBehSys"]].equals(
-            raw_df[["toBehSys", "fromBehSys"]]
-        )
-        for fiber in fibers:
-            side = fiber_to_side_keys[fiber]
-            demod_df[f"raw_grn{side}"] = raw_df[f"grn{side}"]
-
-    return demod_df, fibers, fs
+        raw = offline_demodulation(data, metadata, tau, z=False,
+                                   downsample_fs=downsample_fs, 
+                                   bandpass_bw=bandpass_bw, **kwargs)
+        print(raw.columns)
+        assert(demod_df[['toBehSys','fromBehSys']].equals(raw[['toBehSys','fromBehSys']]))
+        for fiber in [col for col in data.columns if col.startswith('fiber')]:
+            side = fiber[len('fiber_'):]
+            demod_df[fiber.replace('fiber', 'raw')] = raw[f'detrend_{side}']
+    
+    return demod_df

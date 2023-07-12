@@ -1,0 +1,122 @@
+# Example metadata file for photometry ingestion
+# surgery_coordinate_reference = ["bregma", "lambda", "dura", "skull_surface", "sagittal_suture", "sinus"]
+
+[Experiment]
+experimenter = "NAME"
+subject = "C40"
+paradigm = "2ABT"
+start_date = "2023-01-01"
+hemisphere = "left" #["left", "right", "both"]
+
+[VirusInjection]
+experimenter = "NAME"
+date = "2023-01-02"
+
+    [VirusInjection.left]
+    virus = "AAV9-DIO-GCaMP6s"
+    sensor_protein = {"green"= "GCAMP", "red"= "RCAMP"}
+    volume = 20                  # nl
+    injection_time = ""
+    rate_of_injection = ""       # rate of injection
+    wait_time = ""               # wait time (in min)
+    brain_region = ""
+    notes = ""
+    ap = -3.11                   # mm
+    ap_ref = "bregma"
+    ml = -3                      # mm
+    ml_ref = "sagittal_suture"
+    dv = -2.5                    # mm
+    dv_ref = "dura"
+    theta = ""                   # (deg) rotation about the ml-axis [0, 180] - w.r.t the z+ axis
+    phi = ""                     # (deg) rotation about the dv-axis [0, 360] - w.r.t the x+ axis
+    beta = ""                    # (deg) rotation about the shank [-180, 180] - clockwise is increasing in degree - 0 is the probe-front facing anterior
+
+    [VirusInjection.right]
+    virus = "AAV9-DIO-GCaMP6s"
+    sensor_protein = {"green"= "GCAMP", "red"= "RCAMP"}
+    volume = 20               
+    injection_time = ""
+    rate_of_injection = ""       
+    wait_time = ""              
+    brain_region = ""
+    notes = ""
+    ap = -3.11                
+    ap_ref = "bregma"
+    ml = -3                   
+    ml_ref = "sagittal_suture"
+    dv = -2.5                 
+    dv_ref = "dura"
+    theta = ""                  
+    phi = ""                    
+    beta = ""                   
+
+
+[Fiber]
+light_source = "Plexon LED"             # ["Plexon LED", "Laser"]
+fiber_type = "Doric"                    # ["Doric", "Thorlabs"]
+fiber_diameter = 200 #in uM                    
+
+    [Fiber.implantation]
+    date = "2022-08-26"
+    surgeon = "NAME"
+
+    [Fiber.implantation.left]
+    emission_wavelength = {"green"= 525, "red"= 560}
+    excitation_wavelength = {"green"= 465, "red"= 560}
+    brain_region = "striatum"
+    ap = -3.11                 
+    ap_ref = "bregma"
+    ml = -3                    
+    ml_ref = "sagittal_suture"
+    dv = -2.5                  
+    dv_ref = "dura"                 
+    notes = ""
+
+    [Fiber.implantation.right]
+    emission_wavelength = {"green"= 525, "red"= 560}
+    excitation_wavelength = {"green"= 465, "red"= 560}
+    brain_region = "striatum"
+    ap = -3.11                 
+    ap_ref = "bregma"
+    ml = -3                    
+    ml_ref = "sagittal_suture"
+    dv = -2.5                  
+    dv_ref = "dura"                   
+    notes = ""
+
+[Processing_Parameters]
+
+behavior_offset = 0                 #in seconds
+final_z = false                     #if true, will zscore the final signal during sychronization
+z_window = 60                       #in seconds
+bandpass_bandwidth = 20             #For hilbert transform
+sampling_frequency = 2000           #in Hz
+downsample_frequency = 200
+transform = 'spectrogram'           #or hilbert
+no_per_segment = 216                
+no_overlap = 108                    #half of no_per_segment
+
+    [Processing_Parameters.left]
+    carrier_frequency_g = 1000      #in Hz
+    carrier_frequency_r = 1000      #in Hz
+
+    [Processing_Parameters.right]
+    carrier_frequency_g = 1000      #in Hz
+    carrier_frequency_r = 1000      #in Hz
+
+[Signal_Indices]
+#set what channel your signals are on, zero indexed
+total_channels = 8                  #number of active channels
+
+    [Signal_Indices.left]
+    photom_g = 0                    #all zero indexed
+    photom_r = 2
+    carrier_g = 1
+    carrier_r = 3
+
+    [Signal_Indices.right]
+    photom_g = 0
+    photom_r = 2
+    carrier_g = 1
+    carrier_r = 3
+
