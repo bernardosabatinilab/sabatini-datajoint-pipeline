@@ -221,7 +221,8 @@ class FiberPhotometry(dj.Imported):
                         meta_info.get("Fiber", {})
                         .get("implantation")
                         .get(f'{fiber}')
-                        .get("emission_wavelength_" + emission_color, {})
+                        .get("emission_wavelength", {})
+                        .get(emission_color, None)
                     )
 
                     EmissionColor.insert1(
@@ -251,7 +252,8 @@ class FiberPhotometry(dj.Imported):
                         meta_info.get("Fiber", {})
                         .get("implantation")
                         .get(f'{fiber}')
-                        .get("excitation_wavelength_" + emission_color, {})
+                        .get("excitation_wavelength", {})
+                        .get(emission_color, None)
                     )
 
                     if excitation_wavelength:
@@ -382,7 +384,8 @@ class FiberPhotometry(dj.Imported):
                         meta_info.get("Fiber", {})
                         .get("implantation")
                         .get(f'{fiber}')
-                        .get("emission_wavelength_" + emission_color, {})
+                        .get("emission_wavelength", {})
+                        .get(emission_color, None)
                     )
 
                     EmissionColor.insert1(
@@ -412,7 +415,8 @@ class FiberPhotometry(dj.Imported):
                         meta_info.get("Fiber", {})
                         .get("implantation")
                         .get(f'{fiber}')
-                        .get("excitation_wavelength_" + emission_color, {})
+                        .get("excitation_wavelength", {})
+                        .get(emission_color, None)
                     )
 
                     if excitation_wavelength:
@@ -996,7 +1000,7 @@ class FiberPhotometrySynced(dj.Imported):
             # Populate FiberPhotometry
             synced_trace_list: list[dict] = []
 
-            for trace_name in trace_names:
+            for index, trace_name in enumerate(trace_names):
 
                 synced_trace_list.append(
                     {
@@ -1006,10 +1010,11 @@ class FiberPhotometrySynced(dj.Imported):
                         "trace_name": trace_name.split("_")[0],
                         "emission_color": get_color(trace_name.split("_")[1][0]),
                         #"trace": alignedData[trace_names.index(trace_name)].values
-                        "trace": alignedData[trace_name],
+                        "trace": alignedData[index],
                     }
                 )
 
+            logger.info(f"Populate {__name__}.FiberPhotometry.SyncedTrace")
             self.SyncedTrace.insert(synced_trace_list)
 
 
