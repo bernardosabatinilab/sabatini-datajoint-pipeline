@@ -237,7 +237,8 @@ class FiberPhotometry(dj.Imported):
                     sensor_protein = (
                         meta_info.get("VirusInjection", {})
                         .get(f'{fiber}', {})
-                        .get("sensor_protein_" + emission_color, {})
+                        .get("sensor_protein", {})
+                        .get(emission_color, None)
                     )
                     if sensor_protein:
                         logger.info(
@@ -400,7 +401,8 @@ class FiberPhotometry(dj.Imported):
                     sensor_protein = (
                         meta_info.get("VirusInjection", {})
                         .get(f'{fiber}', {})
-                        .get("sensor_protein_" + emission_color, {})
+                        .get("sensor_protein", {})
+                        .get(emission_color, None)
                     )
                     if sensor_protein:
                         logger.info(
