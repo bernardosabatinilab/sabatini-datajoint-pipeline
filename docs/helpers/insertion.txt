@@ -1,0 +1,32 @@
+import os
+if os.path.basename(os.getcwd()) == "notebooks": os.chdir("..")
+import datajoint as dj
+dj.config.load('dj_local_conf.json')
+dj.conn()
+
+from __future__ import annotations
+import datajoint as dj
+import pandas as pd
+import numpy as np
+import warnings
+from pathlib import Path
+
+from element_interface.utils import find_full_path
+from workflow import db_prefix
+from workflow.pipeline import session, subject, lab, reference
+from workflow.utils.paths import get_raw_root_data_dir
+
+subject.Subject.insert1(dict(subject='Subject1', 
+                             sex='M', 
+                             subject_birth_date='2021-10-01', 
+                             subject_description='notes'))
+
+
+session_key = dict(subject='Subject5', session_id=1,
+                   session_datetime='2021-10-07 12:00:00')
+
+session.Session.insert1(session_key)
+
+session.SessionDirectory.insert1(dict(subject=session_key['subject'], session_id=session_key['session_id'], 
+                                      session_dir='Subject5/session1'))
+         
