@@ -1,0 +1,89 @@
+@schema
+class SensorProtein(dj.Lookup):
+    definition = """            
+    sensor_protein_name : varchar(16)  # (e.g., GCaMP, dLight, etc)
+    """
+
+
+@schema
+class LightSource(dj.Lookup):
+    definition = """
+    light_source_name   : varchar(16)
+    """
+    contents = zip(["Plexon LED", "Laser"])
+
+
+@schema
+class ExcitationWavelength(dj.Lookup):
+    definition = """
+    excitation_wavelength   : smallint  # (nm)
+    """
+
+
+@schema
+class EmissionColor(dj.Lookup):
+    definition = """
+    emission_color     : varchar(10) 
+    ---
+    wavelength=null    : smallint  # (nm)
+    """
+
+@schema
+class CarrierFrequency(dj.Lookup):
+    definition = """
+    carrier_frequency     : smallint 
+    ---
+    wavelength=null    : smallint  # (nm)
+    """
+
+
+@schema
+class FiberPhotometry(dj.Imported):
+    definition = """
+    -> session.Session
+    ---
+    -> [nullable] LightSource
+    raw_sample_rate         : float         # sample rate of the raw data (in Hz) 
+    beh_synch_signal=null   : longblob      # signal for behavioral synchronization from raw data
+    """
+
+    class Fiber(dj.Part):
+        definition = """ 
+        -> master
+        fiber_id            : tinyint unsigned
+        -> reference.Hemisphere
+        ---
+        notes=''             : varchar(1000)  
+        """
+
+    class DemodulatedTrace(dj.Part):
+        definition = """ # demodulated photometry traces
+        -> master.Fiber
+        trace_name          : varchar(8)  # (e.g., raw, detrend)
+        -> EmissionColor
+        ---
+        -> [nullable] SensorProtein          
+        -> [nullable] ExcitationWavelength
+        -> [nullable] CarrierFrequency
+        demod_sample_rate   : float       # sample rate of the demodulated data (in Hz) 
+        trace               : longblob    # demodulated photometry traces
+        """
+@schema
+class FiberPhotometrySynced(dj.Imported):
+    definition = """
+    -> FiberPhotometry
+    ---
+    timestamps   : longblob
+    time_offset  : float     # time offset to synchronize the photometry traces to the master clock (in second)  
+    sample_rate  : float     # target downsample rate of synced data (in Hz) 
+    """
+
+    class SyncedTrace(dj.Part):
+        definition = """ # demodulated photometry traces
+        -> master
+        -> FiberPhotometry.Fiber
+        trace_name          : varchar(8)  # (e.g., raw, detrend)
+        -> EmissionColor
+        ---
+        trace      : longblob  
+        """

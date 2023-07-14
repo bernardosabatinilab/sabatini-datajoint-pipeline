@@ -1,0 +1,11 @@
+conda create -n sabatini-datajoint -c conda-forge python=3.9 -y
+
+conda activate sabatini-datajoint
+conda install graphviz python-graphviz pydotplus ipykernel ipywidgets nb_conda_kernels jupyterlab
+
+git clone https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline
+
+# Navigate into cloned directory
+cd sabatini-datajoint-pipeline/
+
+pip install -r requirements.txt 

@@ -1,0 +1,31 @@
+import os
+if os.path.basename(os.getcwd()) == "notebooks": os.chdir("..")
+import datajoint as dj
+dj.config.load('dj_local_config.json')
+dj.conn()
+
+from __future__ import annotations
+import datajoint as dj
+import pandas as pd
+import numpy as np
+import warnings
+from pathlib import Path
+import tomli
+import tdt
+from copy import deepcopy
+import scipy.io as spio
+from scipy import signal
+from scipy.signal import blackman
+from scipy.fft import fft, ifft, rfft
+
+from element_interface.utils import find_full_path
+from workflow import db_prefix
+from workflow.pipeline import session, subject, lab, reference, photometry
+from workflow.utils.paths import get_raw_root_data_dir
+import workflow.utils.photometry_preprocessing as pp
+from workflow.utils import demodulation
+
+session_key = (session.Session() & "subject='subject'").fetch1("KEY")
+session_key
+
+photometry.FiberPhotometrySynced.populate(session_key)
