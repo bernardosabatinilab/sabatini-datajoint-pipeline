@@ -15,8 +15,7 @@ Requirements
   
 * If using Windows, you will need to `install the Windows Subsystem for Linux (WSL) and Ubuntu 20.04 <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_.
   
-* For the DeepLabCut, Calcium Imaging, and Spike Sorting Worker, we will need a `CUDA compatible NVIDIA GPU <https://developer.nvidia.com/cuda-gpus>`_ and `drivers
-<https://developer.nvidia.com/cuda-toolkit-archive>`_ and `Microsoft C++ Build Tools <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_ for Windows.
+* For the DeepLabCut, Calcium Imaging, and Spike Sorting Worker, we will need a `CUDA compatible NVIDIA GPU <https://developer.nvidia.com/cuda-gpus>`_ and `drivers <https://developer.nvidia.com/cuda-toolkit-archive>`_ and `Microsoft C++ Build Tools <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_ for Windows.
 
 
 Installation
