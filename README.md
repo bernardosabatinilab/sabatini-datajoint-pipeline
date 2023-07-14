@@ -1,5 +1,7 @@
 # Sabatini Lab - DataJoint Workflow Setup Instructions
 
+## For more information, please visit our [documentation page](https://sabatini-datajoint-pipeline.readthedocs.io/en/latest/index.html).
+
 ## Installation and setting up local environment to access database
 
 ```
