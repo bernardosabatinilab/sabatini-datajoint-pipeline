@@ -19,8 +19,7 @@ Contents
    Installation
    WorkerDeployment
    How To
-
-
+   FAQ
 
 Indices and tables
 ==================
@@ -28,6 +27,16 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. image:: ../media/hms.png
+   :width: 50%
+   :align: center
+   :alt: hms
+
+.. image:: ../media/datajoint.png
+   :width: 50%
+   :align: center
+   :alt: datajoint
 
 
 .. _github: https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline

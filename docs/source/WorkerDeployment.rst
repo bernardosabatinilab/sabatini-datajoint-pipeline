@@ -7,22 +7,22 @@ For the DeepLabCut worker, we will run this from the provided `dlc notebook <htt
 
 More on proper usage in the :doc:`How To` section.
 
-An Important Note about worker deployment
+An important note about worker deployment
 #########################################
 
 Once workers are up, they will begin populating the tables with data. Each worker will populate the following tables:
 
-- *Standard_Worker: BehaviorIngestion, EphysRecording, CuratedClusting, WaveformSet, LFP, ScanInfo, MotionCorrection, Segmentation, Fluorescence, and Activity (all tables without large computational resources needed)
+- Standard_Worker: BehaviorIngestion, EphysRecording, CuratedClusting, WaveformSet, LFP, ScanInfo, MotionCorrection, Segmentation, Fluorescence, and Activity (all tables without large computational resources needed)
 
-- *Spike_Sorting_Worker: Clustering table (runs Kilosort)
+- Spike_Sorting_Worker: Clustering table (runs Kilosort)
   
-- *Calcium_Imaging_Worker: Processing table (in Imaging schema)
+- Calcium_Imaging_Worker: Processing table (in Imaging schema)
 
 Workers will `continually` operate and will work if new data appears in your inbox directory. If no data is added, and data is not addes to LabBook, the workers will not do anything.
 
 If there are any changes to the code, you will need to rebuild the images before running the workers again.
 
-How to "Up" the workers
+How to "up" the workers
 ########################
 
 We will be working in WSL/Ubuntu 20.04 CLI for this section.

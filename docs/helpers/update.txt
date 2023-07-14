@@ -1,0 +1,4 @@
+sd_key = dict(session_key, session_dir = r'/FIXED/DIR')
+sd_key
+
+session.SessionDirectory.update1(sd_key)
