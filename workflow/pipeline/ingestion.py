@@ -93,7 +93,7 @@ class BehaviorIngestion(dj.Imported):
         # Populate BehaviorRecording
         recording_duration = events_df["time"].iloc[-1]
         event.BehaviorRecording.insert1(
-            {**key, "recording_duration": recording_duration},
+            {**key, "recording_duration": recording_duration}
         )
 
         # Populate BehaviorRecording.File
@@ -170,8 +170,8 @@ class BehaviorIngestion(dj.Imported):
                 trial_start_time = events_trial_df["time"].values[0]
                 trial_stop_time = events_trial_df["time"].values[-1]
             else:
-                trial_start_time = float("nan")
-                trial_stop_time = float("nan")
+                trial_start_time = float("0")
+                trial_stop_time = float("0")
 
 
             trial_trial_list.append(
@@ -203,7 +203,7 @@ class BehaviorIngestion(dj.Imported):
 
         # Populate event.Event
         event_table_df = events_df.rename(
-            columns={"time": "event_start_time"}
+            columns={"event": "event_type", "time": "event_start_time"}
         )  # populate the table with this dataframe
         event_table_df["subject"] = key["subject"]
         event_table_df["session_id"] = key["session_id"]
