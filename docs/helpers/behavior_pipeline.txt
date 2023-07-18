@@ -1,0 +1,8 @@
+
+session_key = (session.Session() & "subject='subject'").fetch1("KEY")
+session_key
+
+sd_key = dict(session_key, session_dir = r'Photometry/subject/session1')
+sd_key
+
+event.Event.populate(sd_key)

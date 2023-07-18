@@ -34,29 +34,59 @@ class BehaviorIngestion(dj.Imported):
         # But handles if data is located in a different folder within the session dir
         try:
             event_file = next(
-                f for f in session_full_dir.rglob("*events*.csv") if f.is_file()
+                (f for f in session_full_dir.rglob("*events*.csv") if f.is_file()), None
             )
+            if event_file is None:
+                event_file = next(
+                    (f for f in session_full_dir.rglob("*event*.parquet") if f.is_file()), None
+                )
+            
             block_file = next(
-                f for f in session_full_dir.rglob("*block*.csv") if f.is_file()
+                (f for f in session_full_dir.rglob("*block*.csv") if f.is_file()), None
             )
+            if block_file is None:
+                block_file = next(
+                    (f for f in session_full_dir.rglob("*block*.parquet") if f.is_file()), None
+                )
+
             trial_file = next(
-                f for f in session_full_dir.rglob("*trial*.csv") if f.is_file()
+                (f for f in session_full_dir.rglob("*trial*.csv") if f.is_file()), None
             )
+            if trial_file is None:
+                trial_file = next(
+                    (f for f in session_full_dir.rglob("*trial*.parquet") if f.is_file()), None
+                )
+
+            if event_file is None or block_file is None or trial_file is None:
+                raise FileNotFoundError(
+                    f"Missing event or trial or block csv/parquet file in {session_full_dir}"
+                )
         except StopIteration:
             raise FileNotFoundError(
-                f"Missing event or trial or block csv file in {session_full_dir}"
-            )
+                f"Missing event or trial or block csv/parquet file in {session_full_dir}"
+                )
 
         # Load .csv into pandas dataframe
-        events_df = pd.read_csv(event_file, keep_default_na=False)
-        block_df = pd.read_csv(block_file, keep_default_na=False)
-        trial_df = pd.read_csv(trial_file, keep_default_na=False)
+        if event_file.suffix == ".csv":
+            events_df = pd.read_csv(event_file, keep_default_na=False)
+        else:
+            events_df = pd.read_parquet(event_file, engine='fastparquet')
+
+        if block_file.suffix == ".csv":
+            block_df = pd.read_csv(block_file, keep_default_na=False)
+        else:
+            block_df = pd.read_parquet(block_file, engine='fastparquet')
+
+        if trial_file.suffix == ".csv":
+            trial_df = pd.read_csv(trial_file, keep_default_na=False)
+        else:
+            trial_df = pd.read_parquet(trial_file, engine='fastparquet')
 
         beh_data_files = [event_file, block_file, trial_file]
 
         # Populate EventType
         event.EventType.insert(
-            [[e, ""] for e in events_df["event_type"].unique()],
+            [[e, ""] for e in events_df["event"].unique()],
             skip_duplicates=True,
         )  # can be hard-coded later
 
@@ -78,13 +108,26 @@ class BehaviorIngestion(dj.Imported):
         attribute_list = []  # list of lists
 
         for block_ind, row in block_df.iterrows():
-            block_start_trial = row["start_trial"]
-            block_end_trial = row["end_trial"]
+            if "start_trial" in row:
+                block_start_trial = row["start_trial"]
+            elif "firstTrial" in row:
+                block_start_trial = row["firstTrial"]
+            else:
+                # Handle the case when both column names are missing
+                block_start_trial = None
 
-            events_block_df = events_df.loc[events_df["trial"] == block_start_trial]
+            if "end_trial" in row:
+                block_end_trial = row["end_trial"]
+            elif "lastTrial" in row:
+                block_end_trial = row["lastTrial"]
+            else:
+                # Handle the case when both column names are missing
+                block_end_trial = None
+
+            events_block_df = events_df.loc[(events_df["trial"] >= block_start_trial) & (events_df["trial"] <= block_end_trial)]
             block_start_time = events_block_df["time"].values[0]
-            events_block_df = events_df.loc[events_df["trial"] == block_end_trial]
             block_stop_time = events_block_df["time"].values[-1]
+
 
             trial_block_list.append(
                 {
@@ -113,16 +156,30 @@ class BehaviorIngestion(dj.Imported):
         trial_trial_list = []  # list of dictionaries
         attribute_list = []  # list of lists
 
+        # create a copy of the events_df if inTrial exists
         for _, row in trial_df.iterrows():
+            if "inTrial" in events_df.columns:
+                df = events_df[events_df["inTrial"] == 1].copy()
+            else:
+                df = events_df.copy()
+
             block_start_trial = row["trial_id"]
-            events_trial_df = events_df.loc[events_df["trial"] == row["trial_id"]]
+            events_trial_df = df.loc[df["trial"] == block_start_trial]
+
+            if not events_trial_df.empty:
+                trial_start_time = events_trial_df["time"].values[0]
+                trial_stop_time = events_trial_df["time"].values[-1]
+            else:
+                trial_start_time = float("nan")
+                trial_stop_time = float("nan")
+
 
             trial_trial_list.append(
                 {
                     **key,
                     "trial_id": row["trial_id"],
-                    "trial_start_time": events_trial_df["time"].values[0],
-                    "trial_stop_time": events_trial_df["time"].values[-1],
+                    "trial_start_time": trial_start_time,
+                    "trial_stop_time": trial_stop_time,
                 }
             )
 
