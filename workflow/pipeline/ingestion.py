@@ -191,8 +191,9 @@ class BehaviorIngestion(dj.Imported):
                 ]
             )
 
-        trial.Trial.insert(trial_trial_list, allow_direct_insert=True)
-        trial.Trial.Attribute.insert(attribute_list)
+            trial.Trial.insert(trial_trial_list, skip_duplicates = True,
+                               allow_direct_insert=True,)
+            trial.Trial.Attribute.insert(attribute_list, skip_duplicates=True,)
 
         # Populate trial.BlockTrial
         trial_df["subject"] = key["subject"]
@@ -203,8 +204,8 @@ class BehaviorIngestion(dj.Imported):
 
         # Populate event.Event
         event_table_df = events_df.rename(
-            columns={"event": "event_type", "time": "event_start_time"}
-        )  # populate the table with this dataframe
+            columns={"event": "event_type", "time": "event_start_time"})
+        # populate the table with this dataframe
         event_table_df["subject"] = key["subject"]
         event_table_df["session_id"] = key["session_id"]
         event.Event.insert(
@@ -215,7 +216,11 @@ class BehaviorIngestion(dj.Imported):
         )
 
         # Populate trial.TrialEvent
-        event_table_df.rename(columns={"trial": "trial_id"}, inplace=True)
+
+        #Drop any trials that are unassigned from events_table_df
+        event_table_df = event_table_df.rename(columns={"trial": "trial_id"})
+        event_table_df = event_table_df.drop(event_table_df[event_table_df['trial_id'] == 0].index)
+
         trial.TrialEvent.insert(
             event_table_df,
             ignore_extra_fields=True,
