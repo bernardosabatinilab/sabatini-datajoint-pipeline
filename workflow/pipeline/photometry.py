@@ -982,10 +982,10 @@ class FiberPhotometrySynced(dj.Imported):
                     alignedData.append(np_dsPhotom)
 
             # get timestamps from matlab data
-            if len(list(behavior_dir.glob("*.parquet"))) > 0:
+            if len(list(behavior_dir.glob("event*.parquet"))) > 0:
                 data_format = "matlab_data"
                 matlab_data: list[dict] = pd.read_parquet(
-                    next(behavior_dir.glob("*.parquet")), engine='fastparquet'
+                    next(behavior_dir.glob("event*.parquet")), engine='fastparquet'
                 ).to_dict(orient='records')
 
             # Populate FiberPhotometrySynced

@@ -87,8 +87,8 @@ Importantly, your ``Subject``, ``Session``, and ``SessionDirectory`` structure w
 After successful insertion of the ``Subject``, ``Session``, and ``SessionDirectory`` tables, we can then proceed with operating the rest of the pipeline.
 
 
-Photometry/Behavior pipeline
-############################
+Photometry and PhotometrySync pipeline
+######################################
 The photometry pipeline is designed to process photometry data from the Sabatini lab from various data acquisition streams (e.g. labjack or TDT).
 The pipeline is designed to be modular, so that you can run the pipeline on any combination of data types. 
 For example, you can run the pipeline on only the photometry data, or you can run the pipeline on the photometry data and the behavior data to sync
@@ -151,6 +151,47 @@ Class heirarchy and inheritance
 -------------------------------
 
 .. literalinclude:: ../helpers/photometry_table.txt
+
+
+Behavior pipeline
+#################
+The behavior pipeline is designed to process behavior data that has been preprocessed into a ``.parquet`` or ``.csv`` file.
+It is built using the `Elements Event <https://datajoint.com/docs/elements/element-event/0.2/concepts/>`_ and therefore, requires some 
+formatting of the data.
+
+Input data
+----------
+You will need an ``event`` table with a ``time``, ``event``, and ``trial`` field.
+
+.. image:: ../media/eventTable.png
+    :align: center
+    :width: 50%
+    :alt: eventTable
+
+
+A ``trial`` table that has a minimum of ``block``, ``trial type``, ``trial``, ``block trial``, ``trial event``.
+
+.. image:: ../media/trialTable.png
+    :align: center
+    :width: 100%
+    :alt: trialTable
+
+
+A ``block`` table describing block attributes.
+
+.. image:: ../media/blockTable.png
+    :align: center
+    :width: 75%
+    :alt: blockTable
+
+Running the behavior pipeline
+-----------------------------
+Once you have inserted the ``Subject``, ``Session``, and ``SessionDirectory`` tables and you have the appropriate files in place, you can then proceed with running the behavior pipeline by
+simply upping the standard_worker docker container detailed in :doc:`WorkerDeployment`. It will automatically detect the new data and process it and populate the ``Event`` table.
+
+You can also run the pipeline manually by running the following:
+
+.. literalinclude:: ../helpers/behavior_pipeline.txt
 
 
 Ephys pipeline
@@ -228,7 +269,7 @@ General pipeline architecture
 #############################
 For any questions regarding the pipeline architecture, the whole pipeline can be visualized in our `GitHub page <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/blob/5d38f22f2caabf8cc91cb6fd18be2dbfaa632a2c/notebooks/pipeline-architecture.ipynb>`_.
 
-For pipelines that were designed using DataJoint Elements (e.g. Ephys, Calcium Imaging, DLC), more information can be found in the `DataJoint Elements documentation <https://datajoint.com/docs/elements/>`_.
+For pipelines that were designed using DataJoint Elements (e.g. Event, Ephys, Calcium Imaging, DLC), more information can be found in the `DataJoint Elements documentation <https://datajoint.com/docs/elements/>`_.
 
 
 
