@@ -18,7 +18,7 @@ Once workers are up, they will begin populating the tables with data. Each worke
   
 - Calcium_Imaging_Worker: Processing table (in Imaging schema)
 
-Workers will `continually` operate and will work if new data appears in your inbox directory. If no data is added, and data is not addes to LabBook, the workers will not do anything.
+Workers will `continually` operate and will work if new data appears in your inbox directory. If no data is added, and data is not added to LabBook, the workers will not do anything.
 
 If there are any changes to the code, you will need to rebuild the images before running the workers again.
 
@@ -47,6 +47,7 @@ Now that we're in the right place, we will need to build the image:
     docker compose --env-file=../../.env -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard build --no-cache
 
 The build should complete without any errors. If you receive errors please check your ``.env`` file and make sure you have the correct paths.
+*Note: you only have to "build" the image once. If you make changes to the code, you will need to rebuild the image.*
 
 3. Now that the image is built, we can run the worker by running the following command:
 
@@ -96,6 +97,7 @@ Now that we're in the right place, we will need to build the image:
     docker compose --env-file=../../.env -f docker-compose-spike_sorting_worker.yaml -p sabatini-datajoint-pipeline_spike_sorting build --no-cache
 
 Check that the build completed without any errors. If you receive errors please check your ``.env`` and ``network.txt`` file and make sure you have the correct information.
+*Note: you only have to "build" the image once. If you make changes to the code, you will need to rebuild the image.*
 
 3. After the image has been built, we can run the worker by running the following command:
 
@@ -145,6 +147,7 @@ Now that we're in the right place, we will need to build the image:
     docker compose --env-file=../../.env -f docker-compose-calcium_imaging_worker.yaml -p sabatini-datajoint-pipeline_calcium_imaging build --no-cache
 
 Check that the build completed without any errors. If you receive errors please check your ``.env`` file and make sure you have the correct paths.
+*Note: you only have to "build" the image once. If you make changes to the code, you will need to rebuild the image.*
 
 3. After the image has been built, we can run the worker by running the following command:
 

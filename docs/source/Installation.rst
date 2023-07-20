@@ -1,7 +1,7 @@
 Installation
 ============
 
-The sabatini-datajoint pipeline is run through Docker containers and requires access to our AWS server. To get started, you will need to install Docker and get access to our AWS server
+The sabatini-datajoint pipeline can be run locally or through Docker containers and requires access to our AWS server. To get started, you will need to install Docker and get access to our AWS server
 by reaching out to HMS IT. 
 
 Requirements
@@ -15,7 +15,7 @@ Requirements
   
 * If using Windows, you will need to `install the Windows Subsystem for Linux (WSL) and Ubuntu 20.04 <https://docs.microsoft.com/en-us/windows/wsl/install-win10>`_.
   
-* For the DeepLabCut, Calcium Imaging, and Spike Sorting Worker, we will need a `CUDA compatible NVIDIA GPU <https://developer.nvidia.com/cuda-gpus>`_ and `drivers <https://developer.nvidia.com/cuda-toolkit-archive>`_ and `Microsoft C++ Build Tools <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_ for Windows.
+* For the DeepLabCut and Spike Sorting Workers, we will need a `CUDA compatible NVIDIA GPU <https://developer.nvidia.com/cuda-gpus>`_ and `drivers <https://developer.nvidia.com/cuda-toolkit-archive>`_ and `Microsoft C++ Build Tools <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`_ for Windows.
 
 
 Installation
@@ -30,7 +30,7 @@ You will need to activate the environment with ``conda activate sabatini-datajoi
 **Optional**: If you are planning to make changes to the code, you may want to install the package in editable mode. This will allow you to make changes to the code and have them reflected in the Docker containers.
 You can do this by running ``pip install -e .`` 
 
-1. Create a copy of `.example_dj_local_conf.yaml <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/blob/5d38f22f2caabf8cc91cb6fd18be2dbfaa632a2c/.example_dj_local_config.json>`_ 
+2. Create a copy of `.example_dj_local_conf.yaml <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/blob/5d38f22f2caabf8cc91cb6fd18be2dbfaa632a2c/.example_dj_local_config.json>`_ 
 and rename it to `dj_local_conf.yaml`. 
 
 3. Fill in the appropriate information for the ``database.host``, ``database.user``, and ``database.password`` fields.

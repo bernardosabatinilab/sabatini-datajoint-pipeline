@@ -6,6 +6,16 @@
 Welcome to sabatini-datajoint's documentation!
 ==============================================
 
+
+Here, you will find our DataJoint workflows for: 
+
+* Fiber Photometry
+* Event-based Behavioral Tasks
+* DeepLabCut based video analysis
+* Suite2P based 2p-imaging analysis
+* Neuropixel Electrophysiology Recordings
+* and more to come!
+
 `Github Repository <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline>`_
 
 

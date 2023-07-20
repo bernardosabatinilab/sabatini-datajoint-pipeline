@@ -7,6 +7,11 @@ The workflow is based on relational principles and makes it simple to keep track
 If you are new to DataJoint, we recommend getting started by learning about the principles and foundations that make up DataJoint.
 More information can be found in the `DataJoint documentation <https://datajoint.com/docs/core/datajoint-python/0.14/concepts/principles/>`_.
 
+We can run the workflow using the provided docker containers (for more information :doc:`WorkerDeployment`). Or, we can 
+run locally using the `provided jupyter notebooks <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/tree/d3f95ccd94521bfeac64929ad44a8cc7a46a61db/notebooks>`_.
+These notebooks provide a good starting point and can be modified to fit your needs, just remember to check that your kernel is set
+to the ``sabatini-datajoint`` kernel.  
+
 Setting up your data directories
 #################################
 
@@ -49,8 +54,10 @@ Inserting into the Subject and Session tables
 #############################################
 
 To initate the workflow, we will first need to populate the ``Subject``, ``Session``, and ``SessionDirectory`` tables. There are two ways to do this:
-1. We can use a jupyter notebook/CLI/iPython terminal
-2. We can use the `DataJoint LabBook GUI <https://labbook.datajoint.io/login>`_.
+
+* We can use a jupyter notebook/CLI/iPython terminal
+  
+* We can use the `DataJoint LabBook GUI <https://labbook.datajoint.io/login>`_.
 
 **Let's start with the jupyter notebook/CLI/iPython terminal.** 
 
@@ -59,9 +66,13 @@ To initate the workflow, we will first need to populate the ``Subject``, ``Sessi
 Importantly, your ``Subject``, ``Session``, and ``SessionDirectory`` structure will need to match the directory structure in your ``/Inbox`` directory.
 
 **We can also do this through the DataJoint LabBook GUI.**
+
 1. Go to the `DataJoint LabBook GUI <https://labbook.datajoint.io/login>`_ and login with your credentials.
+   
 2. Now, you will be able to view all the schemas available to you on the left hand side. 
+   
 3. Navigate to the ``sabatini_dj_subject`` scehma and click on the ``Subject`` table.
+   
 4. Click ``Insert`` and fill out the form.
    
 .. image:: ../media/subject.png
@@ -70,6 +81,7 @@ Importantly, your ``Subject``, ``Session``, and ``SessionDirectory`` structure w
     :alt: subject_insert
 
 5. Then, navigate to the ``sabatini_dj_session`` schema and click on the ``Session`` table.
+   
 6. Click ``Insert`` and fill out the form.
    
 .. image:: ../media/session.png
@@ -99,7 +111,8 @@ Input data
 You will need a photometry timeseries collected from a labjack (e.g. matlab) or TDT system. You will also need to fill out meta information within 
 the ``.toml`` file. There is an `example.toml file here <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/blob/5d38f22f2caabf8cc91cb6fd18be2dbfaa632a2c/Example_meta_file.toml>`_.
 
-**Matlab/Labjack data naming conventions**: 
+**Matlab/Labjack data naming conventions**:
+
 There are two processing streams for the matlab input data. The first is raw/unprocessed data, and the second is processed (demodulated) data.
 
 To enter the raw/unprocessed data into the pipeline, the data must be named in the following format: ``*timeseries_2.mat``.
@@ -110,6 +123,7 @@ The ``.toml`` file must be named in the following format: ``*.toml``.
 Importantly, the ``transform`` field in the ``.toml`` file must be set to ``transform = spectrogram`` for the matlab data.
 
 **TDT data naming conventions**:
+
 To enter the TDT data into the pipeline, the data must have all of the associated TDT files ``*.t*`` and must also have a ``.toml`` file associated with it.
 
 The TDT processing stream can handle two different transform types: ``transform = spectrogram`` or ``transform = hilbert``.
@@ -119,13 +133,14 @@ The TDT processing stream can handle two different transform types: ``transform 
 ``transform = spectrogram``: uses a python version of Bernardo Sabatini's processing pipeline.
 
 **Behavior data naming conventions**:
+
 The behavior data must be named in the following format: ``*.parquet`` (for ``transform = spectrogram``) or ``*.csv`` (for ``transform = hilbert``).
 
 You will also need a meta data file associated with the behavior data. The meta data file must be named in the following format: ``*.toml``. Here,
 you can also pass an extra paramater called ``final_z = true/false`` if you would like to do a final z_score of the photometry data. Importantly, you
 must set the ``behavior_offset`` field in the ``.toml`` file to indicate the time offset between the photometry data and the behavior data.
 
-The behavior data must have an event table with a ``time`` field and ``type`` or ``event`` field. 
+The behavior data must have an event table with a ``time`` field and ``event`` field. 
 
 .. image:: ../media/eventTable.png
     :align: center
@@ -161,7 +176,7 @@ formatting of the data.
 
 Input data
 ----------
-You will need an ``event`` table with a ``time``, ``event``, and ``trial`` field.
+You will need an ``eventTable`` with a ``time``, ``event``, and ``trial`` field.
 
 .. image:: ../media/eventTable.png
     :align: center
@@ -169,7 +184,7 @@ You will need an ``event`` table with a ``time``, ``event``, and ``trial`` field
     :alt: eventTable
 
 
-A ``trial`` table that has a minimum of ``block``, ``trial type``, ``trial``, ``block trial``, ``trial event``.
+A ``trialTable`` that has a minimum of ``block``, ``session_position``.
 
 .. image:: ../media/trialTable.png
     :align: center
@@ -177,12 +192,15 @@ A ``trial`` table that has a minimum of ``block``, ``trial type``, ``trial``, ``
     :alt: trialTable
 
 
-A ``block`` table describing block attributes.
+A ``blockTable`` describing block attributes and a minimum of ``firstTrial`` or ``start_trial`` and ``lastTrial`` or ``end_trial`` .
 
 .. image:: ../media/blockTable.png
     :align: center
     :width: 75%
     :alt: blockTable
+
+Have events that may not be considered within a trial? Not to worry, you can add a column in ``eventTable`` called
+``inTrial`` and set it to ``0`` or ``1``.
 
 Running the behavior pipeline
 -----------------------------
@@ -196,7 +214,8 @@ You can also run the pipeline manually by running the following:
 
 Ephys pipeline
 ##############
-The ephys pipeline is designed to process neuropixel data acquired with SpikeGLX. It will run through Kilosort2.5 and use ecephys for post-processing.
+The ephys pipeline is designed to process neuropixel data acquired with SpikeGLX. It will run through Kilosort2.5 and use
+`ecephys <https://github.com/jenniferColonell/ecephys_spike_sorting>`_ for post-processing.
 The ``/Outbox`` directory will be automatically populated with the processed data.
 
 Input data
@@ -214,13 +233,8 @@ Table organization
 ------------------
 The following tables will be populated after running the ephys pipeline:
 
-``ephys.EphysRecording()``
+``ephys.EphysRecording()``, ``ephys.CuratedClustering()``, ``ephys.WaveformSet()``, ``ephys.LFP()``
 
-``ephys.CuratedClustering()``
-
-``ephys.WaveformSet()``
-
-``ephys.LFP()``
 
 Calcium imaging pipeline
 ########################

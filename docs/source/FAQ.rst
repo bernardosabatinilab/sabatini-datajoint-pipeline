@@ -25,3 +25,6 @@ the table architecture to do this but after some practice, it'll begin to make s
 
 ``(session.SessionDirectory & key).fetch1("session_dir")``
 
+Do I have to run locally, or can I use a cluster like O2?
+#########################################################
+We are currently working to deploy the docker containers on O2! Stay tuned for more information.
