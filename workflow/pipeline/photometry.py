@@ -218,8 +218,7 @@ class FiberPhotometry(dj.Imported):
                     emission_color = color_mapping[trace_name.split("_")[1][0]]
 
                     emission_wavelength = (
-                        meta_info.get("Fiber", {})
-                        .get("implantation")
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}')
                         .get("emission_wavelength", {})
                         .get(emission_color, None)
@@ -250,8 +249,7 @@ class FiberPhotometry(dj.Imported):
 
                     # Populate ExcitationWavelength if present
                     excitation_wavelength = (
-                        meta_info.get("Fiber", {})
-                        .get("implantation")
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}')
                         .get("excitation_wavelength", {})
                         .get(emission_color, None)
@@ -382,8 +380,7 @@ class FiberPhotometry(dj.Imported):
                     emission_color = color_mapping[trace_name.split("_")[1][0]]
 
                     emission_wavelength = (
-                        meta_info.get("Fiber", {})
-                        .get("implantation")
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}')
                         .get("emission_wavelength", {})
                         .get(emission_color, None)
@@ -414,8 +411,7 @@ class FiberPhotometry(dj.Imported):
 
                     # Populate ExcitationWavelength if present
                     excitation_wavelength = (
-                        meta_info.get("Fiber", {})
-                        .get("implantation")
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}')
                         .get("excitation_wavelength", {})
                         .get(emission_color, None)
@@ -548,7 +544,7 @@ class FiberPhotometry(dj.Imported):
             window1 = round(window * sampling_Hz)
 
             # Process traces
-            if transform == "spectogram":
+            if transform == "spectrogram":
                 calc_carry_list = demodulation.calc_carry(raw_carrier_list, sampling_Hz)
                 for i in range(len(set_carrier_list)):
                     if calc_carry_list[i] != (set_carrier_list[i] >= calc_carry_list[i]+5 or set_carrier_list[i] <= calc_carry_list[i]-5):
@@ -605,8 +601,7 @@ class FiberPhotometry(dj.Imported):
                     emission_color = color_mapping[trace_name.split("_")[1][0]]
 
                     emission_wavelength = (
-                        meta_info.get("Fiber", {})
-                        .get("implantation")
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}')
                         .get("emission_wavelength", {})
                         .get(emission_color, None)
@@ -637,8 +632,7 @@ class FiberPhotometry(dj.Imported):
 
                     # Populate ExcitationWavelength if present
                     excitation_wavelength = (
-                        meta_info.get("Fiber", {})
-                        .get("implantation")
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}')
                         .get("excitation_wavelength", {})
                         .get(emission_color, None)
