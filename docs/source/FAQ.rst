@@ -28,3 +28,20 @@ the table architecture to do this but after some practice, it'll begin to make s
 Do I have to run locally, or can I use a cluster like O2?
 #########################################################
 We are currently working to deploy the docker containers on O2! Stay tuned for more information.
+
+In the photometry pipeline, my calculated carrier frequency is returning zero. What do I do?
+############################################################################################
+We have set a parameter called points_2_process to 2**14. However, if you have a session that where the recording 
+started later than 2**14 points, you may need to edit this paramater to be bigger. You can locally edit demodulation.py in 
+line 233 within the calc_carry function.
+
+What is nperseg and how do I set it?
+####################################
+nperseg is the number of points to use in each block for the FFT. There is also another metric noverlap that is automatically
+set to nperseg/2. You can read more about this in the scipy.spectrogram documentation if you'd like but here is a general rule: 
+
+nperseg is related to your final downsampling frequency. So a way to calculate this would be
+``noperseg = sampling_Hz/final_downsampling_frequency``
+
+``noverlap = nperseg/2``
+
