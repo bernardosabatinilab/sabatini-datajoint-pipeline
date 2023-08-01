@@ -277,13 +277,13 @@ def process_trace(raw_photom_list, calc_carry_list, sampling_Hz, window1, num_pe
         t.append(t_)
         t = np.concatenate(t)
         power_spectra = np.concatenate(power_spectra, axis=1)
-        freq_ind = np.argmin(np.abs(f - np.array(calc_carry_list).reshape((-1, 1))), axis=0)
-        rolling_demod = power_spectra[freq_ind, :]
+        freq_ind = np.argmin(np.abs(f - np.array(calc_carry_list[i]).reshape((-1, 1))), axis=1)
+        rolling_demod = power_spectra[freq_ind, :][0]
         power_spectra_list.append(rolling_demod)
         t_list.append(t)
 
-        spect_power = np.mean(rolling_demod, axis=0)
-        spect_power_list.append(spect_power)
+    #spect_power = np.mean(rolling_demod, axis=0)
+    spect_power_list.append(rolling_demod) #instead of spect power, no averaging needed
     
     power_spectra_list = np.array(power_spectra_list)
     t_list = np.array(t_list)

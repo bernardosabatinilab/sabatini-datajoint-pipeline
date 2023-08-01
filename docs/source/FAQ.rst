@@ -37,11 +37,16 @@ line 233 within the calc_carry function.
 
 What is nperseg and how do I set it?
 ####################################
-nperseg is the number of points to use in each block for the FFT. There is also another metric noverlap that is automatically
-set to nperseg/2. You can read more about this in the scipy.spectrogram documentation if you'd like but here is a general rule: 
+nperseg (or no_per_segment) is the number of points to use in each block for the FFT. There is also another metric ``noverlap`` that is automatically
+set to ``nperseg/2``. You can read more about this in the scipy.spectrogram documentation if you'd like but here is a general rule: 
 
-nperseg is related to your final downsampling frequency. So a way to calculate this would be
-``noperseg = sampling_Hz/final_downsampling_frequency``
+nperseg is related to your final downsampling frequency. The relationship is as follows:
+``downsampling_frequency = sampling_frequency/noverlap``
 
-``noverlap = nperseg/2``
+However, it is unwise to set nsperseg based on the desired downsampling frequency. This is because the lower nsperseg is set, 
+the less resolution you will have within your spectrogram. It is best to begin with some default values and then adjust accordingly.
+
+For those acquiring at 2kHz, we recommend beggining with an ``nperseg == 216``. This will result in a final downsampling frequency 
+of ``~18.5 Hz``. For those acquiring with a TDT system which has a sampling rate of ``6103.515625 Hz`` we recommend beggining with an
+``nperseg = 966``. This will result in a final downsampling frequency of ``~12.6 Hz``.
 
