@@ -109,7 +109,7 @@ the photometry signal.
 Input data
 ----------
 You will need a photometry timeseries collected from a labjack (e.g. matlab) or TDT system. You will also need to fill out meta information within 
-the ``.toml`` file. There is an `example.toml file here <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/blob/5d38f22f2caabf8cc91cb6fd18be2dbfaa632a2c/Example_meta_file.toml>`_.
+the ``.toml`` file. More on how to do this in the *Creating a .toml file* section. 
 
 **Matlab/Labjack data naming conventions**:
 
@@ -277,6 +277,55 @@ You will need to edit all of the relevant information and paths in the notebook.
 Table organization
 ------------------
 The DeepLabCut processing pipeline will populate the ``model`` table.
+
+
+Creating a .toml file
+#####################
+To help creating a ``.toml`` file, we have provided a MatLab GUI that will guide you through the proper creation of the file. You can find the GUI in the ``TOML-metafile-scripts`` directory.
+
+To start, open Matlab and make sure that the sabatini-datajoint-pipeline is in your path. Then, run the following command:
+
+.. code-block:: matlab
+
+    >> make_toml
+
+
+A GUI will pop up and you will be able to fill out the relevant information. Importantly, you must push each button even if there is no information to fill out.
+This will create the proper formatting for the ``.toml`` file and is advantageous if you need to edit it in the future. 
+
+.. image:: ../media/toml_gui.png
+    :align: center
+    :width: 75%
+    :alt: toml_gui
+
+
+Once you have filled out the GUI, you will hit the ``Create`` button which will create a ``.json`` file. You will then need to convert the ``.json`` file to a ``.toml`` file using the
+provided python script ``convertTOML.py``. The script is designed to look through a directory for the ``.json`` extension. 
+
+After changing to the appropriate ``.json`` directory, you can run the script by running the following command in your python terminal:
+
+.. code-block:: python
+    
+        > python convertTOML.py
+
+
+If successful, you will see the following printed in your terminal: 
+
+.. code-block:: python
+
+        > .json to .toml conversion complete! Please change your dictionaries if needed.
+
+
+
+**Important Note**: The ``.toml`` file does not convert the appropriate ``.json`` fields to a dictionary. Since dictionaries are not proper TOML syntax, you will need to do this manually.
+The sections that will need to be edited are ``sensor_protein`` (within ``VirusInjection``) and ``excitation_wavelength`` & 
+``emission_wavelength`` (within ``Signal_Indices``). They will need to be changed into a dictionary format. For example:
+
+.. literalinclude:: ../helpers/toml_dict.txt
+
+
+After editing the ``.toml`` file, you can then place it in the appropriate ``Session_directory``. 
+
 
 
 General pipeline architecture

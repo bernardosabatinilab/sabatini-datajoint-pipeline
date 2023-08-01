@@ -1,0 +1,8 @@
+[VirusInjection.right]
+virus = "AAV9-DIO-GCaMP6s"
+sensor_protein = {"green"= "GCAMP", "red"= "RCAMP"}
+
+
+[Signal_Indices.right]
+emission_wavelength = {"green" = 999, "red" = 999}
+excitation_wavelength = {"green" = 999, "red" = 999}
