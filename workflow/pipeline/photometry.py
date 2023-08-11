@@ -234,7 +234,7 @@ class FiberPhotometry(dj.Imported):
 
                     # Populate SensorProtein if present
                     sensor_protein = (
-                        meta_info.get("VirusInjection", {})
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}', {})
                         .get("sensor_protein", {})
                         .get(emission_color, None)
@@ -396,7 +396,7 @@ class FiberPhotometry(dj.Imported):
 
                     # Populate SensorProtein if present
                     sensor_protein = (
-                        meta_info.get("VirusInjection", {})
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}', {})
                         .get("sensor_protein", {})
                         .get(emission_color, None)
@@ -617,7 +617,7 @@ class FiberPhotometry(dj.Imported):
 
                     # Populate SensorProtein if present
                     sensor_protein = (
-                        meta_info.get("VirusInjection", {})
+                        meta_info.get("Signal_Indices", {})
                         .get(f'{fiber}', {})
                         .get("sensor_protein", {})
                         .get(emission_color, None)

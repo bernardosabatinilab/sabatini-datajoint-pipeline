@@ -14,7 +14,6 @@ date = "2023-01-02"
 
     [VirusInjection.left]
     virus = "AAV9-DIO-GCaMP6s"
-    sensor_protein = {"green"= "GCAMP", "red"= "RCAMP"}
     volume = 20                  # nl
     injection_time = ""
     rate_of_injection = ""       # rate of injection
@@ -33,7 +32,6 @@ date = "2023-01-02"
 
     [VirusInjection.right]
     virus = "AAV9-DIO-GCaMP6s"
-    sensor_protein = {"green"= "GCAMP", "red"= "RCAMP"}
     volume = 20               
     injection_time = ""
     rate_of_injection = ""       
@@ -61,8 +59,6 @@ fiber_diameter = 200 #in uM
     surgeon = "NAME"
 
     [Fiber.implantation.left]
-    emission_wavelength = {"green"= 525, "red"= 560}
-    excitation_wavelength = {"green"= 465, "red"= 560}
     brain_region = "striatum"
     ap = -3.11                 
     ap_ref = "bregma"
@@ -73,8 +69,6 @@ fiber_diameter = 200 #in uM
     notes = ""
 
     [Fiber.implantation.right]
-    emission_wavelength = {"green"= 525, "red"= 560}
-    excitation_wavelength = {"green"= 465, "red"= 560}
     brain_region = "striatum"
     ap = -3.11                 
     ap_ref = "bregma"
@@ -109,12 +103,18 @@ no_overlap = 108                    #half of no_per_segment
 total_channels = 8                  #number of active channels
 
     [Signal_Indices.left]
+    emission_wavelength = {"green"= 525, "red"= 560}
+    excitation_wavelength = {"green"= 465, "red"= 560}
+    sensor_protein = {"green"= "GCAMP", "red"= "RCAMP"}
     photom_g = 0                    #all zero indexed
     photom_r = 2
     carrier_g = 1
     carrier_r = 3
 
     [Signal_Indices.right]
+    emission_wavelength = {"green"= 525, "red"= 560}
+    excitation_wavelength = {"green"= 465, "red"= 560}
+    sensor_protein = {"green"= "GCAMP", "red"= "RCAMP"}
     photom_g = 0
     photom_r = 2
     carrier_g = 1
