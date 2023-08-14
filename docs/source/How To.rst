@@ -112,15 +112,24 @@ There are two ways to do this:
 Here, we will cover how to insert the data through our python provided GUIs. The GUIs will automatically login to the database using the credentials
 you provided in the ``dj_local_conf.json`` file.
 
-The mouse reference table
---------------------------
-
-Within the sabatini-datajoint environment, start the GUI from the upper level sabatini-datajoint-pipeline directory:
+To launch the GUIs, you will need to activate the ``sabatini-datajoint`` environment and run the following command:
 
 .. code-block:: bash
-
-    python .\TOML-metafile-scripts\Insert_mouse.py
     
+    python .\TOML-metafile-scripts\launch.py
+
+You will then be prompted to start the GUI of your choice by a GUI that looks like this:
+
+.. image:: ../media/launch.png
+    :align: center
+    :width: 50%
+    :alt: launch
+
+Make your selection then proceed to the appropriate section below.
+
+
+The mouse reference table
+--------------------------  
 
 A GUI will pop up that looks like this:
 
@@ -138,13 +147,6 @@ by selecting ``Quit``.
 
 The virus reference table
 --------------------------
-
-Within the sabatini-datajoint environment, start the GUI from the upper level sabatini-datajoint-pipeline directory:
-
-.. code-block:: bash
-
-    python .\TOML-metafile-scripts\Insert_virus.py
-
 
 A GUI will pop up that looks like this:
 
@@ -166,13 +168,6 @@ by selecting ``Quit``.
 
 The implant reference table
 ----------------------------
-
-Within the sabatini-datajoint environment, start the GUI from the upper level sabatini-datajoint-pipeline directory:
-
-.. code-block:: bash
-
-    python .\TOML-metafile-scripts\Insert_implantation.py
-
 
 A GUI will pop up that looks like this:
 
@@ -269,10 +264,10 @@ To start, open a python terminal and activate your sabatini-datajoint envrionmen
 
 .. code-block:: python
 
-    python ./TOML-metafile-scripts/makeTOML.py
+    python ./TOML-metafile-scripts/launch.py
 
 
-A GUI will pop up and you will be able to fill out the relevant information. This will create the proper formatting
+Select ``Make a TOML``. A GUI will pop up and you will be able to fill out the relevant information. This will create the proper formatting
 for the ``.toml`` file and is advantageous if you need to edit it in the future. 
 
 Importantly, you will need to "insert" the proper information into the "right" and "left" hemisphere fields. The TOML will 
