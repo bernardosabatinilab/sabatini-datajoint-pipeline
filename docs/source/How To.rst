@@ -99,6 +99,99 @@ Importantly, your ``Subject``, ``Session``, and ``SessionDirectory`` structure w
 After successful insertion of the ``Subject``, ``Session``, and ``SessionDirectory`` tables, we can then proceed with operating the rest of the pipeline.
 
 
+Inserting into the Reference tables
+###################################
+The ``Reference`` tables are used to store information about the mouse (e.g. allele, zygosity) and surgical information (e.g. implants, viral injections).
+Importantly, each table uses the ``Subject_ID`` as the primary key. Therefore, remember your Subject_ID's!
+
+There are two ways to do this:
+
+1. Through the `DataJoint LabBook GUI <https://labbook.datajoint.io/login>`_
+2. Our python provided GUIs that are run locally. 
+
+Here, we will cover how to insert the data through our python provided GUIs. The GUIs will automatically login to the database using the credentials
+you provided in the ``dj_local_conf.json`` file.
+
+The mouse reference table
+--------------------------
+
+Within the sabatini-datajoint environment, start the GUI from the upper level sabatini-datajoint-pipeline directory:
+
+.. code-block:: bash
+
+    python .\TOML-metafile-scripts\Insert_mouse.py
+    
+
+A GUI will pop up that looks like this:
+
+.. image:: ../media/Insert_mouse.png
+    :align: center
+    :width: 100%
+    :alt: mouse_gui
+
+Fill out the form and click ``Insert``. If successful, you will see a message that says ``Inserted subject information for: YOUR_SUBJECT_NAME`` 
+in the command window.
+
+If you need to insert more than one mouse, click ``Insert another subject`` and repeat the process. Once finished, you can close the GUI
+by selecting ``Quit``.
+
+
+The virus reference table
+--------------------------
+
+Within the sabatini-datajoint environment, start the GUI from the upper level sabatini-datajoint-pipeline directory:
+
+.. code-block:: bash
+
+    python .\TOML-metafile-scripts\Insert_virus.py
+
+
+A GUI will pop up that looks like this:
+
+.. image:: ../media/Insert_virus.png
+    :align: center
+    :width: 100%
+    :alt: virus_gui
+
+
+The ``Virus`` table is a reference table that stores information about the virus used for the experiment and treats each hemisphere 
+as a separate entry. For example, if you injected a virus into the left hemisphere and the right hemisphere, you will fill out the appropriate
+information then select ``Insert to Right Hemisphere`` and ``Insert to Left Hemisphere``.
+
+If successful, you will see ``Inserted to Right Hemisphere`` or ``Inserted to Left Hemisphere`` in the command window.
+
+If you need to insert more than one surgery, click ``Insert another viral injection`` and repeat the process. Once finished, you can close the GUI
+by selecting ``Quit``.
+
+
+The implant reference table
+----------------------------
+
+Within the sabatini-datajoint environment, start the GUI from the upper level sabatini-datajoint-pipeline directory:
+
+.. code-block:: bash
+
+    python .\TOML-metafile-scripts\Insert_implantation.py
+
+
+A GUI will pop up that looks like this:
+
+.. image:: ../media/Insert_implantation.png
+    :align: center
+    :width: 100%
+    :alt: implant_gui
+
+
+The ``Implant`` table is a reference table that stores information about the implant used for the experiment and treats each hemisphere
+as a separate entry. For example, if you implanted a fiber into the left hemisphere and the right hemisphere, you will fill out the appropriate
+information then select ``Insert to Right Hemisphere`` and ``Insert to Left Hemisphere``.
+
+If successful, you will see ``Right Implantation inserted into Implantation table`` or ``Left implantation inserted into Implantation table`` in the command window.
+
+If you need to insert more than one surgery, click ``Insert another implant`` and repeat the process. Once finished, you can close the GUI
+by selecting ``Quit``.
+
+
 Photometry and PhotometrySync pipeline
 ######################################
 The photometry pipeline is designed to process photometry data from the Sabatini lab from various data acquisition streams (e.g. labjack or TDT).
@@ -109,7 +202,7 @@ the photometry signal.
 Input data
 ----------
 You will need a photometry timeseries collected from a labjack (e.g. matlab) or TDT system. You will also need to fill out meta information within 
-the ``.toml`` file. More on how to do this in the *Creating a .toml file* section. 
+the ``.toml`` file. More on how to do this in the *Creating a .toml file for photometry processing* section. 
 
 **Matlab/Labjack data naming conventions**:
 
@@ -166,6 +259,33 @@ Class heirarchy and inheritance
 -------------------------------
 
 .. literalinclude:: ../helpers/photometry_table.txt
+
+
+Creating a .toml file for photometry processing
+###############################################
+To help create a ``.toml`` file, we have provided a python GUI that will guide you through the proper creation of the file. You can find the GUI in the ``TOML-metafile-scripts`` directory.
+
+To start, open a python terminal and activate your sabatini-datajoint envrionment:
+
+.. code-block:: python
+
+    python ./TOML-metafile-scripts/makeTOML.py
+
+
+A GUI will pop up and you will be able to fill out the relevant information. This will create the proper formatting
+for the ``.toml`` file and is advantageous if you need to edit it in the future. 
+
+Importantly, you will need to "insert" the proper information into the "right" and "left" hemisphere fields. The TOML will 
+be created with the proper formatting for the pipeline to process the data and handles the two hemispheres seperately. 
+
+.. image:: ../media/toml_gui.png
+    :align: center
+    :width: 75%
+    :alt: toml_gui
+
+
+Once you have filled out the GUI, hit the ``Save`` button. You will then be prompted to save the ``.toml`` file in
+the directory containing your photometry data.
 
 
 Behavior pipeline
@@ -278,53 +398,6 @@ Table organization
 ------------------
 The DeepLabCut processing pipeline will populate the ``model`` table.
 
-
-Creating a .toml file
-#####################
-To help creating a ``.toml`` file, we have provided a MatLab GUI that will guide you through the proper creation of the file. You can find the GUI in the ``TOML-metafile-scripts`` directory.
-
-To start, open Matlab and make sure that the sabatini-datajoint-pipeline is in your path. Then, run the following command:
-
-.. code-block:: matlab
-
-    >> make_toml
-
-
-A GUI will pop up and you will be able to fill out the relevant information. Importantly, you must push each button even if there is no information to fill out.
-This will create the proper formatting for the ``.toml`` file and is advantageous if you need to edit it in the future. 
-
-.. image:: ../media/toml_gui.png
-    :align: center
-    :width: 75%
-    :alt: toml_gui
-
-
-Once you have filled out the GUI, you will hit the ``Create`` button which will create a ``.json`` file. You will then need to convert the ``.json`` file to a ``.toml`` file using the
-provided python script ``convertTOML.py``. The script is designed to look through a directory for the ``.json`` extension. 
-
-After changing to the appropriate ``.json`` directory, you can run the script by running the following command in your python terminal:
-
-.. code-block:: python
-    
-        > python convertTOML.py
-
-
-If successful, you will see the following printed in your terminal: 
-
-.. code-block:: python
-
-        > .json to .toml conversion complete! Please change your dictionaries if needed.
-
-
-
-**Important Note**: The ``.toml`` file does not convert the appropriate ``.json`` fields to a dictionary. Since dictionaries are not proper TOML syntax, you will need to do this manually.
-The sections that will need to be edited are ``sensor_protein`` (within ``VirusInjection``) and ``excitation_wavelength`` & 
-``emission_wavelength`` (within ``Signal_Indices``). They will need to be changed into a dictionary format. For example:
-
-.. literalinclude:: ../helpers/toml_dict.txt
-
-
-After editing the ``.toml`` file, you can then place it in the appropriate ``Session_directory``. 
 
 
 
