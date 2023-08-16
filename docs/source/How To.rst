@@ -165,6 +165,9 @@ If successful, you will see ``Inserted to Right Hemisphere`` or ``Inserted to Le
 If you need to insert more than one surgery, click ``Insert another viral injection`` and repeat the process. Once finished, you can close the GUI
 by selecting ``Quit``.
 
+You can also save/load defaults for your experiment by selecting ``Save Defaults`` and ``Load Defaults``. This will save your coordinates for 
+repeated use. 
+
 
 The implant reference table
 ----------------------------
@@ -185,6 +188,9 @@ If successful, you will see ``Right Implantation inserted into Implantation tabl
 
 If you need to insert more than one surgery, click ``Insert another implant`` and repeat the process. Once finished, you can close the GUI
 by selecting ``Quit``.
+
+You can also save/load defaults for your experiment by selecting ``Save Defaults`` and ``Load Defaults``. This will save your coordinates for 
+repeated use. 
 
 
 Photometry and PhotometrySync pipeline
