@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import PySimpleGUI as sg
+import json
 import datajoint as dj
 
 import os
@@ -31,6 +32,10 @@ def clear_fields():
     window[7].update('')
     window[8].update('')
 
+def save_defaults(data, filename):
+    with open(filename, 'w') as f:
+        json.dump(data, f)
+
 
 sg.theme("LightGreen3")
 
@@ -47,6 +52,8 @@ layout = [[[sg.Text("Insert implantation into datajoint table", font=("Helvetica
         [sg.Text("D/V reference"), sg.InputCombo(["skull_surface", "dura"], size=(10, 1))],
 
         [sg.Button("Insert to Right Hemisphere"), sg.Button("Insert to Left Hemisphere")],
+        [sg.Button("Save left coordinates as defaults"), sg.Button("Save right coordinates as defaults")],
+        [sg.Button("Load Left defaults"), sg.Button("Load Right defaults")],
         [sg.Button("Insert another implantation"), sg.Button("Quit")]]
 
 window = sg.Window("Virus DJ Insertion", layout)
@@ -133,6 +140,75 @@ while True:
 
         reference.Implantation.insert1(implantation_list, skip_duplicates=True)
         print('Left implantation inserted into Implantation table')
+
+    if event == "Save right coordinates as defaults":
+        brain_region = values[3]
+        ap = values[4]
+        ap_ref = values[5]
+        ml = values[6]
+        dv = values[7]
+        dv_ref = values[8]
+        ml_ref = 'sagittal_suture'
+        right_implantation_list = dict(surgeon = surgeon,
+                                    brain_region = brain_region,
+                                    hemisphere = 'right',
+                                    ap = ap,
+                                    ap_ref = ap_ref,
+                                    ml = ml,
+                                    ml_ref = ml_ref,
+                                    dv = dv,
+                                    dv_ref = dv_ref)
+        filename = sg.popup_get_file("Save right corrdinates", save_as=True, file_types=(("coordinates", "*.json"),))
+        if filename:
+            save_defaults(right_implantation_list, filename)
+            sg.popup("Right defaults saved successfully!")
+    if event == "Save left coordinates as defaults":
+        surgeon = values[1]
+        brain_region = values[3]
+        ap = values[4]
+        ap_ref = values[5]
+        ml = values[6]
+        dv = values[7]
+        dv_ref = values[8]
+        ml_ref = 'sagittal_suture'
+        left_implantation_list = dict(surgeon = surgeon,
+                                    brain_region = brain_region,
+                                    hemisphere = 'left',
+                                    ap = ap,
+                                    ap_ref = ap_ref,
+                                    ml = ml,
+                                    ml_ref = ml_ref,
+                                    dv = dv,
+                                    dv_ref = dv_ref)
+        filename = sg.popup_get_file("Save left corrdinates", save_as=True, file_types=(("coordinates", "*.json"),))
+        if filename:
+            save_defaults(left_implantation_list, filename)
+            sg.popup("Left defaults saved successfully!")
+
+    if event == "Load Left defaults":
+        leftDefaults = sg.popup_get_file("Load left corrdinates")
+        with open(leftDefaults, 'r') as f:
+            implantation_list = json.load(f)
+        window[1].update(implantation_list['surgeon'])
+        window[3].update(implantation_list['brain_region'])
+        window[4].update(implantation_list['ap'])
+        window[5].update(implantation_list['ap_ref'])
+        window[6].update(implantation_list['ml'])
+        window[7].update(implantation_list['dv'])
+        window[8].update(implantation_list['dv_ref'])
+
+    if event == "Load Right defaults":
+        rightDefaults = sg.popup_get_file("Load right corrdinates")
+        with open(rightDefaults, 'r') as f:
+            implantation_list = json.load(f)
+        window[1].update(implantation_list['surgeon'])
+        window[3].update(implantation_list['brain_region'])
+        window[4].update(implantation_list['ap'])
+        window[5].update(implantation_list['ap_ref'])
+        window[6].update(implantation_list['ml'])
+        window[7].update(implantation_list['dv'])
+        window[8].update(implantation_list['dv_ref'])        
+
 
     elif event == "Insert another implantation":
         clear_fields()

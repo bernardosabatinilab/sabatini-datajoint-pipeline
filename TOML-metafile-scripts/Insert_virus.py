@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import PySimpleGUI as sg
+import json
 import datajoint as dj
 
 import os
@@ -34,6 +35,10 @@ def clear_fields():
     window[9].update('')
     window[10].update('')
 
+def save_defaults(data, filename):
+    with open(filename, 'w') as f:
+        json.dump(data, f)
+
 sg.theme("LightGreen1")
 
 layout = [[[sg.Text("Insert viral injection into datajoint tables", font=("Helvetica", 16))]],
@@ -50,7 +55,9 @@ layout = [[[sg.Text("Insert viral injection into datajoint tables", font=("Helve
         [sg.Text("D/V reference"), sg.InputCombo(["skull_surface", "dura"], size=(10, 1))],
         [sg.Text("Notes"), sg.InputText()],
 
-        [sg.Button("Insert to Right Hemisphere"), sg.Button("Insert to Left Hemisphere")],
+        [sg.Button("Insert to Left Hemisphere"), sg.Button("Insert to Right Hemisphere")],
+        [sg.Button("Save left coordinates as defaults"), sg.Button("Save right coordinates as defaults")],
+        [sg.Button("Load Left defaults"), sg.Button("Load Right defaults")],
         [sg.Button("Insert another viral injection"), sg.Button("Quit")]]
 
 window = sg.Window("Virus DJ Insertion", layout)
@@ -146,6 +153,63 @@ while True:
 
         reference.VirusInjection.Coordinate.insert1(coordinates_list, skip_duplicates=True)
         print("Inserted to left hemisphere")
+    
+    if event == "Save left coordinates as defaults":
+        left_data = {
+            'experimenter': values[1],
+            'brain_region': values[4],
+            'ap': values[5],
+            'ap_ref': values[6],
+            'ml': values[7],
+            'dv': values[8],
+            'dv_ref': values[9],
+        }
+        filename = sg.popup_get_file('Save left defaults as...', save_as=True, file_types=(("coordinates", "*.json"),))
+
+        if filename:
+            save_defaults(left_data, filename)
+            sg.popup("Saved left coordinates as defaults")
+    
+    if event == "Save right coordinates as defaults":
+        right_data = {
+            'experimenter': values[1],
+            'brain_region': values[4],
+            'ap': values[5],
+            'ap_ref': values[6],
+            'ml': values[7],
+            'dv': values[8],
+            'dv_ref': values[9],
+        }
+        filename = sg.popup_get_file('Save right defaults as...', save_as=True, file_types=(("coordinates", "*.json"),))
+
+        if filename:
+            save_defaults(right_data, filename)
+            sg.popup("Saved right coordinates as defaults")
+    
+    if event == "Load Left defaults":
+        leftDefaults = sg.popup_get_file('Load left corrdinates')
+        with open(leftDefaults, 'r') as f:
+            left_data = json.load(f)
+        window[1].update(left_data['experimenter'])
+        window[4].update(left_data['brain_region'])
+        window[5].update(left_data['ap'])
+        window[6].update(left_data['ap_ref'])
+        window[7].update(left_data['ml'])
+        window[8].update(left_data['dv'])
+        window[9].update(left_data['dv_ref'])
+    
+    if event == "Load Right defaults":
+        rightDefaults = sg.popup_get_file('Load right corrdinates')
+        with open(rightDefaults, 'r') as f:
+            right_data = json.load(f)
+        window[1].update(right_data['experimenter'])
+        window[4].update(right_data['brain_region'])
+        window[5].update(right_data['ap'])
+        window[6].update(right_data['ap_ref'])
+        window[7].update(right_data['ml'])
+        window[8].update(right_data['dv'])
+        window[9].update(right_data['dv_ref'])
+
 
     elif event == "Insert another viral injection":
         clear_fields() 
