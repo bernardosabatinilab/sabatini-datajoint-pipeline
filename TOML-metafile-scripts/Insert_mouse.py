@@ -21,6 +21,7 @@ from workflow.utils.paths import get_raw_root_data_dir
 
 def clear_fields():
     window['dob'].update('')
+    window['strain'].update('')
     window[0].update('')
     window[1].update('')
     window[2].update('')
@@ -30,6 +31,10 @@ def clear_fields():
     window[6].update('')
     window[7].update('')
     window[8].update('')
+    window[9].update('')
+    window[10].update('')
+    window[11].update('')
+    window[12].update('')
 
 
 sg.theme("LightGreen2")
@@ -38,9 +43,12 @@ layout = [[[sg.Text("Insert subject into datajoint table", font=("Helvetica", 16
         [sg.Text("Subject ID"), sg.InputText()],
         [sg.Text("Date of birth"), sg.InputText(key="dob"), sg.CalendarButton("Choose", target="dob", format="%Y-%m-%d")],
         [sg.Text("Sex"), sg.InputCombo(["M", "F", "U"], size=(10, 1))],
+        [sg.Text("Strain"), sg.InputText(key="strain")],
         [sg.Text("Allele - 1"), sg.InputText(), sg.Text("Zygosity - 1"), sg.InputCombo(["Homozygous", "Heterozygous", "Present", "Absent"], size=(10, 1))],
         [sg.Text("Allele - 2"), sg.InputText(), sg.Text("Zygosity - 2"), sg.InputCombo(["Homozygous", "Heterozygous", "Present", "Absent"], size=(10, 1))],
         [sg.Text("Allele - 3"), sg.InputText(), sg.Text("Zygosity - 3"), sg.InputCombo(["Homozygous", "Heterozygous", "Present", "Absent"], size=(10, 1))],
+        [sg.Text("Allele - 4"), sg.InputText(), sg.Text("Zygosity - 4"), sg.InputCombo(["Homozygous", "Heterozygous", "Present", "Absent"], size=(10, 1))],
+        [sg.Text("Allele - 5"), sg.InputText(), sg.Text("Zygosity - 5"), sg.InputCombo(["Homozygous", "Heterozygous", "Present", "Absent"], size=(10, 1))],
         [sg.Text("Description"), sg.InputText()],
         [sg.Button("Insert"), sg.Button("Insert another subject"), sg.Button("Quit")]]
 
@@ -54,6 +62,7 @@ while True:
     if event == "Insert":
         subject_id = values[0]
         dob = values["dob"]
+        strain = values["strain"]
         sex = values[1]
         allele1 = values[2]
         zygosity1 = values[3]
@@ -61,18 +70,27 @@ while True:
         zygosity2 = values[5]
         allele3 = values[6]
         zygosity3 = values[7]
-        description = values[8]
+        allele4 = values[8]
+        zygosity4 = values[9]
+        allele5 = values[10]
+        zygosity5 = values[11]
+        description = values[12]
 
         subject.Subject.insert1(dict(subject=subject_id,
                        sex=sex, 
                        subject_birth_date=dob, 
                        subject_description= description
                        ), skip_duplicates=True)
-
+        
+        #populate lookup tables
         key = (subject.Subject & {'subject': subject_id}).fetch1('KEY')
+        subject.Strain.insert1(dict(strain = strain, strain_standard_name = '', strain_desc = ''), skip_duplicates=True)
+        strainKey = (subject.Strain & {'strain': strain}).fetch1('KEY')
 
-        allele_list = [allele1, allele2, allele3]
-        zygosity_list = [zygosity1, zygosity2, zygosity3]
+        subject.Subject.Strain.insert1(dict(subject = key['subject'], strain = strainKey['strain']), skip_duplicates=True)
+
+        allele_list = [allele1, allele2, allele3, allele4, allele5]
+        zygosity_list = [zygosity1, zygosity2, zygosity3, zygosity4, zygosity5]
 
         for allele in allele_list:
             if allele == '':
