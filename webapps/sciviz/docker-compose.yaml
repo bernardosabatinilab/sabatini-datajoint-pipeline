@@ -1,4 +1,4 @@
-# MODE=PROD docker-compose up
+#MODE= PROD docker-compose up
 #
 # Access using fakeservices.datajoint.io
 version: '2.4'
@@ -17,7 +17,7 @@ services:
       - sh
       - -c
       - |
-        pharus
+        gunicorn --bind 0.0.0.0:$${PHARUS_PORT} --workers=1 pharus.server:app
     # export PHARUS_PRIVATE_KEY=$$(echo $$PHARUS_PRIVATE_KEY | sed 's|\\n|\n|g')
     # otumat watch -f $${PHARUS_SPEC_PATH} -s /tmp/reload.sh -i 5
     # ports:
@@ -33,7 +33,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - REACT_APP_DJSCIVIZ_BACKEND_PREFIX=/api
       - DJSCIVIZ_SPEC_PATH=/main/sciviz_specsheet.yaml
-      - DJSCIVIZ_MODE=${MODE} # DEV | PROD
+      - DJSCIVIZ_MODE= ${MODE} # DEV | PROD
       - NODE_OPTIONS=--max-old-space-size=8000
     volumes:
       - ./sciviz_specsheet.yaml:/main/sciviz_specsheet.yaml:ro
@@ -48,7 +48,7 @@ services:
     networks:
       - main
   fakeservices.datajoint.io:
-    image: datajoint/nginx:v0.2.5
+    image: datajoint/nginx:v0.2.6
     environment:
       - ADD_pharus_TYPE=REST
       - ADD_pharus_ENDPOINT=pharus:5000
