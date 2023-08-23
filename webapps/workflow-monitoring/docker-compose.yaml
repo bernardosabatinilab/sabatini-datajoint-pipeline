@@ -17,7 +17,7 @@ services:
       - sh
       - -c
       - |
-        pharus
+        gunicorn --bind 0.0.0.0:$${PHARUS_PORT} --workers=1 pharus.server:app
     # export PHARUS_PRIVATE_KEY=$$(echo $$PHARUS_PRIVATE_KEY | sed 's|\\n|\n|g')
     # otumat watch -f $${PHARUS_SPEC_PATH} -s /tmp/reload.sh -i 5
     # ports:
