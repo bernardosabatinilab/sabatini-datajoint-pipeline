@@ -55,6 +55,19 @@ layout = [[[sg.Text("Create processing TOML file for photometry analysis", font=
 
 window = sg.Window("TOML file creator", layout)
 
+Fiber = {
+    'light_source': "",
+    'fiber_type': "",
+    'fiber_diameter': "",
+    'implantation': { 'date': "",
+                     'surgeon': "",
+                     'left': {'brain_region': "",
+                              'notes': "", },
+                     'right': {'brain_region': "",
+                               'notes': "", }, },
+    
+}
+
 Processing_Parameters = {
     'left': {
         'carrier_frequency_g': None,
@@ -148,6 +161,7 @@ while True:
 
 
         data = { 'Subject_ID': subject_ID,
+                'Fiber': Fiber,
                 'Processing_Parameters': Processing_Parameters,
                 'Signal_Indices': Signal_Indices
                 }

@@ -74,4 +74,53 @@ This is updated by default in Ubuntu, but may need to be manually set in Windows
 9. Update all .env paths using the WSL-Ubuntu path. For example, ``/mnt/c/Users/username/..``.
 
 
+O2 Configuration and Installation
+##################################
+
+1. Login to O2 and start an interactive session with the following command:
+   
+.. code-block:: bash
+
+    srun --pty -p interactive -t 0-2:00 /bin/bash
+
+2. Load the following modules:
+   
+.. code-block:: bash
+
+    module load gcc/9.2.0
+    module load python/3.9.14
+            
+3. Create your venv. *Note!* This must be in your home directory.
+   
+.. code-block:: bash
+
+    virtualenv sabatini-datajoint
+
+4. Then activate your venv.
+   
+.. code-block:: bash
+
+    source sabatini-datajoint/bin/activate
+
+5. Begin by installing jupyter and jupyterlab
+   
+.. code-block:: bash
+
+    pip3 install jupyter jupyterlab
+
+6. We can then clone our repo and install the requirements.
+   
+.. code-block:: bash
+
+    git clone https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline
+    cd sabatini-datajoint-pipeline
+    pip install -r requirements.txt
+       
+7. Following successful install, you can edit your local_config.json with your credentials
+   and inbox/outbox directory. Remember you have access to all the filesystems available operating on O2.
+
+8. We can now access the database via jupyter notebook on the `O2 portal <https://o2portal.rc.hms.harvard.edu/pun/sys/dashboard>`_.
+
+
+
   
