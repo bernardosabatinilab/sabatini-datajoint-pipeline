@@ -16,7 +16,7 @@ suite2p @ git+https://github.com/tdincer/suite2p.git@23c67b5ff220883584379b30aeb
 graphviz
 tdt==0.4.3
 tifffile==2021.11.2
-nd2==0.1.6
+nd2
 seaborn==0.12.0
 pySimpleGUI
 fastparquet
