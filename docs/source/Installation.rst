@@ -120,6 +120,14 @@ O2 Configuration and Installation
    and inbox/outbox directory. Remember you have access to all the filesystems available operating on O2.
 
 8. We can now access the database via jupyter notebook on the `O2 portal <https://o2portal.rc.hms.harvard.edu/pun/sys/dashboard>`_.
+9. Once you have logged into the O2 portal, you can open the Jupyter IDE by using the following specifications. However, keep
+    in mind when you may need a GPU for certain notebooks such as DLC and Kilosort and change your partition accordingly.
+    
+.. image:: ../media/O2_nb.png
+    :width: 100%
+    :align: center
+
+
 
 
 
