@@ -27,7 +27,7 @@ the table architecture to do this but after some practice, it'll begin to make s
 
 Do I have to run locally, or can I use a cluster like O2?
 #########################################################
-We are currently working to deploy the docker containers on O2! Stay tuned for more information.
+We now have instructions for running on the cluster! Please visit :doc:`Installation` for more information.
 
 In the photometry pipeline, my calculated carrier frequency is returning zero. What do I do?
 ############################################################################################
