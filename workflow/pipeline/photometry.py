@@ -212,7 +212,9 @@ class FiberPhotometry(dj.Imported):
                     )
             
                 trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
-                for trace_name in trace_names:
+                traceNames = {key: trace_names[key] for key in ['photom_g', 'photom_r', 'carrier_g', 'carrier_r']}
+                trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
+                for trace_name in traceNames:
 
                     # Populate EmissionColor if present
                     emission_color = color_mapping[trace_name.split("_")[1][0]]
@@ -374,7 +376,9 @@ class FiberPhotometry(dj.Imported):
                     )
                 
                 trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
-                for trace_name in trace_names:
+                traceNames = {key: trace_names[key] for key in ['photom_g', 'photom_r', 'carrier_g', 'carrier_r']}
+                trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
+                for trace_name in traceNames:
 
                     # Populate EmissionColor if present
                     emission_color = color_mapping[trace_name.split("_")[1][0]]
@@ -595,7 +599,10 @@ class FiberPhotometry(dj.Imported):
                     )
             
                 trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
-                for trace_name in trace_names:
+                traceNames = {key: trace_names[key] for key in ['photom_g', 'photom_r', 'carrier_g', 'carrier_r']}
+                trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
+                for trace_name in traceNames:
+
 
                     # Populate EmissionColor if present
                     emission_color = color_mapping[trace_name.split("_")[1][0]]
