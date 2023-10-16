@@ -6,6 +6,9 @@
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
+	"containerEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
 	"onCreateCommand": "pip install datajoint",
 	"postStartCommand": "docker volume prune -f",
 	"hostRequirements": {
