@@ -1,0 +1,30 @@
+{
+	"name": "SabatiniLab DataJoint Pipeline",
+	"dockerComposeFile": "docker-compose.yaml",
+	"service": "app",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+	},
+	"onCreateCommand": "pip install datajoint",
+	"postStartCommand": "docker volume prune -f",
+	"hostRequirements": {
+		"cpus": 2,
+		"memory": "4gb",
+		"storage": "32gb"
+	},
+	"forwardPorts": [
+		3306
+	],
+	"customizations": {
+		"settings": {
+			"python.pythonPath": "/usr/local/bin/python"
+		},
+		"vscode": {
+			"extensions": [
+				"ms-python.python@2023.8.0",
+				"ms-toolsai.jupyter@2023.3.1201040234"
+			]
+		}
+	}
+}
