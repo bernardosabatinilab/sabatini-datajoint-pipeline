@@ -6,7 +6,7 @@
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
-	"onCreateCommand": "pip install datajoint",
+	"onCreateCommand": "pip install datajoint seaborn==0.12.0 scipy",
 	"postStartCommand": "docker volume prune -f",
 	"hostRequirements": {
 		"cpus": 2,
