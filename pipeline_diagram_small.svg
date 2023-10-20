@@ -1,0 +1,699 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2145pt" height="595pt" viewBox="0.00 0.00 2144.50 595.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 591)">
+<title>%3</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-591 2140.5,-591 2140.5,4 -4,4"/>
+<!-- imaging.Processing -->
+<g id="node1" class="node">
+<title>imaging.Processing</title>
+<g id="a_node1"><a xlink:title="→ imaging.ProcessingTask------------------------------processing_time      package_version=&quot;&quot;   ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="974" cy="-285.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="974" y="-282.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">imaging.Processing</text>
+</a>
+</g>
+</g>
+<!-- imaging.MotionCorrection -->
+<g id="node3" class="node">
+<title>imaging.MotionCorrection</title>
+<g id="a_node3"><a xlink:title="→ imaging.Processing------------------------------→ scan.Channel.proj(motion_correct_channel=&quot;channel&quot;)">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1066" cy="-214.5" rx="96" ry="17.5"/>
+<text text-anchor="middle" x="1066" y="-211.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">imaging.MotionCorrection</text>
+</a>
+</g>
+</g>
+<!-- imaging.Processing&#45;&gt;imaging.MotionCorrection -->
+<g id="edge1" class="edge">
+<title>imaging.Processing-&gt;imaging.MotionCorrection</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M984.2,-276.85C998.61,-266.05 1025.28,-246.04 1044.25,-231.81"/>
+</g>
+<!-- imaging.Segmentation -->
+<g id="node47" class="node">
+<title>imaging.Segmentation</title>
+<g id="a_node47"><a xlink:title="→ imaging.Processing">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="883" cy="-214.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="883" y="-211.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">imaging.Segmentation</text>
+</a>
+</g>
+</g>
+<!-- imaging.Processing&#45;&gt;imaging.Segmentation -->
+<g id="edge2" class="edge">
+<title>imaging.Processing-&gt;imaging.Segmentation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M963.91,-276.85C946.42,-263.59 910.65,-236.47 893.13,-223.18"/>
+</g>
+<!-- trial.TrialEvent -->
+<g id="node2" class="node">
+<title>trial.TrialEvent</title>
+<g id="a_node2"><a xlink:title="→ trial.Trial→ event.Event">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="436" cy="-285.5" rx="58.25" ry="17.5"/>
+<text text-anchor="middle" x="436" y="-282.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">trial.TrialEvent</text>
+</a>
+</g>
+</g>
+<!-- photometry.FiberPhotometry.Fiber -->
+<g id="node4" class="node">
+<title>photometry.FiberPhotometry.Fiber</title>
+<g id="a_node4"><a xlink:title="→ photometry.FiberPhotometryfiber_id             → `sabatini_dj_reference`.`#hemisphere`------------------------------notes=&quot;&quot;             ">
+<polygon fill="transparent" stroke="transparent" points="1265,-366 1101,-366 1101,-347 1265,-347 1265,-366"/>
+<text text-anchor="start" x="1109" y="-355" font-family="arial" text-decoration="underline" font-size="10.00">photometry.FiberPhotometry.Fiber</text>
+</a>
+</g>
+</g>
+<!-- photometry.FiberPhotometrySynced.SyncedTrace -->
+<g id="node20" class="node">
+<title>photometry.FiberPhotometrySynced.SyncedTrace</title>
+<g id="a_node20"><a xlink:title="→ photometry.FiberPhotometrySynced→ photometry.FiberPhotometry.Fibertrace_name           → photometry.EmissionColor------------------------------trace                ">
+<polygon fill="transparent" stroke="transparent" points="1528.5,-295 1295.5,-295 1295.5,-276 1528.5,-276 1528.5,-295"/>
+<text text-anchor="start" x="1303.5" y="-284" font-family="arial" text-decoration="underline" font-size="10.00">photometry.FiberPhotometrySynced.SyncedTrace</text>
+</a>
+</g>
+</g>
+<!-- photometry.FiberPhotometry.Fiber&#45;&gt;photometry.FiberPhotometrySynced.SyncedTrace -->
+<g id="edge3" class="edge">
+<title>photometry.FiberPhotometry.Fiber-&gt;photometry.FiberPhotometrySynced.SyncedTrace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1211.54,-346.9C1255.54,-333.64 1339.46,-308.36 1383.46,-295.1"/>
+</g>
+<!-- photometry.FiberPhotometry.DemodulatedTrace -->
+<g id="node44" class="node">
+<title>photometry.FiberPhotometry.DemodulatedTrace</title>
+<g id="a_node44"><a xlink:title="→ photometry.FiberPhotometry.Fibertrace_name           → photometry.EmissionColor------------------------------→ [nullable] photometry.SensorProtein→ [nullable] photometry.ExcitationWavelength→ [nullable] photometry.CarrierFrequencydemod_sample_rate    trace                ">
+<polygon fill="transparent" stroke="transparent" points="1277,-295 1053,-295 1053,-276 1277,-276 1277,-295"/>
+<text text-anchor="start" x="1061" y="-284" font-family="arial" text-decoration="underline" font-size="10.00">photometry.FiberPhotometry.DemodulatedTrace</text>
+</a>
+</g>
+</g>
+<!-- photometry.FiberPhotometry.Fiber&#45;&gt;photometry.FiberPhotometry.DemodulatedTrace -->
+<g id="edge4" class="edge">
+<title>photometry.FiberPhotometry.Fiber-&gt;photometry.FiberPhotometry.DemodulatedTrace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1180.72,-346.76C1177.28,-333.56 1170.78,-308.67 1167.32,-295.39"/>
+</g>
+<!-- model.PoseEstimationTask -->
+<g id="node5" class="node">
+<title>model.PoseEstimationTask</title>
+<g id="a_node5"><a xlink:title="→ model.VideoRecording→ model.Model------------------------------task_mode=&quot;load&quot;     pose_estimation_output_dir=&quot;&quot; pose_estimation_params=null ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="649.5,-374 488.5,-374 488.5,-339 649.5,-339 649.5,-374"/>
+<text text-anchor="middle" x="569" y="-353.4" font-family="arial" font-size="12.00" fill="darkgreen">model.PoseEstimationTask</text>
+</a>
+</g>
+</g>
+<!-- model.PoseEstimation -->
+<g id="node35" class="node">
+<title>model.PoseEstimation</title>
+<g id="a_node35"><a xlink:title="→ model.PoseEstimationTask------------------------------pose_estimation_time ">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="593" cy="-285.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="593" y="-282.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">model.PoseEstimation</text>
+</a>
+</g>
+</g>
+<!-- model.PoseEstimationTask&#45;&gt;model.PoseEstimation -->
+<g id="edge5" class="edge">
+<title>model.PoseEstimationTask-&gt;model.PoseEstimation</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M574.81,-338.8C579.19,-326.19 585.1,-309.23 588.97,-298.08"/>
+</g>
+<!-- event.BehaviorRecording.File -->
+<g id="node6" class="node">
+<title>event.BehaviorRecording.File</title>
+<g id="a_node6"><a xlink:title="→ event.BehaviorRecordingfilepath             ">
+<polygon fill="transparent" stroke="transparent" points="256.5,-366 111.5,-366 111.5,-347 256.5,-347 256.5,-366"/>
+<text text-anchor="start" x="119.5" y="-355" font-family="arial" text-decoration="underline" font-size="10.00">event.BehaviorRecording.File</text>
+</a>
+</g>
+</g>
+<!-- ephys.CuratedClustering.Unit -->
+<g id="node7" class="node">
+<title>ephys.CuratedClustering.Unit</title>
+<g id="a_node7"><a xlink:title="→ ephys.CuratedClusteringunit                 ------------------------------→ probe.ElectrodeConfig.Electrode→ ephys.ClusterQualityLabelspike_count          spike_times          spike_sites          spike_depths=null    ">
+<polygon fill="transparent" stroke="transparent" points="1883,-82 1737,-82 1737,-63 1883,-63 1883,-82"/>
+<text text-anchor="start" x="1745" y="-71" font-family="arial" text-decoration="underline" font-size="10.00">ephys.CuratedClustering.Unit</text>
+</a>
+</g>
+</g>
+<!-- ephys.QualityMetrics.Cluster -->
+<g id="node21" class="node">
+<title>ephys.QualityMetrics.Cluster</title>
+<g id="a_node21"><a xlink:title="→ ephys.QualityMetrics→ ephys.CuratedClustering.Unit------------------------------firing_rate=null     snr=null             presence_ratio=null  isi_violation=null   number_violation=null amplitude_cutoff=null isolation_distance=null l_ratio=null         d_prime=null         nn_hit_rate=null     nn_miss_rate=null    silhouette_score=null max_drift=null       cumulative_drift=null contamination_rate=null ">
+<polygon fill="transparent" stroke="transparent" points="2136.5,-19 1993.5,-19 1993.5,0 2136.5,0 2136.5,-19"/>
+<text text-anchor="middle" x="2065" y="-7" font-family="arial" font-size="10.00">ephys.QualityMetrics.Cluster</text>
+</a>
+</g>
+</g>
+<!-- ephys.CuratedClustering.Unit&#45;&gt;ephys.QualityMetrics.Cluster -->
+<g id="edge6" class="edge">
+<title>ephys.CuratedClustering.Unit-&gt;ephys.QualityMetrics.Cluster</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1845.73,-62.95C1894.25,-51.35 1980.5,-30.71 2029.11,-19.09"/>
+</g>
+<!-- ephys.QualityMetrics.Waveform -->
+<g id="node36" class="node">
+<title>ephys.QualityMetrics.Waveform</title>
+<g id="a_node36"><a xlink:title="→ ephys.QualityMetrics→ ephys.CuratedClustering.Unit------------------------------amplitude            duration             halfwidth=null       pt_ratio=null        repolarization_slope=null recovery_slope=null  spread=null          velocity_above=null  velocity_below=null  ">
+<polygon fill="transparent" stroke="transparent" points="1975,-19 1819,-19 1819,0 1975,0 1975,-19"/>
+<text text-anchor="middle" x="1897" y="-7" font-family="arial" font-size="10.00">ephys.QualityMetrics.Waveform</text>
+</a>
+</g>
+</g>
+<!-- ephys.CuratedClustering.Unit&#45;&gt;ephys.QualityMetrics.Waveform -->
+<g id="edge7" class="edge">
+<title>ephys.CuratedClustering.Unit-&gt;ephys.QualityMetrics.Waveform</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1822.46,-62.76C1839.1,-51.1 1868.36,-30.58 1884.84,-19.03"/>
+</g>
+<!-- ephys.WaveformSet.Waveform -->
+<g id="node37" class="node">
+<title>ephys.WaveformSet.Waveform</title>
+<g id="a_node37"><a xlink:title="→ ephys.WaveformSet→ ephys.CuratedClustering.Unit→ probe.ElectrodeConfig.Electrode------------------------------waveform_mean        waveforms=null       ">
+<polygon fill="transparent" stroke="transparent" points="1801,-19 1649,-19 1649,0 1801,0 1801,-19"/>
+<text text-anchor="middle" x="1725" y="-7" font-family="arial" font-size="10.00">ephys.WaveformSet.Waveform</text>
+</a>
+</g>
+</g>
+<!-- ephys.CuratedClustering.Unit&#45;&gt;ephys.WaveformSet.Waveform -->
+<g id="edge8" class="edge">
+<title>ephys.CuratedClustering.Unit-&gt;ephys.WaveformSet.Waveform</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1797.82,-62.76C1781.57,-51.1 1752.98,-30.58 1736.88,-19.03"/>
+</g>
+<!-- ephys.WaveformSet.PeakWaveform -->
+<g id="node42" class="node">
+<title>ephys.WaveformSet.PeakWaveform</title>
+<g id="a_node42"><a xlink:title="→ ephys.WaveformSet→ ephys.CuratedClustering.Unit------------------------------peak_electrode_waveform ">
+<polygon fill="transparent" stroke="transparent" points="1630.5,-19 1455.5,-19 1455.5,0 1630.5,0 1630.5,-19"/>
+<text text-anchor="middle" x="1543" y="-7" font-family="arial" font-size="10.00">ephys.WaveformSet.PeakWaveform</text>
+</a>
+</g>
+</g>
+<!-- ephys.CuratedClustering.Unit&#45;&gt;ephys.WaveformSet.PeakWaveform -->
+<g id="edge9" class="edge">
+<title>ephys.CuratedClustering.Unit-&gt;ephys.WaveformSet.PeakWaveform</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1772.59,-62.95C1721.79,-51.35 1631.48,-30.71 1580.58,-19.09"/>
+</g>
+<!-- imaging.ProcessingTask -->
+<g id="node8" class="node">
+<title>imaging.ProcessingTask</title>
+<g id="a_node8"><a xlink:title="→ scan.Scan→ imaging.ProcessingParamSet------------------------------processing_output_dir task_mode=&quot;load&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1082.5,-374 935.5,-374 935.5,-339 1082.5,-339 1082.5,-374"/>
+<text text-anchor="middle" x="1009" y="-353.4" font-family="arial" font-size="12.00" fill="darkgreen">imaging.ProcessingTask</text>
+</a>
+</g>
+</g>
+<!-- imaging.ProcessingTask&#45;&gt;imaging.Processing -->
+<g id="edge10" class="edge">
+<title>imaging.ProcessingTask-&gt;imaging.Processing</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1000.53,-338.8C994.05,-326.03 985.31,-308.8 979.66,-297.66"/>
+</g>
+<!-- ephys.EphysRecording -->
+<g id="node9" class="node">
+<title>ephys.EphysRecording</title>
+<g id="a_node9"><a xlink:title="→ ephys.ProbeInsertion------------------------------→ probe.ElectrodeConfig→ ephys.AcquisitionSoftwaresampling_rate        recording_datetime   recording_duration   ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1648" cy="-356.5" rx="88.25" ry="17.5"/>
+<text text-anchor="middle" x="1648" y="-353.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">ephys.EphysRecording</text>
+</a>
+</g>
+</g>
+<!-- ephys.EphysRecording.EphysFile -->
+<g id="node22" class="node">
+<title>ephys.EphysRecording.EphysFile</title>
+<g id="a_node22"><a xlink:title="→ ephys.EphysRecordingfile_path            ">
+<polygon fill="transparent" stroke="transparent" points="1730,-295 1566,-295 1566,-276 1730,-276 1730,-295"/>
+<text text-anchor="start" x="1574" y="-284" font-family="arial" text-decoration="underline" font-size="10.00">ephys.EphysRecording.EphysFile</text>
+</a>
+</g>
+</g>
+<!-- ephys.EphysRecording&#45;&gt;ephys.EphysRecording.EphysFile -->
+<g id="edge11" class="edge">
+<title>ephys.EphysRecording-&gt;ephys.EphysRecording.EphysFile</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1648,-338.8C1648,-325.08 1648,-306.19 1648,-295.27"/>
+</g>
+<!-- ephys.ClusteringTask -->
+<g id="node31" class="node">
+<title>ephys.ClusteringTask</title>
+<g id="a_node31"><a xlink:title="→ ephys.EphysRecording→ ephys.ClusteringParamSet------------------------------clustering_output_dir=&quot;&quot; task_mode=&quot;load&quot;     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1879.5,-303 1748.5,-303 1748.5,-268 1879.5,-268 1879.5,-303"/>
+<text text-anchor="middle" x="1814" y="-282.4" font-family="arial" font-size="12.00" fill="darkgreen">ephys.ClusteringTask</text>
+</a>
+</g>
+</g>
+<!-- ephys.EphysRecording&#45;&gt;ephys.ClusteringTask -->
+<g id="edge12" class="edge">
+<title>ephys.EphysRecording-&gt;ephys.ClusteringTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1684.02,-340.53C1710.62,-329.47 1746.83,-314.42 1774.27,-303.01"/>
+</g>
+<!-- ephys.LFP -->
+<g id="node41" class="node">
+<title>ephys.LFP</title>
+<g id="a_node41"><a xlink:title="→ ephys.EphysRecording------------------------------lfp_sampling_rate    lfp_time_stamps      lfp_mean             ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1948" cy="-285.5" rx="46.5" ry="17.5"/>
+<text text-anchor="middle" x="1948" y="-282.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">ephys.LFP</text>
+</a>
+</g>
+</g>
+<!-- ephys.EphysRecording&#45;&gt;ephys.LFP -->
+<g id="edge13" class="edge">
+<title>ephys.EphysRecording-&gt;ephys.LFP</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1707.65,-343.51C1756.56,-333.44 1827.5,-318.29 1889,-303 1896.64,-301.1 1904.79,-298.92 1912.52,-296.78"/>
+</g>
+<!-- model.Model -->
+<g id="node10" class="node">
+<title>model.Model</title>
+<g id="a_node10"><a xlink:title="model_name           ------------------------------task                 date                 iteration            snapshotindex        shuffle              trainingsetindex     scorer               config_template      project_path         model_prefix=&quot;&quot;      model_description=&quot;&quot; → [nullable] `sabatini_dj_train`.`#training_param_set`UNIQUE INDEX (task, date, iteration, shuffle, snapshotindex, trainingsetindex)">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="769,-445 683,-445 683,-410 769,-410 769,-445"/>
+<text text-anchor="start" x="691" y="-425.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">model.Model</text>
+</a>
+</g>
+</g>
+<!-- model.Model&#45;&gt;model.PoseEstimationTask -->
+<g id="edge14" class="edge">
+<title>model.Model-&gt;model.PoseEstimationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M688.39,-409.97C663.63,-399.09 631.33,-384.89 606.57,-374.01"/>
+</g>
+<!-- model.Model.BodyPart -->
+<g id="node19" class="node">
+<title>model.Model.BodyPart</title>
+<g id="a_node19"><a xlink:title="→ model.Model→ model.BodyPart">
+<polygon fill="transparent" stroke="transparent" points="784,-366 668,-366 668,-347 784,-347 784,-366"/>
+<text text-anchor="middle" x="726" y="-354" font-family="arial" font-size="10.00">model.Model.BodyPart</text>
+</a>
+</g>
+</g>
+<!-- model.Model&#45;&gt;model.Model.BodyPart -->
+<g id="edge15" class="edge">
+<title>model.Model-&gt;model.Model.BodyPart</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M726,-409.8C726,-396.08 726,-377.19 726,-366.27"/>
+</g>
+<!-- photometry.FiberPhotometry -->
+<g id="node11" class="node">
+<title>photometry.FiberPhotometry</title>
+<g id="a_node11"><a xlink:title="→ session.Session------------------------------→ [nullable] photometry.LightSourceraw_sample_rate      beh_synch_signal=null ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1183" cy="-427.5" rx="104.25" ry="17.5"/>
+<text text-anchor="middle" x="1183" y="-424.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">photometry.FiberPhotometry</text>
+</a>
+</g>
+</g>
+<!-- photometry.FiberPhotometry&#45;&gt;photometry.FiberPhotometry.Fiber -->
+<g id="edge16" class="edge">
+<title>photometry.FiberPhotometry-&gt;photometry.FiberPhotometry.Fiber</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1183,-409.8C1183,-396.08 1183,-377.19 1183,-366.27"/>
+</g>
+<!-- photometry.FiberPhotometrySynced -->
+<g id="node38" class="node">
+<title>photometry.FiberPhotometrySynced</title>
+<g id="a_node38"><a xlink:title="→ photometry.FiberPhotometry------------------------------timestamps           time_offset          sample_rate          ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1412" cy="-356.5" rx="129.25" ry="17.5"/>
+<text text-anchor="middle" x="1412" y="-353.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">photometry.FiberPhotometrySynced</text>
+</a>
+</g>
+</g>
+<!-- photometry.FiberPhotometry&#45;&gt;photometry.FiberPhotometrySynced -->
+<g id="edge17" class="edge">
+<title>photometry.FiberPhotometry-&gt;photometry.FiberPhotometrySynced</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1231.29,-411.95C1269.47,-400.45 1322.63,-384.43 1361.4,-372.75"/>
+</g>
+<!-- imaging.Activity.Trace -->
+<g id="node12" class="node">
+<title>imaging.Activity.Trace</title>
+<g id="a_node12"><a xlink:title="→ imaging.Activity→ imaging.Fluorescence.Trace------------------------------activity_trace       ">
+<polygon fill="transparent" stroke="transparent" points="939.5,-19 826.5,-19 826.5,0 939.5,0 939.5,-19"/>
+<text text-anchor="middle" x="883" y="-7" font-family="arial" font-size="10.00">imaging.Activity.Trace</text>
+</a>
+</g>
+</g>
+<!-- model.VideoRecording -->
+<g id="node13" class="node">
+<title>model.VideoRecording</title>
+<g id="a_node13"><a xlink:title="→ session.Sessionrecording_id         ------------------------------→ `sabatini_dj_reference`.`#device`">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="651.5,-445 512.5,-445 512.5,-410 651.5,-410 651.5,-445"/>
+<text text-anchor="middle" x="582" y="-424.4" font-family="arial" font-size="12.00" fill="darkgreen">model.VideoRecording</text>
+</a>
+</g>
+</g>
+<!-- model.VideoRecording&#45;&gt;model.PoseEstimationTask -->
+<g id="edge18" class="edge">
+<title>model.VideoRecording-&gt;model.PoseEstimationTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M578.85,-409.8C576.81,-398.95 574.16,-384.87 572.12,-374.05"/>
+</g>
+<!-- trial.Trial -->
+<g id="node14" class="node">
+<title>trial.Trial</title>
+<g id="a_node14"><a xlink:title="→ event.BehaviorRecordingtrial_id             ------------------------------→ [nullable] trial.TrialTypetrial_start_time     trial_stop_time      ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="313" cy="-356.5" rx="38.5" ry="17.5"/>
+<text text-anchor="start" x="290" y="-354.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">trial.Trial</text>
+</a>
+</g>
+</g>
+<!-- trial.Trial&#45;&gt;trial.TrialEvent -->
+<g id="edge19" class="edge">
+<title>trial.Trial-&gt;trial.TrialEvent</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M336.42,-342.36C357.34,-330.63 387.93,-313.47 409.68,-301.27"/>
+</g>
+<!-- trial.BlockTrial -->
+<g id="node34" class="node">
+<title>trial.BlockTrial</title>
+<g id="a_node34"><a xlink:title="→ trial.Block→ trial.Trial">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="183" cy="-285.5" rx="57.5" ry="17.5"/>
+<text text-anchor="middle" x="183" y="-282.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">trial.BlockTrial</text>
+</a>
+</g>
+</g>
+<!-- trial.Trial&#45;&gt;trial.BlockTrial -->
+<g id="edge20" class="edge">
+<title>trial.Trial-&gt;trial.BlockTrial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M288.85,-342.68C266.68,-330.91 233.83,-313.48 210.62,-301.16"/>
+</g>
+<!-- trial.Trial.Attribute -->
+<g id="node45" class="node">
+<title>trial.Trial.Attribute</title>
+<g id="a_node45"><a xlink:title="→ trial.Trialattribute_name       ------------------------------attribute_value=&quot;&quot;   attribute_blob=null  ">
+<polygon fill="transparent" stroke="transparent" points="360,-295 266,-295 266,-276 360,-276 360,-295"/>
+<text text-anchor="start" x="274" y="-284" font-family="arial" text-decoration="underline" font-size="10.00">trial.Trial.Attribute</text>
+</a>
+</g>
+</g>
+<!-- trial.Trial&#45;&gt;trial.Trial.Attribute -->
+<g id="edge21" class="edge">
+<title>trial.Trial-&gt;trial.Trial.Attribute</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M313,-338.8C313,-325.08 313,-306.19 313,-295.27"/>
+</g>
+<!-- probe.Probe -->
+<g id="node15" class="node">
+<title>probe.Probe</title>
+<g id="a_node15"><a xlink:title="probe                ------------------------------→ probe.ProbeTypeprobe_comment=&quot;&quot;     ">
+<polygon fill="#000000" fill-opacity="0.125490" stroke="transparent" points="1543.5,-516 1474.5,-516 1474.5,-481 1543.5,-481 1543.5,-516"/>
+<text text-anchor="start" x="1482.5" y="-497" font-family="arial" text-decoration="underline" font-size="10.00">probe.Probe</text>
+</a>
+</g>
+</g>
+<!-- ephys.ProbeInsertion -->
+<g id="node28" class="node">
+<title>ephys.ProbeInsertion</title>
+<g id="a_node28"><a xlink:title="→ session.Sessioninsertion_number     ------------------------------→ probe.Probe">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="1574,-445 1444,-445 1444,-410 1574,-410 1574,-445"/>
+<text text-anchor="middle" x="1509" y="-424.4" font-family="arial" font-size="12.00" fill="darkgreen">ephys.ProbeInsertion</text>
+</a>
+</g>
+</g>
+<!-- probe.Probe&#45;&gt;ephys.ProbeInsertion -->
+<g id="edge22" class="edge">
+<title>probe.Probe-&gt;ephys.ProbeInsertion</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-dasharray="5,2" stroke-opacity="0.250980" d="M1509,-480.8C1509,-469.95 1509,-455.87 1509,-445.05"/>
+</g>
+<!-- ephys.QualityMetrics -->
+<g id="node16" class="node">
+<title>ephys.QualityMetrics</title>
+<g id="a_node16"><a xlink:title="→ ephys.CuratedClustering">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1981" cy="-72.5" rx="80" ry="17.5"/>
+<text text-anchor="middle" x="1981" y="-69.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">ephys.QualityMetrics</text>
+</a>
+</g>
+</g>
+<!-- ephys.QualityMetrics&#45;&gt;ephys.QualityMetrics.Cluster -->
+<g id="edge23" class="edge">
+<title>ephys.QualityMetrics-&gt;ephys.QualityMetrics.Cluster</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M2003.07,-55.47C2019.01,-43.89 2039.95,-28.69 2052.93,-19.26"/>
+</g>
+<!-- ephys.QualityMetrics&#45;&gt;ephys.QualityMetrics.Waveform -->
+<g id="edge24" class="edge">
+<title>ephys.QualityMetrics-&gt;ephys.QualityMetrics.Waveform</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1958.93,-55.47C1942.99,-43.89 1922.05,-28.69 1909.07,-19.26"/>
+</g>
+<!-- imaging.Activity -->
+<g id="node17" class="node">
+<title>imaging.Activity</title>
+<g id="a_node17"><a xlink:title="→ imaging.Fluorescence→ imaging.ActivityExtractionMethod">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="883" cy="-72.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="883" y="-69.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">imaging.Activity</text>
+</a>
+</g>
+</g>
+<!-- imaging.Activity&#45;&gt;imaging.Activity.Trace -->
+<g id="edge25" class="edge">
+<title>imaging.Activity-&gt;imaging.Activity.Trace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M883,-59.45C883,-47.64 883,-29.93 883,-19.36"/>
+</g>
+<!-- imaging.Fluorescence -->
+<g id="node18" class="node">
+<title>imaging.Fluorescence</title>
+<g id="a_node18"><a xlink:title="→ imaging.Segmentation">
+<ellipse fill="#ff0000" fill-opacity="0.125490" stroke="#ff0000" stroke-opacity="0.125490" cx="883" cy="-143.5" rx="13" ry="13"/>
+<text text-anchor="middle" x="883" y="-140.4" font-family="arial" font-size="12.00" fill="#7f0000" fill-opacity="0.627451">imaging.Fluorescence</text>
+</a>
+</g>
+</g>
+<!-- imaging.Fluorescence&#45;&gt;imaging.Activity -->
+<g id="edge26" class="edge">
+<title>imaging.Fluorescence-&gt;imaging.Activity</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M883,-130.48C883,-117.97 883,-98.48 883,-85.85"/>
+</g>
+<!-- model.PoseEstimation.BodyPartPosition -->
+<g id="node30" class="node">
+<title>model.PoseEstimation.BodyPartPosition</title>
+<g id="a_node30"><a xlink:title="→ model.PoseEstimation→ model.Model.BodyPart------------------------------frame_index          x_pos                y_pos                z_pos=null           likelihood           ">
+<polygon fill="transparent" stroke="transparent" points="690,-224 496,-224 496,-205 690,-205 690,-224"/>
+<text text-anchor="middle" x="593" y="-212" font-family="arial" font-size="10.00">model.PoseEstimation.BodyPartPosition</text>
+</a>
+</g>
+</g>
+<!-- model.Model.BodyPart&#45;&gt;model.PoseEstimation.BodyPartPosition -->
+<g id="edge27" class="edge">
+<title>model.Model.BodyPart-&gt;model.PoseEstimation.BodyPartPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M721.9,-346.75C713.77,-330.02 694.25,-292.97 670,-268 651.85,-249.31 626.07,-233.37 609.44,-224.1"/>
+</g>
+<!-- subject.Subject -->
+<g id="node23" class="node">
+<title>subject.Subject</title>
+<g id="a_node23"><a xlink:title="subject              ------------------------------subject_nickname=&quot;&quot;  sex                  subject_birth_date   subject_description=&quot;&quot; ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="984,-587 886,-587 886,-552 984,-552 984,-587"/>
+<text text-anchor="start" x="894" y="-567.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">subject.Subject</text>
+</a>
+</g>
+</g>
+<!-- session.Session -->
+<g id="node39" class="node">
+<title>session.Session</title>
+<g id="a_node39"><a xlink:title="→ subject.Subjectsession_id           ------------------------------session_datetime     ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="987,-516 883,-516 883,-481 987,-481 987,-516"/>
+<text text-anchor="start" x="891" y="-496.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="darkgreen">session.Session</text>
+</a>
+</g>
+</g>
+<!-- subject.Subject&#45;&gt;session.Session -->
+<g id="edge28" class="edge">
+<title>subject.Subject-&gt;session.Session</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M935,-551.8C935,-540.95 935,-526.87 935,-516.05"/>
+</g>
+<!-- scan.Scan -->
+<g id="node24" class="node">
+<title>scan.Scan</title>
+<g id="a_node24"><a xlink:title="→ session.Sessionscan_id              ------------------------------→ [nullable] `sabatini_dj_reference`.`#equipment`→ scan.AcquisitionSoftwarescan_notes=&quot;&quot;        ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="971.5,-445 898.5,-445 898.5,-410 971.5,-410 971.5,-445"/>
+<text text-anchor="middle" x="935" y="-424.4" font-family="arial" font-size="12.00" fill="darkgreen">scan.Scan</text>
+</a>
+</g>
+</g>
+<!-- scan.Scan&#45;&gt;imaging.ProcessingTask -->
+<g id="edge29" class="edge">
+<title>scan.Scan-&gt;imaging.ProcessingTask</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M952.91,-409.8C964.55,-398.95 979.65,-384.87 991.25,-374.05"/>
+</g>
+<!-- scan.ScanInfo -->
+<g id="node33" class="node">
+<title>scan.ScanInfo</title>
+<g id="a_node33"><a xlink:title="→ scan.Scan------------------------------nfields              nchannels            ndepths              nframes              nrois                x=null               y=null               z=null               fps                  bidirectional        usecs_per_line=null  fill_fraction=null   scan_datetime=null   scan_duration=null   bidirectional_z=null ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="860" cy="-356.5" rx="57.5" ry="17.5"/>
+<text text-anchor="middle" x="860" y="-353.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">scan.ScanInfo</text>
+</a>
+</g>
+</g>
+<!-- scan.Scan&#45;&gt;scan.ScanInfo -->
+<g id="edge30" class="edge">
+<title>scan.Scan-&gt;scan.ScanInfo</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M916.84,-409.8C904.79,-398.71 889.07,-384.24 877.22,-373.34"/>
+</g>
+<!-- event.BehaviorRecording -->
+<g id="node25" class="node">
+<title>event.BehaviorRecording</title>
+<g id="a_node25"><a xlink:title="→ session.Session------------------------------recording_start_time=null recording_duration=null recording_notes=&quot;&quot;   ">
+<polygon fill="#00ff00" fill-opacity="0.188235" stroke="#00ff00" stroke-opacity="0.188235" points="260,-445 108,-445 108,-410 260,-410 260,-445"/>
+<text text-anchor="middle" x="184" y="-424.4" font-family="arial" font-size="12.00" fill="darkgreen">event.BehaviorRecording</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;event.BehaviorRecording.File -->
+<g id="edge31" class="edge">
+<title>event.BehaviorRecording-&gt;event.BehaviorRecording.File</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M184,-409.8C184,-396.08 184,-377.19 184,-366.27"/>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;trial.Trial -->
+<g id="edge32" class="edge">
+<title>event.BehaviorRecording-&gt;trial.Trial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M214.9,-409.97C237.56,-397.85 267.89,-381.63 288.8,-370.44"/>
+</g>
+<!-- trial.Block -->
+<g id="node29" class="node">
+<title>trial.Block</title>
+<g id="a_node29"><a xlink:title="→ event.BehaviorRecordingblock_id             ------------------------------block_start_time     block_stop_time      ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="50" cy="-356.5" rx="43.25" ry="17.5"/>
+<text text-anchor="start" x="23.5" y="-354.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">trial.Block</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;trial.Block -->
+<g id="edge33" class="edge">
+<title>event.BehaviorRecording-&gt;trial.Block</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M151.9,-409.97C128.52,-397.93 97.27,-381.84 75.57,-370.66"/>
+</g>
+<!-- event.Event -->
+<g id="node40" class="node">
+<title>event.Event</title>
+<g id="a_node40"><a xlink:title="→ event.BehaviorRecording→ event.EventTypeevent_start_time     ------------------------------event_end_time=null  ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="420" cy="-356.5" rx="50" ry="17.5"/>
+<text text-anchor="start" x="388" y="-354.4" font-family="arial" text-decoration="underline" font-size="12.00" fill="#00007f" fill-opacity="0.627451">event.Event</text>
+</a>
+</g>
+</g>
+<!-- event.BehaviorRecording&#45;&gt;event.Event -->
+<g id="edge34" class="edge">
+<title>event.BehaviorRecording-&gt;event.Event</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M240.53,-409.97C284.71,-397.06 344.84,-379.47 383.05,-368.3"/>
+</g>
+<!-- trial.Block.Attribute -->
+<g id="node26" class="node">
+<title>trial.Block.Attribute</title>
+<g id="a_node26"><a xlink:title="→ trial.Blockattribute_name       ------------------------------attribute_value=&quot;&quot;   attribute_blob=null  ">
+<polygon fill="transparent" stroke="transparent" points="100,-295 0,-295 0,-276 100,-276 100,-295"/>
+<text text-anchor="start" x="8" y="-284" font-family="arial" text-decoration="underline" font-size="10.00">trial.Block.Attribute</text>
+</a>
+</g>
+</g>
+<!-- ephys.Clustering -->
+<g id="node27" class="node">
+<title>ephys.Clustering</title>
+<g id="a_node27"><a xlink:title="→ ephys.ClusteringTask------------------------------clustering_time      package_version=&quot;&quot;   ">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1810" cy="-214.5" rx="66.75" ry="17.5"/>
+<text text-anchor="middle" x="1810" y="-211.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">ephys.Clustering</text>
+</a>
+</g>
+</g>
+<!-- ephys.CuratedClustering -->
+<g id="node46" class="node">
+<title>ephys.CuratedClustering</title>
+<g id="a_node46"><a xlink:title="→ ephys.Clustering">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1810" cy="-143.5" rx="93.25" ry="17.5"/>
+<text text-anchor="middle" x="1810" y="-140.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">ephys.CuratedClustering</text>
+</a>
+</g>
+</g>
+<!-- ephys.Clustering&#45;&gt;ephys.CuratedClustering -->
+<g id="edge35" class="edge">
+<title>ephys.Clustering-&gt;ephys.CuratedClustering</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1810,-196.8C1810,-185.95 1810,-171.87 1810,-161.05"/>
+</g>
+<!-- ephys.ProbeInsertion&#45;&gt;ephys.EphysRecording -->
+<g id="edge36" class="edge">
+<title>ephys.ProbeInsertion-&gt;ephys.EphysRecording</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1542.29,-409.97C1564.94,-398.73 1594.71,-383.95 1616.88,-372.95"/>
+</g>
+<!-- trial.Block&#45;&gt;trial.Block.Attribute -->
+<g id="edge37" class="edge">
+<title>trial.Block-&gt;trial.Block.Attribute</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M50,-338.8C50,-325.08 50,-306.19 50,-295.27"/>
+</g>
+<!-- trial.Block&#45;&gt;trial.BlockTrial -->
+<g id="edge38" class="edge">
+<title>trial.Block-&gt;trial.BlockTrial</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M75.64,-342.2C98.44,-330.37 131.69,-313.12 155.14,-300.95"/>
+</g>
+<!-- ephys.ClusteringTask&#45;&gt;ephys.Clustering -->
+<g id="edge39" class="edge">
+<title>ephys.ClusteringTask-&gt;ephys.Clustering</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1813.03,-267.8C1812.4,-256.95 1811.59,-242.87 1810.96,-232.05"/>
+</g>
+<!-- ephys.WaveformSet -->
+<g id="node32" class="node">
+<title>ephys.WaveformSet</title>
+<g id="a_node32"><a xlink:title="→ ephys.CuratedClustering">
+<ellipse fill="#00007f" fill-opacity="0.250980" stroke="#00007f" stroke-opacity="0.250980" cx="1641" cy="-72.5" rx="77.5" ry="17.5"/>
+<text text-anchor="middle" x="1641" y="-69.4" font-family="arial" font-size="12.00" fill="#00007f" fill-opacity="0.627451">ephys.WaveformSet</text>
+</a>
+</g>
+</g>
+<!-- ephys.WaveformSet&#45;&gt;ephys.WaveformSet.Waveform -->
+<g id="edge40" class="edge">
+<title>ephys.WaveformSet-&gt;ephys.WaveformSet.Waveform</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1663.07,-55.47C1679.01,-43.89 1699.95,-28.69 1712.93,-19.26"/>
+</g>
+<!-- ephys.WaveformSet&#45;&gt;ephys.WaveformSet.PeakWaveform -->
+<g id="edge41" class="edge">
+<title>ephys.WaveformSet-&gt;ephys.WaveformSet.PeakWaveform</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1615.76,-55.79C1596.93,-44.07 1571.93,-28.51 1556.67,-19.01"/>
+</g>
+<!-- model.PoseEstimation&#45;&gt;model.PoseEstimation.BodyPartPosition -->
+<g id="edge42" class="edge">
+<title>model.PoseEstimation-&gt;model.PoseEstimation.BodyPartPosition</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M593,-272.48C593,-258.74 593,-236.56 593,-224.32"/>
+</g>
+<!-- photometry.FiberPhotometrySynced&#45;&gt;photometry.FiberPhotometrySynced.SyncedTrace -->
+<g id="edge43" class="edge">
+<title>photometry.FiberPhotometrySynced-&gt;photometry.FiberPhotometrySynced.SyncedTrace</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1412,-338.8C1412,-325.08 1412,-306.19 1412,-295.27"/>
+</g>
+<!-- session.Session&#45;&gt;photometry.FiberPhotometry -->
+<g id="edge44" class="edge">
+<title>session.Session-&gt;photometry.FiberPhotometry</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M987.29,-482.95C1029.78,-471.13 1089.39,-454.54 1131.63,-442.79"/>
+</g>
+<!-- session.Session&#45;&gt;model.VideoRecording -->
+<g id="edge45" class="edge">
+<title>session.Session-&gt;model.VideoRecording</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M882.91,-487.32C821.64,-475.34 719.66,-455.41 651.64,-442.11"/>
+</g>
+<!-- session.Session&#45;&gt;scan.Scan -->
+<g id="edge46" class="edge">
+<title>session.Session-&gt;scan.Scan</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M935,-480.8C935,-469.95 935,-455.87 935,-445.05"/>
+</g>
+<!-- session.Session&#45;&gt;event.BehaviorRecording -->
+<g id="edge47" class="edge">
+<title>session.Session-&gt;event.BehaviorRecording</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M882.79,-492.7C752.56,-480.74 412.92,-449.53 260.26,-435.51"/>
+</g>
+<!-- session.Session&#45;&gt;ephys.ProbeInsertion -->
+<g id="edge48" class="edge">
+<title>session.Session-&gt;ephys.ProbeInsertion</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M987.21,-491.22C1092.22,-478.6 1328.78,-450.16 1443.78,-436.34"/>
+</g>
+<!-- event.Event&#45;&gt;trial.TrialEvent -->
+<g id="edge49" class="edge">
+<title>event.Event-&gt;trial.TrialEvent</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M423.87,-338.8C426.39,-327.95 429.65,-313.87 432.16,-303.05"/>
+</g>
+<!-- ephys.LFP.Electrode -->
+<g id="node43" class="node">
+<title>ephys.LFP.Electrode</title>
+<g id="a_node43"><a xlink:title="→ ephys.LFP→ probe.ElectrodeConfig.Electrode------------------------------lfp                  ">
+<polygon fill="transparent" stroke="transparent" points="2001.5,-224 1894.5,-224 1894.5,-205 2001.5,-205 2001.5,-224"/>
+<text text-anchor="middle" x="1948" y="-212" font-family="arial" font-size="10.00">ephys.LFP.Electrode</text>
+</a>
+</g>
+</g>
+<!-- ephys.LFP&#45;&gt;ephys.LFP.Electrode -->
+<g id="edge50" class="edge">
+<title>ephys.LFP-&gt;ephys.LFP.Electrode</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1948,-267.8C1948,-254.08 1948,-235.19 1948,-224.27"/>
+</g>
+<!-- ephys.CuratedClustering&#45;&gt;ephys.CuratedClustering.Unit -->
+<g id="edge51" class="edge">
+<title>ephys.CuratedClustering-&gt;ephys.CuratedClustering.Unit</title>
+<path fill="none" stroke="#000000" stroke-width="0.75" stroke-opacity="0.250980" d="M1810,-125.8C1810,-112.08 1810,-93.19 1810,-82.27"/>
+</g>
+<!-- ephys.CuratedClustering&#45;&gt;ephys.QualityMetrics -->
+<g id="edge52" class="edge">
+<title>ephys.CuratedClustering-&gt;ephys.QualityMetrics</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1847.53,-127.36C1876.43,-115.69 1916.15,-99.67 1944.73,-88.13"/>
+</g>
+<!-- ephys.CuratedClustering&#45;&gt;ephys.WaveformSet -->
+<g id="edge53" class="edge">
+<title>ephys.CuratedClustering-&gt;ephys.WaveformSet</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M1772.91,-127.36C1744.35,-115.69 1705.09,-99.67 1676.84,-88.13"/>
+</g>
+<!-- imaging.Segmentation&#45;&gt;imaging.Fluorescence -->
+<g id="edge54" class="edge">
+<title>imaging.Segmentation-&gt;imaging.Fluorescence</title>
+<path fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.250980" d="M883,-201.48C883,-188.97 883,-169.48 883,-156.85"/>
+</g>
+</g>
+</svg>
