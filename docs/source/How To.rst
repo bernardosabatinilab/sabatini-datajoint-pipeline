@@ -28,7 +28,7 @@ Your data ``/Inbox`` directory structure will need to be set up like the followi
 |        └── ...
 
 |    ├── Photometry
-|       ├── timeseries*.mat; data.mat; .tdt
+|       ├── timeseries*.mat; data*.mat; .tdt
 |       └── .toml
 
 |    ├── Behavior
@@ -209,8 +209,8 @@ the ``.toml`` file. More on how to do this in the *Creating a .toml file for pho
 
 There are two processing streams for the matlab input data. The first is raw/unprocessed data, and the second is processed (demodulated) data.
 
-To enter the raw/unprocessed data into the pipeline, the data must be named in the following format: ``*timeseries_2.mat``.
-To enter the processed data into the pipeline, the data must be named in the following format: ``data*.mat``.
+To enter the raw/unprocessed data into the pipeline, the data must be named in the following format: ``data*.mat``.
+To enter the processed data into the pipeline, the data must be named in the following format: ``*timeseries*.mat``.
 
 The ``.toml`` file must be named in the following format: ``*.toml``.
 
