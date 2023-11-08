@@ -121,10 +121,10 @@ class FiberPhotometry(dj.Imported):
             matlab_data: dict = spio.loadmat(
             next(photometry_dir.glob("data*.mat")), simplify_cells=True)
             matlab_data=matlab_data["data"]
-        elif len(list(photometry_dir.glob("*timeseries_2.mat"))) > 0:
+        elif len(list(photometry_dir.glob("*timeseries*.mat"))) > 0:
             data_format = "demux_matlab_data"
             demux_matlab_data: list[dict] = spio.loadmat(
-                next(photometry_dir.glob("*timeseries_2.mat")), simplify_cells=True
+                next(photometry_dir.glob("*timeseries*.mat")), simplify_cells=True
             )["timeSeries"]
         elif len(list(photometry_dir.glob("*.t*"))) > 0:
             data_format = "tdt_data"
