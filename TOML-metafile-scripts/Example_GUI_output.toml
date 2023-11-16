@@ -1,59 +1,68 @@
 Subject_ID = "Test"
 
+[Fiber]
+light_source = "Plexon LED"
+fiber_type = ""
+fiber_diameter = ""
+
 [Processing_Parameters]
 behavior_offset = 0.0
-final_z = "true"
-z_window = 60.0
-bandpass_bandwidth = 0.0
-sampling_frequency = 1000.0
-downsample_frequency = 1000.0
+final_z = "false"
+z_window = 180.0
+bandpass_bandwidth = 3.0
+sampling_frequency = 2000.0
+downsample_frequency = 50.0
 transform = "spectrogram"
-no_per_segment = 216
-no_overlap = 108
+no_per_segment = 80
+no_overlap = 40
 
 [Signal_Indices]
-total_channels = 8
+total_channels = 1
+
+[Fiber.implantation]
+date = ""
+surgeon = ""
 
 [Processing_Parameters.left]
-carrier_frequency_g = 100.0
-carrier_frequency_r = 100.0
+carrier_frequency_g = 200.0
+carrier_frequency_r = 0.0
 
 [Processing_Parameters.right]
-carrier_frequency_g = 100.0
-carrier_frequency_r = 100.0
-
-[Signal_Indices.left]
-photom_g = 0
-photom_r = 1
-carrier_g = 2
-carrier_r = 3
+carrier_frequency_g = 200.0
+carrier_frequency_r = 0.0
 
 [Signal_Indices.right]
 photom_g = 0
-photom_r = 1
-carrier_g = 2
-carrier_r = 3
+carrier_g = 0
+
+[Fiber.implantation.left]
+brain_region = ""
+notes = ""
+
+[Fiber.implantation.right]
+brain_region = ""
+notes = ""
 
 [Signal_Indices.left.emission_wavelength]
-green = 10.0
-red = 10.0
+green = 510
+red = 0
 
 [Signal_Indices.left.excitation_wavelength]
-green = 10.0
-red = 10.0
+green = 473
+red = 0
 
 [Signal_Indices.left.sensor_protein]
-green = "gcamp"
-red = "rcamp"
+green = "dLight1.3b"
+red = "None"
 
 [Signal_Indices.right.emission_wavelength]
-green = 10
-red = 10
+green = 510
+red = 0
 
 [Signal_Indices.right.excitation_wavelength]
-green = 10
-red = 10
+green = 473
+red = 0
 
 [Signal_Indices.right.sensor_protein]
-green = "gcamp"
-red = "rcamp"
+green = "dLight1.3b"
+red = "None"

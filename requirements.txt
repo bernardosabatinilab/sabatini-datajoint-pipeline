@@ -21,3 +21,4 @@ seaborn==0.12.0
 pySimpleGUI
 fastparquet
 sphinx_rtd_theme
+pymatreader
