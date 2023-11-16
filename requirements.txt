@@ -20,4 +20,5 @@ nd2==0.1.6
 seaborn==0.12.0
 pySimpleGUI
 fastparquet
+sphinx_rtd_theme
 pymatreader
