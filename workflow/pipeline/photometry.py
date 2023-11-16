@@ -6,6 +6,7 @@ import warnings
 from pathlib import Path
 import tomli
 import tdt
+import pymatreader
 import scipy.io as spio
 from scipy import signal
 from scipy.fft import fft, ifft, rfft
@@ -123,9 +124,16 @@ class FiberPhotometry(dj.Imported):
             matlab_data=matlab_data["data"]
         elif len(list(photometry_dir.glob("*timeseries*.mat"))) > 0:
             data_format = "demux_matlab_data"
-            demux_matlab_data: list[dict] = spio.loadmat(
-                next(photometry_dir.glob("*timeseries*.mat")), simplify_cells=True
-            )["timeSeries"]
+            try:
+                demux_matlab_data: list[dict] = spio.loadmat(
+                    next(photometry_dir.glob("*timeseries*.mat")), simplify_cells=True
+                )["timeSeries"]
+            except NotImplementedError:
+                # If scipy throws a NotImplementedError, use pymatreader for MATLAB v7.3 files
+                data_format = "demux_matlab_data_mat73"
+                photometry_file = next(photometry_dir.glob("*timeseries*.mat"))
+                data_dict = pymatreader.read_mat(photometry_file)
+                demux_matlab_data = data_dict["timeSeries"]
         elif len(list(photometry_dir.glob("*.t*"))) > 0:
             data_format = "tdt_data"
             tdt_data: tdt.StructType = tdt.read_block(photometry_dir)      
@@ -326,7 +334,7 @@ class FiberPhotometry(dj.Imported):
             #demux_matlab_data
             
             raw_sample_rate = None
-            sampling_Hz = 2000
+            sampling_Hz = meta_info.get("Processing_Parameters").get("sampling_frequency")
             beh_synch_signal = demux_matlab_data[0]["time_offset"]
 
             #Get index of traces
@@ -492,6 +500,176 @@ class FiberPhotometry(dj.Imported):
 
             del demux_matlab_data
             #demux_matlab_data
+
+        if data_format == "demux_matlab_data_mat73":
+            #demux_matlab_data_mat73
+            
+            raw_sample_rate = None
+            sampling_Hz = meta_info.get("Processing_Parameters").get("sampling_frequency")
+            beh_synch_signal = demux_matlab_data["time_offset"][0]
+
+            #Get index of traces
+            trace_indices = meta_info.get("Signal_Indices")
+            carrier_g_right = trace_indices.get("right").get("carrier_g", None)
+            carrier_r_right =trace_indices.get("right").get("carrier_r", None)
+            photom_g_right = trace_indices.get("right").get("photom_g", None)
+            photom_r_right = trace_indices.get("right").get("photom_r", None)
+            carrier_g_left = trace_indices.get("left").get("carrier_g", None)
+            carrier_r_left = trace_indices.get("left").get("carrier_r", None)
+            photom_g_left = trace_indices.get("left").get("photom_g", None)
+            photom_r_left = trace_indices.get("left").get("photom_r", None)
+
+            # Get demodulated sample rate
+            demod_sampling: list[float] = []
+            demod_sampling.append(demux_matlab_data["demux_freq"][carrier_g_right] if carrier_g_right is not None else None)
+            demod_sampling.append(demux_matlab_data["demux_freq"][carrier_r_right] if carrier_r_right is not None else None)
+            demod_sampling.append(demux_matlab_data["demux_freq"][carrier_g_left] if carrier_g_left is not None else None)
+            demod_sampling.append(demux_matlab_data["demux_freq"][carrier_r_left] if carrier_r_left is not None else None)
+
+            # Store data in this list for ingestion
+            fiber_list: list[dict] = []
+            demodulated_trace_list: list[dict] = []
+
+            fiber_list: list[dict] = []
+            demodulated_trace_list: list[dict] = []
+
+            fibers: list[str] = [ "right", "left"]
+
+            side_to_fiber_id_mapping = {"right": 1, "left": 2}
+            color_mapping = {"g": "green", "r": "red", "b": "blue"}
+
+            # Get photometry traces for each fiber
+            for fiber in fibers:
+                 
+                fiber_notes = meta_info.get("Fiber").get("implantation").get(f'{fiber}').get("notes", None)
+                #fiber_diam = meta_info.get("Fiber").get("fiber_diameter", None)
+                #hemisphere = meta_info.get("Experiment").get("hemisphere")
+                fiber_list.append(
+                    {
+                        **key,
+                        "fiber_id": side_to_fiber_id_mapping[fiber],
+                        "hemisphere": fiber,
+                        "notes": fiber_notes,
+                    }
+                    )
+                
+                trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
+                traceNames = {key: trace_names[key] for key in ['photom_g', 'photom_r', 'carrier_g', 'carrier_r'] if key in trace_names}
+                trace_names = meta_info.get("Signal_Indices").get(f'{fiber}')
+                for trace_name in traceNames:
+
+                    # Populate EmissionColor if present
+                    emission_color = color_mapping[trace_name.split("_")[1][0]]
+
+                    emission_wavelength = (
+                        meta_info.get("Signal_Indices", {})
+                        .get(f'{fiber}')
+                        .get("emission_wavelength", {})
+                        .get(emission_color, None)
+                    )
+
+                    EmissionColor.insert1(
+                        {
+                            "emission_color": emission_color,
+                            "wavelength": emission_wavelength,
+                        },
+                        skip_duplicates=True,
+                    )
+
+                    # Populate SensorProtein if present
+                    sensor_protein = (
+                        meta_info.get("Signal_Indices", {})
+                        .get(f'{fiber}', {})
+                        .get("sensor_protein", {})
+                        .get(emission_color, None)
+                    )
+                    if sensor_protein:
+                        logger.info(
+                            f"{sensor_protein} is inserted into {__name__}.SensorProtein"
+                        )
+                        SensorProtein.insert1(
+                            {"sensor_protein_name": sensor_protein}, skip_duplicates=True
+                        )
+
+                    # Populate ExcitationWavelength if present
+                    excitation_wavelength = (
+                        meta_info.get("Signal_Indices", {})
+                        .get(f'{fiber}')
+                        .get("excitation_wavelength", {})
+                        .get(emission_color, None)
+                    )
+
+                    if excitation_wavelength:
+                        logger.info(
+                            f"{excitation_wavelength} is inserted into {__name__}.ExcitationWavelength"
+                        )
+                        ExcitationWavelength.insert1(
+                            {"excitation_wavelength": excitation_wavelength},
+                            skip_duplicates=True,
+                        )
+                    ##pull out the data from the matlab file
+                    photometry_demux_g_left = (demux_matlab_data['data'][photom_g_left] if photom_g_left is not None else None)
+                    photometry_demux_r_left = (demux_matlab_data['data'][photom_r_left] if photom_r_left is not None else None)
+                    photometry_demux_g_right = (demux_matlab_data['data'][photom_g_right] if photom_g_right is not None else None)
+                    photometry_demux_r_right = (demux_matlab_data['data'][photom_r_right] if photom_r_right is not None else None)
+                    demux_trace_list: list[dict] = []
+                    demux_trace_list.append(photometry_demux_g_right)
+                    demux_trace_list.append(photometry_demux_r_right)
+                    demux_trace_list.append(photometry_demux_g_left)
+                    demux_trace_list.append(photometry_demux_r_left)
+
+                    carrier_ind = {"g_right":0, "r_right":1, "g_left":2, "r_left":3}
+                    carrier_frequency = demod_sampling[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+
+                    demod_trace = demux_trace_list[carrier_ind[trace_name.split("_")[1]+ f"_{fiber}"]]
+
+                    if carrier_frequency:
+                        logger.info(
+                            f"{carrier_frequency} is inserted into {__name__}.CarrierFrequency"
+                        )
+                        CarrierFrequency.insert1(
+                            {"carrier_frequency": carrier_frequency},
+                            skip_duplicates=True,
+                        )
+                    
+                                    
+                    demodulated_trace_list.append(
+                            {
+                                **key,
+                                "fiber_id": side_to_fiber_id_mapping[fiber],
+                                "hemisphere": fiber,
+                                "trace_name": trace_name.split("_")[0],
+                                "emission_color": emission_color,
+                                "sensor_protein_name": sensor_protein,
+                                "excitation_wavelength": excitation_wavelength,
+                                "carrier_frequency": carrier_frequency,
+                                "demod_sample_rate": carrier_frequency,
+                                "trace": demod_trace,
+                            }
+                        )
+                    
+                # Populate FiberPhotometry
+            logger.info(f"Populate {__name__}.FiberPhotometry")
+            self.insert1(
+                        {
+                            **key,
+                            "light_source_name": light_source_name,
+                            "raw_sample_rate": sampling_Hz,
+                            "beh_synch_signal": beh_synch_signal,
+                        }
+                    )
+
+                    # Populate FiberPhotometry.Fiber
+            logger.info(f"Populate {__name__}.FiberPhotometry.Fiber")
+            self.Fiber.insert(fiber_list)
+
+                    # Populate FiberPhotometry.DemodulatedTrace
+            logger.info(f"Populate {__name__}.FiberPhotometry.DemodulatedTrace")
+            self.DemodulatedTrace.insert(demodulated_trace_list)
+
+            del demux_matlab_data
+            #demux_matlab_data_mat73
+                
 
 
         elif data_format == "tdt_data":

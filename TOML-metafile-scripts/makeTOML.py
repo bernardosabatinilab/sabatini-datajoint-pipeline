@@ -38,16 +38,16 @@ layout = [[[sg.Text("Create processing TOML file for photometry analysis", font=
         [sg.Text("green sensor protein used"), sg.InputText(key="green sensor protein used")],
         [sg.Text("red sensor protein used"), sg.InputText(key="red sensor protein used")],
         [sg.Text("photometry index for green channel"), 
-            sg.InputCombo(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], size=(10, 1),
+            sg.InputCombo(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "None"], size=(10, 1),
             key="photometry index for green channel")],
         [sg.Text("photometry index for red channel"), 
-            sg.InputCombo(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], size=(10, 1),
+            sg.InputCombo(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "None"], size=(10, 1),
             key="photometry index for red channel")],
         [sg.Text("carrier index for green channel"), 
-            sg.InputCombo(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], size=(10, 1),
+            sg.InputCombo(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "None"], size=(10, 1),
             key="carrier index for green channel")],
         [sg.Text("carrier index for red channel"), 
-            sg.InputCombo(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"], size=(10, 1), 
+            sg.InputCombo(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "None"], size=(10, 1), 
             key="carrier index for red channel")],
         [sg.Button("Insert to Right Signal Indices"), sg.Button("Insert to Left Signal Indices")],
 
@@ -123,10 +123,10 @@ while True:
                 Signal_Indices['left']['excitation_wavelength']['red'] = int(values['excitation wavelength - red'])
                 Signal_Indices['left']['sensor_protein']['green'] = values['green sensor protein used']
                 Signal_Indices['left']['sensor_protein']['red'] = values['red sensor protein used']
-                Signal_Indices['left']['photom_g'] = int(values['photometry index for green channel'])
-                Signal_Indices['left']['photom_r'] = int(values['photometry index for red channel'])
-                Signal_Indices['left']['carrier_g'] = int(values['carrier index for green channel'])
-                Signal_Indices['left']['carrier_r'] = int(values['carrier index for red channel'])
+                Signal_Indices['left']['photom_g'] = int(values['photometry index for green channel']) if values['photometry index for green channel'] != "None" else None
+                Signal_Indices['left']['photom_r'] = int(values['photometry index for red channel']) if values['photometry index for red channel'] != "None" else None
+                Signal_Indices['left']['carrier_g'] = int(values['carrier index for green channel']) if values['carrier index for green channel'] != "None" else None
+                Signal_Indices['left']['carrier_r'] = int(values['carrier index for red channel']) if values['carrier index for red channel'] != "None" else None
                 print("inserted left signal indices")
 
     if event == "Insert to Right Signal Indices":
@@ -136,10 +136,10 @@ while True:
                 Signal_Indices['right']['excitation_wavelength']['red'] = int(values['excitation wavelength - red'])
                 Signal_Indices['right']['sensor_protein']['green'] = values['green sensor protein used']
                 Signal_Indices['right']['sensor_protein']['red'] = values['red sensor protein used']
-                Signal_Indices['right']['photom_g'] = int(values['photometry index for green channel'])
-                Signal_Indices['right']['photom_r'] = int(values['photometry index for red channel'])
-                Signal_Indices['right']['carrier_g'] = int(values['carrier index for green channel'])
-                Signal_Indices['right']['carrier_r'] = int(values['carrier index for red channel'])
+                Signal_Indices['right']['photom_g'] = int(values['photometry index for green channel']) if values['photometry index for green channel'] != "None" else None
+                Signal_Indices['right']['photom_r'] = int(values['photometry index for red channel']) if values['photometry index for red channel'] != "None" else None
+                Signal_Indices['right']['carrier_g'] = int(values['carrier index for green channel']) if values['carrier index for green channel'] != "None" else None
+                Signal_Indices['right']['carrier_r'] = int(values['carrier index for red channel']) if values['carrier index for red channel'] != "None" else None
                 print("inserted right signal indices")
 
     if event == "Save":
