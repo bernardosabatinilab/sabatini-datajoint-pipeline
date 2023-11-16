@@ -8,7 +8,7 @@ If you are new to DataJoint, we recommend getting started by learning about the 
 More information can be found in the `DataJoint documentation <https://datajoint.com/docs/core/datajoint-python/0.14/concepts/principles/>`_.
 
 We can run the workflow using the provided docker containers (for more information :doc:`WorkerDeployment`). Or, we can 
-run locally using the `provided jupyter notebooks <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/tree/d3f95ccd94521bfeac64929ad44a8cc7a46a61db/notebooks>`_.
+run locally using the `provided jupyter notebooks <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/tree/7206d86b7cc264ed5b9c15b67ae84a16b27e708e/notebooks>`_.
 These notebooks provide a good starting point and can be modified to fit your needs, just remember to check that your kernel is set
 to the ``sabatini-datajoint`` kernel.  
 
