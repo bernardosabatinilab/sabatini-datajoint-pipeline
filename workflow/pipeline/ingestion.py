@@ -86,7 +86,7 @@ class BehaviorIngestion(dj.Imported):
 
         # Populate EventType
         event.EventType.insert(
-            [[e, ""] for e in events_df["event"].unique()],
+            [[e, ""] for e in events_df["type"].unique()],
             skip_duplicates=True,
         )  # can be hard-coded later
 
