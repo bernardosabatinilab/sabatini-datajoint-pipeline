@@ -297,7 +297,7 @@ formatting of the data.
 
 Input data
 ----------
-You will need an ``eventTable`` with a ``time``, ``event``, and ``trial`` field.
+You will need an ``eventTable`` with a ``time``, ``type``, and ``trial`` field.
 
 .. image:: ../media/eventTable.png
     :align: center
