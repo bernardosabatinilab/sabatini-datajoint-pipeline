@@ -1,7 +1,7 @@
 {
     "database.host": "sabatini-dj-prd01.cluster-cjvmzxer50q5.us-east-1.rds.amazonaws.com",
     "database.password": "*********************",
-    "database.user": "rcadmin",
+    "database.user": "UserName",
     "database.port": 3306,
     "database.reconnect": true,
     "connection.init_function": null,
@@ -15,6 +15,8 @@
     "database.use_tls": null,
     "enable_python_native_blobs": true,
     "custom": {
-        "database.prefix": "sabatini_dj_"
+        "database.prefix": "sabatini_dj_",
+        "raw_root_data_dir": "path/to/Inbox",
+        "processed_data_dir": "path/to/Outbox"
     }
 }
