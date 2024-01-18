@@ -50,88 +50,88 @@ jobs:
         steps:
 
         - name: Set up conda
-            uses: conda-incubator/setup-miniconda@v2
-            with:
-                miniconda-version: latest
-                activate-environment: sabatini-datajoint
-                auto-activate-base: true
-                auto-update-conda: true
-                remove-profiles: true
-                architecture: x64
-                clean-patched-environment-file: true
-                run-post: true
-
-        - name: Set up Python ${{ matrix.python-version }}
-            uses: actions/setup-python@v3
-            with:
-                python-version: ${{ matrix.python-version }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+            miniconda-version: latest
+            activate-environment: sabatini-datajoint
+            auto-activate-base: true
+            auto-update-conda: true
+            remove-profiles: true
+            architecture: x64
+            clean-patched-environment-file: true
+            run-post: true
+            
+        - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+            python-version: ${{ matrix.python-version }}
 
         - name: Check out repository code
-            uses: actions/checkout@v3
+        uses: actions/checkout@v3
                 
         - name: Prepare PowerShell
-            shell: pwsh
-            run: |
-                conda info
-                conda list
+        shell: pwsh
+        run: |
+            conda info
+            conda list
 
         - name: Check specs of the machine -- Linux
-            if: startsWith(matrix.platform, 'ubuntu')
-            run: |
-                ## check cpu, memory, disk, etc.
-                ## print the command inputs to the workflow
-                echo "CPU info (lscpu):"
-                lscpu
-                echo "Memory info (free -h):"
-                free -h
-                echo "Disk info (df -h):"
-                df -h
-                echo "Network info (ip a):"
-                ip a
-                echo "OS info (uname -a):"
-                uname -a
+        if: startsWith(matrix.platform, 'ubuntu')
+        run: |
+            ## check cpu, memory, disk, etc.
+            ## print the command inputs to the workflow
+            echo "CPU info (lscpu):"
+            lscpu
+            echo "Memory info (free -h):"
+            free -h
+            echo "Disk info (df -h):"
+            df -h
+            echo "Network info (ip a):"
+            ip a
+            echo "OS info (uname -a):"
+            uname -a
 
         - name: Check specs of the machine -- Windows
-            if: startsWith(matrix.platform, 'windows')
-            run: |
-                ## check cpu, memory, disk, etc.
-                ## just do a generic check on system info
-                ## print the command inputs to the workflow
-                echo "System info (systeminfo):"
-                systeminfo
+        if: startsWith(matrix.platform, 'windows')
+        run: |
+            ## check cpu, memory, disk, etc.
+            ## just do a generic check on system info
+            ## print the command inputs to the workflow
+            echo "System info (systeminfo):"
+            systeminfo
 
         - name: Check specs of the machine -- MacOS
-            if: startsWith(matrix.platform, 'macos')
-            run: |
-                ## check cpu, memory, disk, etc.
-                ## print the command inputs to the workflow
-                echo "CPU info (sysctl -n machdep.cpu.brand_string):"
-                sysctl -n machdep.cpu.brand_string
-                echo "Memory info (sysctl -n hw.memsize):"
-                sysctl -n hw.memsize
-                echo "Disk info (df -h):"
-                df -h
-                echo "OS info (uname -a):"
-                uname -a
+        if: startsWith(matrix.platform, 'macos')
+        run: |
+            ## check cpu, memory, disk, etc.
+            ## print the command inputs to the workflow
+            echo "CPU info (sysctl -n machdep.cpu.brand_string):"
+            sysctl -n machdep.cpu.brand_string
+            echo "Memory info (sysctl -n hw.memsize):"
+            sysctl -n hw.memsize
+            echo "Disk info (df -h):"
+            df -h
+            echo "OS info (uname -a):"
+            uname -a
 
         - name: Install sabatini-datajoint with pip dependencies -- system-level
-            if: matrix.install-level == 'system'
-            run: |
-                ## install dependencies with optional extras
-                pip install -e .[${{ matrix.extra }}]
+        if: matrix.install-level == 'system'
+        run: |
+            ## install dependencies with optional extras
+            pip install -e .[${{ matrix.extra }}]
 
         - name: Install ROICaT with pip dependencies -- user-level
-            if: matrix.install-level == 'user'
-            run: |
-                pip install -e .[${{ matrix.extra }}] --user
+        if: matrix.install-level == 'user'
+        run: |
+            pip install -e .[${{ matrix.extra }}] --user
 
         - name: Check installed packages
-            run: |
-                conda list
-                pip list
+        run: |
+            conda list
+            pip list
 
         - name: Run build tests
-            run: |
-                ## Add your build test commands here
-                ## For example:
-                pytest tests/
+        run: |
+            ## Add your build test commands here
+            ## For example:
+            pytest tests/
