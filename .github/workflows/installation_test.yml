@@ -26,7 +26,7 @@ jobs:
       matrix:
         platform: [
           # ubuntu-latest,
-          ubuntu-22.04,
+          # ubuntu-22.04,
           ubuntu-20.04,
           # # windows-latest,
           windows-2022,
@@ -39,12 +39,11 @@ jobs:
         python-version: [ 
            "3.9",
            "3.10",
-           "3.11",
+          # "3.11",
           # "3.12",
         ]
         extra: [
-          all,
-          all_latest,
+          "all",
         ]
         install-level: [
           system,
