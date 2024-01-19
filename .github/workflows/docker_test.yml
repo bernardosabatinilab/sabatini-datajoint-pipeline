@@ -30,9 +30,9 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
-          docker-compose --env-file=${{secrets.DOCKERENV}} -f ../docker/calcium_imaging_worker/dist/debian/docker-compose-calcium_imaging_worker.yml up --build -d
-          docker-compose --env-file=${{secrets.DOCKERENV}} -f ../docker/spike_sorting_local_worker/dist/debian/docker-compose-spike_sorting_local_worker.yml up --build -d
-          docker-compose --env-file=${{secrets.DOCKERENV}} -f ../docker/standard_worker/dist/debian/docker-compose-standard_worker.yml up --build -d
+          docker-compose --env-file=${{secrets.DOCKERENV}} -f ../docker/calcium_imaging_worker/dist/debian/docker-compose-calcium_imaging_worker.yaml -p up --build -d
+          docker-compose --env-file=${{secrets.DOCKERENV}} -f ../docker/spike_sorting_local_worker/dist/debian/docker-compose-spike_sorting_local_worker.yaml -p up --build -d
+          docker-compose --env-file=${{secrets.DOCKERENV}} -f ../docker/standard_worker/dist/debian/docker-compose-standard_worker.yaml -p up --build -d
 
       # Add additional steps here for testing or other actions
 
