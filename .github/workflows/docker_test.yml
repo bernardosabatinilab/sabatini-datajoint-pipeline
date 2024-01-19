@@ -1,0 +1,44 @@
+name: build_docker
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  #pull_request:
+  #  branches:
+  #    - main
+  #    - dev
+  workflow_call:
+    secrets:
+      DOCKERENV:
+        required: true
+        description: 'Access to AWS RDS server'
+
+jobs:
+  build_docker:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Build and run Docker Compose
+        run: |
+          docker-compose -f --env-file=${{secrets.DOCKERENV}} ../docker/calcium_imaging_worker/dist/debian/docker-compose-calcium_imaging_worker.yml up --build -d
+          docker-compose -f --env-file=${{secrets.DOCKERENV}} ../docker/spike_sorting_local_worker/dist/debian/docker-compose-spike_sorting_local_worker.yml up --build -d
+          docker-compose -f --env-file=${{secrets.DOCKERENV}} ../docker/standard_worker/dist/debian/docker-compose-standard_worker.yml up --build -d
+
+      # Add additional steps here for testing or other actions
+
+      - name: Clean up Docker Compose
+        run: |
+          docker-compose -f ../docker/calcium_imaging_worker/dist/debian/docker-compose-calcium_imaging_worker.yml down
+          docker-compose -f ../docker/spike_sorting_local_worker/dist/debian/docker-compose-spike_sorting_local_worker.yml down
+          docker-compose -f ../docker/standard_worker/dist/debian/docker-compose-standard_worker.yml down
+
