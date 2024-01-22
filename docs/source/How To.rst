@@ -8,7 +8,7 @@ If you are new to DataJoint, we recommend getting started by learning about the 
 More information can be found in the `DataJoint documentation <https://datajoint.com/docs/core/datajoint-python/0.14/concepts/principles/>`_.
 
 We can run the workflow using the provided docker containers (for more information :doc:`WorkerDeployment`). Or, we can 
-run locally using the `provided jupyter notebooks <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/tree/7206d86b7cc264ed5b9c15b67ae84a16b27e708e/notebooks>`_.
+run locally using the `provided jupyter notebooks <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/tree/5b157f564b1989107c2dd495b2bbf5d7a88d2f8b/notebooks>`_.
 These notebooks provide a good starting point and can be modified to fit your needs, just remember to check that your kernel is set
 to the ``sabatini-datajoint`` kernel.  
 
@@ -336,19 +336,25 @@ You can also run the pipeline manually by running the following:
 Ephys pipeline
 ##############
 The ephys pipeline is designed to process neuropixel data acquired with SpikeGLX. It will run through Kilosort2.5 and use
-`ecephys <https://github.com/jenniferColonell/ecephys_spike_sorting>`_ for post-processing.
-The ``/Outbox`` directory will be automatically populated with the processed data.
+`ecephys <https://github.com/jenniferColonell/ecephys_spike_sorting>`_ for post-processing. Currently, we have two workflows for processing the data:
+a docker container or a manual pipeline through the provided jupyter notebook.
 
 Input data
 ----------
 You will need all of the output files from SpikeGLX: ``.ap.bin``, ``.lf.bin``, ``.ap.meta``, and ``.lf.meta``. You can also use data that you have pre-processed throught CatGT.
 
-Running the ephys pipeline
---------------------------
+Running the ephys pipeline through the docker container
+-------------------------------------------------------
 Once you have inserted the ``Subject``, ``Session``, and ``SessionDirectory`` tables and you have the appropriate files in place,
 you can then proceed with running the ephys pipeline by simply upping the spike_sorting_local_worker docker container detailed in :doc:`WorkerDeployment`.
+It will automatically detect the new data and process it and populate the ``EphysRecording``, ``CuratedClustering``, ``WaveformSet``, and ``LFP`` tables.
 
-Using the docker container is the recommended way to run the pipeline. If you must run the pipeline manually, please contact the database manager.
+Running the ephys pipeline manually
+-----------------------------------
+We have provided an ephys jupyter notebook that will guide you through the ephys pipeline. Importantly, you will have to configure your spike sorter
+of choice and the paths to the data in the notebook.
+
+`Ephys jupyter notebook <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/blob/5b157f564b1989107c2dd495b2bbf5d7a88d2f8b/notebooks/ephys.ipynb>`_.
 
 Table organization
 ------------------
@@ -380,25 +386,22 @@ The calcium imaging processing pipeline will populate the ``imaging`` table.
 
 DeepLabCut pipeline
 ###################
-The DeepLabCut pipeline is designed to process videos through DeepLabCut. It will automatically populate the ``/Outbox`` directory with the processed data.
-
-**Important Note**: This pipeline assumes that you have already created a DeepLabCut project and have a trained network. If you have not done this, please
-refer to the `DeepLabCut documentation <https://deeplabcut.github.io/DeepLabCut/README.html>`_. 
+The DeepLabCut pipeline is designed to process and annotate videos through DeepLabCut. We have updated the workflow so that you can run DeepLabCut from
+beginning to end through the provided jupyter notebook. 
 
 Input data
 ----------
-You will need a pretrained network organized in the following format: ``/Inbox/dlc_projects/PROJECT_PATH``. You will also need to have the videos you would like to process
+Once you have created your ``project_folder``, it is important that you place it in  ``/Inbox/dlc_projects/PROJECT_PATH``. You will also need to have the videos you would like to process
 organized in the following format: ``/Inbox/Subject/dlc_behavior_videos/*.avi``.
 
 Running the DeepLabCut pipeline
 -------------------------------
-This is a manual pipeline. You will need to run the provided `DeepLabCut jupyter notebook <https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/blob/5d38f22f2caabf8cc91cb6fd18be2dbfaa632a2c/notebooks/dlc.ipynb>`_.
+This is a manual pipeline. You will need to run the provided `<https://github.com/bernardosabatinilab/sabatini-datajoint-pipeline/blob/5b157f564b1989107c2dd495b2bbf5d7a88d2f8b/notebooks/dlc.ipynb>`_.
 You will need to edit all of the relevant information and paths in the notebook.
 
 Table organization
 ------------------
-The DeepLabCut processing pipeline will populate the ``model`` table.
-
+The DeepLabCut processing pipeline will populate the ``model`` and ``train`` tables.
 
 
 
