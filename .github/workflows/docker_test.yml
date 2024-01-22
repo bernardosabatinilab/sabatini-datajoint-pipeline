@@ -29,8 +29,8 @@ jobs:
       DJ_USER: jbw25
       DJ_PASS: ${{ secrets.DOCKERENV }}
       DATABASE_PREFIX: sabatini_dj_
-      RAW_ROOT_DATA_DIR: /home/${CONTAINER_USER}/inbox
-      PROCESSED_ROOT_DATA_DIR: /home/${CONTAINER_USER}/outbox
+      RAW_ROOT_DATA_DIR: ./docker
+      PROCESSED_ROOT_DATA_DIR: ./docker
     runs-on: ubuntu-20.04
 
     steps:
