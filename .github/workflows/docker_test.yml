@@ -17,6 +17,20 @@ on:
 
 jobs:
   build_docker:
+    env:
+      JHUB_VER: 1.4.2
+      PY_VER: 3.9
+      DIST: debian
+      WORKFLOW_VERSION: 0.1.0
+      REPO_OWNER: bernardosabatinilab
+      REPO_NAME: sabatini-datajoint-pipeline
+      CONTAINER_USER: anaconda
+      DJ_HOST: sabatini-dj-prd01.cluster-cjvmzxer50q5.us-east-1.rds.amazonaws.com
+      DJ_USER: jbw25
+      DJ_PASS: ${{ secrets.DOCKERENV }}
+      DATABASE_PREFIX: sabatini_dj_
+      RAW_ROOT_DATA_DIR: /home/${CONTAINER_USER}/inbox
+      PROCESSED_ROOT_DATA_DIR: /home/${CONTAINER_USER}/outbox
     runs-on: ubuntu-20.04
 
     steps:
@@ -30,16 +44,10 @@ jobs:
 
       - name: Build and run Docker Compose
         run: |
-          docker-compose -f docker-compose-calcium_imaging_worker.yaml -p sabatini-datajoint-pipeline_calcium_imaging_worker build --no-cache
-          docker-compose -f docker-compose-spike_sorting_local_worker.yaml -p sabatini-datajoint-pipeline_spike_sorting_local_worker build --no-cache
-          docker-compose -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard build --no-cache
-
-      # Add additional steps here for testing or other actions
+             docker-compose -f ./docker/standard_worker/dist/debian/docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard build
 
       - name: Clean up Docker Compose
         run: |
-         docker-compose -f docker-compose-calcium_imaging_worker.yaml -p sabatini-datajoint-pipeline_calcium_imaging_worker build down
-         docker-compose -f docker-compose-spike_sorting_local_worker.yaml -p sabatini-datajoint-pipeline_spike_sorting_local_worker down
-         docker-compose -f docker-compose-standard_worker.yaml -p sabatini-datajoint-pipeline_standard build down
+         docker-compose -f ./docker/standard_worker/dist/debian/docker-compose-standard_worker.yaml down
 
 
