@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-     branches: [ "main", "dev" ]
+     branches: [ "main" ]
   pull_request: 
     branches: [ "main", "dev" ]        
   workflow_dispatch:
@@ -134,5 +134,5 @@ jobs:
 
     - name: Run pytest
       run: |
-        pip install pytest pytest-cov
-        python -m pytest --capture=tee-sys --cov=sabatini-datajoint-pipeline --cov-report=xml:coverage.xml --color=yes
+        pip install pytest
+        python -m pytest --capture=tee-sys
