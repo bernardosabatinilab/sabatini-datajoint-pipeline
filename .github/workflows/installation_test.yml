@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-     branches: [ "main"]
+     branches: [ "main" ]
   pull_request: 
     branches: [ "main", "dev" ]        
   workflow_dispatch:
@@ -32,13 +32,13 @@ jobs:
           windows-2022,
           windows-2019,
           # # macos-latest,
-          # macos-12.0,
+          macos-12.0,
           macos-11.0,
           # macos-10.15,
         ]
         python-version: [ 
            "3.9",
-           "3.10",
+          # "3.10",
           # "3.11",
           # "3.12",
         ]
@@ -131,3 +131,8 @@ jobs:
       run: |
         pip list
         conda list
+
+    - name: Run pytest
+      run: |
+        pip install pytest
+        python -m pytest --capture=tee-sys
