@@ -1,4 +1,4 @@
-#MODE= PROD docker-compose up
+#MODE=PROD docker-compose up
 #
 # Access using fakeservices.datajoint.io
 version: '2.4'
