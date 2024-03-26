@@ -10,7 +10,6 @@ services:
     environment:
       PHARUS_SPEC_PATH: /main/specs/sciviz_specsheet.yaml # for dynamic api spec
       PHARUS_MODE: ${MODE} # DEV | PROD
-    env_file: .env
     volumes:
       - ./sciviz_specsheet.yaml:/main/specs/sciviz_specsheet.yaml:ro #copy the spec over to /main/specs/YOUR_SPEC_NAME
     command:
