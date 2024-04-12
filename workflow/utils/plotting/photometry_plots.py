@@ -8,7 +8,7 @@ from workflow.pipeline import photometry, event
 
 def plot_event_aligned_photometry(session_key, *, trace_name, emission_color, hemisphere, events_OI):
     restr = {
-        "trace_name": trace_name,
+        "trace_name": 'photom',
         "emission_color": emission_color,
         "hemisphere": hemisphere
     }
@@ -77,14 +77,16 @@ def plot_event_aligned_photometry(session_key, *, trace_name, emission_color, he
             RMS.append(rms)
 
             # Plot the mean trace with standard error
+            for_legend = " ".join([emission_color, hemisphere])
             ax.plot(mean_trace_timestamps, mean_trace, label=event_type, lw=2)
             ax.fill_between(mean_trace_timestamps, mean_trace - sem_trace, mean_trace + sem_trace, alpha=0.3)
+            ax.text(0.95, 0.95, for_legend, ha='right', va='top', transform=ax.transAxes,
+                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.5))
 
         ax.axvline(x=0, linewidth=0.5, ls='--')
         if ind == 0:
-            ax.set_ylabel("Trace Name", fontsize=15)
+            ax.set_ylabel("Z-score", fontsize=15)
         ax.set(xlabel='Sample', title=event_type)
         sns.despine()
 
     return fig, CI, RMS, avg_trace, SEM
-

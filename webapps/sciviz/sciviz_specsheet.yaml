@@ -21,9 +21,9 @@ SciViz: # top level tab
               # this example of image_route has the image in the /src dir
               image_route: ../../logo.svg
               text: |
-                # Welcome to the data navigator for the SabatiniLab data pipeline
-    Session Overview:
-      route: /session_overview
+                # Welcome to the datajoint navigator for the Sabatini Lab
+    DLC Session Overview:
+      route: /DLC_session_overview
       grids:
         grid1:
           type: fixed
@@ -32,7 +32,7 @@ SciViz: # top level tab
           components:
             Session Status:
               route: /session_sessionstatus
-              link: /per_session_plots
+              link: /DLC_per_session_plots
               x: 0
               y: 0
               height: 1
@@ -42,68 +42,25 @@ SciViz: # top level tab
                 def restriction(**kwargs):
                     return dict(**kwargs)
               dj_query: >
-                def dj_query(sabatini_dj_session, sabatini_dj_ephys, sabatini_dj_imaging, sabatini_dj_photometry, sabatini_dj_event, sabatini_dj_model):
+                def dj_query(sabatini_dj_session, sabatini_dj_event, sabatini_dj_model):
                     session = sabatini_dj_session
-                    ephys = sabatini_dj_ephys
-                    imaging = sabatini_dj_imaging
-                    photometry = sabatini_dj_photometry
                     event = sabatini_dj_event
                     model = sabatini_dj_model
 
                     session_process_status = session.Session
                     session_process_status *= session.Session.aggr(event.BehaviorRecording,
                                                                   behav='count(session_id)', keep_all_rows=True)
-                    session_process_status *= session.Session.aggr(ephys.CuratedClustering,
-                                                                  ephys='count(insertion_number)', keep_all_rows=True)
-                    session_process_status *= session.Session.aggr(imaging.Fluorescence,
-                                                                  ophys='count(scan_id)', keep_all_rows=True)
                     session_process_status *= session.Session.aggr(model.PoseEstimation,
                                                                   pose='count(recording_id)', keep_all_rows=True)
-                    session_process_status *= session.Session.aggr(photometry.FiberPhotometrySynced.SyncedTrace,
-                                                                  photometry='count(fiber_id)', keep_all_rows=True)
                 
                     query = session_process_status
                     
-                    return {'query': query, 'fetch_args': {'order_by': 'session_datetime DESC'}}
+                    return {'query': query, 'fetch_args': {'order_by': 'pose DESC, session_datetime DESC'}}
 
-    PerSessionPlots:
+    DLCPerSessionPlots:
       hidden: true
-      route: /per_session_plots
+      route: /DLC_per_session_plots
       grids:
-        fiber_photometry:
-          type: fixed
-          route: /per_session_plots_fiber_photometry
-          columns: 1
-          row_height: 1500
-          components:
-            comp1:
-              route: /per_session_plots_fiber_photometry_comp1
-              x: 0
-              y: 0
-              height: 0.2
-              width: 0.8
-              type: file:image:attach
-              restriction: >
-                def restriction(**kwargs):
-                    return dict(**kwargs)
-              dj_query: >
-                def dj_query(sabatini_dj_report):
-                    report = sabatini_dj_report
-                    return {'query': report.FiberPhotometryPlots(), 'fetch_args': ['demodulated_trace_plot']}
-            comp2:
-              route: /per_session_plots_fiber_photometry_comp2
-              x: 0
-              y: 0.2
-              height: 0.5
-              width: 0.8
-              type: file:image:attach
-              restriction: >
-                def restriction(**kwargs):
-                    return dict(**kwargs)
-              dj_query: >
-                def dj_query(sabatini_dj_report):
-                    report = sabatini_dj_report
-                    return {'query': report.FiberPhotometryPlots(), 'fetch_args': ['event_aligned_plot']}
         pose_estimation:
           route: /per_session_plots_pose_estimation
           type: dynamic
@@ -115,7 +72,7 @@ SciViz: # top level tab
           dj_query: >
             def dj_query(sabatini_dj_report):
                 report = sabatini_dj_report
-                return {'query': report.PoseEstimationPlots.BodyPart.proj(), 'fetch_args': []}
+                return {'query': report.PoseEstimationPlots.Summary.proj(), 'fetch_args': []}
           component_templates:
             comp1:
               route: /per_session_plots_pose_estimation_comp1
@@ -126,9 +83,65 @@ SciViz: # top level tab
               dj_query: >
                 def dj_query(sabatini_dj_report):
                     report = sabatini_dj_report
-                    return {'query': report.PoseEstimationPlots.BodyPart(), 'fetch_args': ['bodypart_xy_plot']}
+                    return {'query': report.PoseEstimationPlots.Summary(), 'fetch_args': ['bodypart_xy_plot']}
             comp2:
               route: /per_session_plots_pose_estimation_comp2
+              type: plot:plotly:stored_json
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_report):
+                    report = sabatini_dj_report
+                    return {'query': report.PoseEstimationPlots.Summary(), 'fetch_args': ['bodypart_time_plot']}
+  
+    Photometry Session Overview:
+        route: /photom_session_overview
+        grids:
+          grid1:
+            type: fixed
+            columns: 1
+            row_height: 680
+            components:
+              Session Status:
+                route: /photom_session_sessionstatus
+                link: /photom_per_session_plots
+                x: 0
+                y: 0
+                height: 1
+                width: 1
+                type: antd-table
+                restriction: >
+                  def restriction(**kwargs):
+                      return dict(**kwargs)
+                dj_query: >
+                  def dj_query(sabatini_dj_session, sabatini_dj_event, sabatini_dj_photometry):
+                      session = sabatini_dj_session
+                      photometry = sabatini_dj_photometry
+                      event = sabatini_dj_event
+
+                      session_process_status = session.Session
+                      session_process_status *= session.Session.aggr(event.BehaviorRecording,
+                                                                    behav='count(session_id)', keep_all_rows=True)
+                      session_process_status *= session.Session.aggr(photometry.FiberPhotometrySynced.SyncedTrace,
+                                                                     photometry='count(fiber_id)', keep_all_rows=True)
+                  
+                      query = session_process_status
+                      
+                      return {'query': query, 'fetch_args': {'order_by': 'photometry DESC, session_datetime DESC'}}
+
+    PhotomPerSessionPlots:
+      hidden: true
+      route: /photom_per_session_plots
+      grids:
+        fiber_photometry:
+          type: dynamic
+          route: /per_session_plots_fiber_photometry
+          columns: 1
+          row_height: 1500
+          components:
+            comp1:
+              route: /per_session_plots_fiber_photometry_comp1
               type: file:image:attach
               restriction: >
                 def restriction(**kwargs):
@@ -136,4 +149,14 @@ SciViz: # top level tab
               dj_query: >
                 def dj_query(sabatini_dj_report):
                     report = sabatini_dj_report
-                    return {'query': report.PoseEstimationPlots.BodyPart(), 'fetch_args': ['bodypart_time_plot']}
+                    return {'query': report.FiberPhotometryPlots(), 'fetch_args': ['demodulated_trace_plot']}
+            comp2:
+              route: /per_session_plots_fiber_photometry_comp2
+              type: file:image:attach
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_report):
+                    report = sabatini_dj_report
+                    return {'query': report.FiberPhotometryPlots(), 'fetch_args': ['event_aligned_plot']}
