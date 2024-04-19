@@ -160,3 +160,109 @@ SciViz: # top level tab
                 def dj_query(sabatini_dj_report):
                     report = sabatini_dj_report
                     return {'query': report.FiberPhotometryPlots(), 'fetch_args': ['event_aligned_plot']}
+
+    Neuropixel Session Overview:
+            route: /npx_session_overview
+            grids:
+              grid1:
+                type: fixed
+                columns: 1
+                row_height: 680
+                components:
+                  Session Status:
+                    route: /npx_session_sessionstatus
+                    link: /npx_per_session_plots
+                    x: 0
+                    y: 0
+                    height: 1
+                    width: 1
+                    type: antd-table
+                    restriction: >
+                      def restriction(**kwargs):
+                          return dict(**kwargs)
+                    dj_query: >
+                      def dj_query(sabatini_dj_session, sabatini_dj_event, sabatini_dj_ephys):
+                          session = sabatini_dj_session
+                          event = sabatini_dj_event
+                          ephys = sabatini_dj_ephys
+
+                          session_process_status = session.Session
+                          session_process_status *= session.Session.aggr(event.BehaviorRecording,
+                                                                        behav='count(session_id)', keep_all_rows=True)
+                          session_process_status *= session.Session.aggr(ephys.CuratedClustering,
+                                                                  ephys='count(insertion_number)', keep_all_rows=True)
+                      
+                          query = session_process_status
+                          
+                          return {'query': query, 'fetch_args': {'order_by': 'ephys DESC, session_datetime DESC'}}
+
+    NpxPerSessionPlots:
+      hidden: true
+      route: /npx_per_session_plots
+      grids:
+        Ephys:
+          type: dynamic
+          route: /per_session_plots_Ephys
+          columns: 1
+          row_height: 1500
+          components:
+            comp1:
+              route: /per_session_plots_Ephys_comp1
+              type: file:image:attach
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_report):
+                    report = sabatini_dj_report
+                    return {'query': report.EphysPlots(), 'fetch_args': ['summary_plot']}
+            comp2:
+              route: /per_session_plots_Ephys_comp2
+              type: file:image:attach
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_report):
+                    report = sabatini_dj_report
+                    return {'query': report.EphysPlots(), 'fetch_args': ['driftmap_plot']}
+            comp3:
+              route: /per_session_plots_Ephys_comp3
+              type: file:image:attach
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_report):
+                    report = sabatini_dj_report
+                    return {'query': report.EphysPlots(), 'fetch_args': ['raster_plot']}
+            comp4:
+              route: /per_session_plots_Ephys_comp4
+              type: file:image:attach
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_report):
+                    report = sabatini_dj_report
+                    return {'query': report.EphysPlots(), 'fetch_args': ['peak_waveforms_plot']}
+            comp5:
+              route: /per_session_plots_Ephys_comp5
+              type: file:image:attach
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_report):
+                    report = sabatini_dj_report
+                    return {'query': report.EphysPlots(), 'fetch_args': ['periodogram_plot']}
+            comp6:
+              route: /per_session_plots_Ephys_comp6
+              type: file:image:attach
+              restriction: >
+                def restriction(**kwargs):
+                    return dict(**kwargs)
+              dj_query: >
+                def dj_query(sabatini_dj_report):
+                    report = sabatini_dj_report
+                    return {'query': report.EphysPlots(), 'fetch_args': ['power_spectrum_plot']}

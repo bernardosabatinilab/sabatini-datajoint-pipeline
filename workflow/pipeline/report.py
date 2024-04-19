@@ -4,13 +4,15 @@ import os
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import scipy.signal
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from element_interface.utils import find_full_path
 
 from workflow import db_prefix
-from workflow.pipeline import session, event, model, photometry
+from workflow.pipeline import session, event, model, photometry, ephys
+from workflow.utils.plotting import ephys_plots, photometry_plots
 
 import workflow.utils.photometry_preprocessing as pp
 from workflow.utils.paths import get_raw_root_data_dir
@@ -149,7 +151,139 @@ class FiberPhotometryPlots(dj.Computed):
                                     "event_aligned_plot": event_aligned_plot,
                                     "photometry_analysis_summary": analysis_summary})
 
+@schema
+class EphysPlots(dj.Computed):
+    definition = """
+    -> ephys.EphysRecording
+    ---
+    summary_plot: attach
+    driftmap_plot: attach
+    raster_plot: attach
+    peak_waveforms_plot: attach
+    periodogram_plot: attach
+    power_spectrum_plot: attach
+    """
+    key_source = ephys.EphysRecording
 
+    def make(self, key):
+        #get data dir
+        session_id = (session.Session & key).fetch1("session_id")
+        session_dir = (session.SessionDirectory & key).fetch1("session_dir")
+        session_full_dir: Path = find_full_path(get_raw_root_data_dir(), session_dir)
+        report_dir = session_full_dir / "Report_figures"
+        report_dir.mkdir(exist_ok=True, parents=True)
+
+        #fetch lfp_key
+        lfp_key = (ephys.LFP & key).fetch1("KEY")
+        probe_key = (ephys.CuratedClustering & key).fetch1("KEY")
+        freq_bands = [(0.5, 4), (4, 8), (8, 13), (13, 30), (30, 50)] #delta, theta, alpha, beta, gamma
+
+        # Begin summary plot
+        good_units = ephys.CuratedClustering.Unit & probe_key & "cluster_quality_label='good'"
+        noise_units = ephys.CuratedClustering.Unit & probe_key & "cluster_quality_label='noise'"
+        fig1=ephys_plots.plot_counts(good_units, noise_units, probe_key)
+        fig1.savefig(report_dir / f"{session_id}_summary_plot.png")
+        summary_plot = os.path.join(report_dir, f"{session_id}_summary_plot.png")
+        # End summary plot
+
+        # Begin driftmap plot
+        units = ephys.CuratedClustering.Unit & probe_key & "cluster_quality_label='good'"
+        table = units * ephys.ProbeInsertion * probe.ProbeType.Electrode
+        spike_times, spike_depths = table.fetch("spike_times", "spike_depths", order_by="unit")
+        fig2 = ephys_plots.plot_driftmap(spike_times, spike_depths, colormap="gist_heat_r")
+        fig2.savefig(report_dir / f"{session_id}_driftmap_plot.png")
+        driftmap_plot = os.path.join(report_dir, f"{session_id}_driftmap_plot.png")
+        # End driftmap plot
+
+        # Begin raster plot
+        units, unit_spiketimes = (ephys.CuratedClustering.Unit & probe_key & "cluster_quality_label='good'").fetch("unit", "spike_times")
+        fig3 = ephys_plots.plot_raster(units, unit_spiketimes, probe_key)
+        fig3.savefig(report_dir / f"{session_id}_raster_plot.png")
+        raster_plot = os.path.join(report_dir, f"{session_id}_raster_plot.png")
+        # End raster plot
+
+        # Begin peak waveforms plot
+        unit_key = (ephys.CuratedClustering.Unit & probe_key & "cluster_quality_label='good'").fetch("KEY")
+        unit_data = (ephys.CuratedClustering.Unit * ephys.WaveformSet.PeakWaveform & unit_key).fetch()
+        fig4=ephys_plots.plot_peak_waveforms(unit_data, probe_key)
+        fig4.savefig(report_dir / f"{session_id}_peak_waveforms_plot.png")
+        peak_waveforms_plot = os.path.join(report_dir, f"{session_id}_peak_waveforms_plot.png")
+        # End peak waveforms plot
+
+        # Begin periodogram plot
+        from scipy.signal import welch
+        lfp_channels = (ephys.LFP.Electrode & lfp_key).fetch("electrode")
+        lfp_signals = (ephys.LFP.Electrode & lfp_key).fetch("lfp")
+        lfp_fs = (ephys.LFP & lfp_key).fetch1("lfp_sampling_rate")
+
+        power_spectral_density = []
+        frequencies = []
+
+        for i, (channel, signal) in enumerate(zip(lfp_channels, lfp_signals)):
+            f, Pxx = welch(signal, fs=lfp_fs, nperseg=lfp_fs*2)
+            power_spectral_density.append(Pxx)
+            frequencies.append(f)
+
+        #grab first 200 points for each channel
+        power_spectral_density_filt = np.array(power_spectral_density)[:, :200]
+        frequencies_filt = np.array(frequencies)[:, :200]
+
+        import seaborn as sns
+        fig5, ax = plt.subplots(figsize=(10, 5))
+        for i, (channel, psd) in enumerate(zip(lfp_channels, power_spectral_density_filt)):
+            ax.plot(frequencies_filt[i], np.log(psd))
+        ax.set(xlabel="Frequency (Hz)", ylabel="Power log(\u03bcV^2/Hz)")
+        ax.set_title(f"Welch's periodgram for {key['subject']} per channel ({len(lfp_channels)} total)")
+        sns.despine()
+        fig5.savefig(report_dir / f"{session_id}_periodogram_plot.png")
+        periodogram_plot = os.path.join(report_dir, f"{session_id}_periodogram_plot.png")
+        # End periodogram plot
+
+        # Begin power spectra plot
+        idx_delta = np.logical_and(frequencies_filt[0] >= freq_bands[0][0], frequencies_filt[0] <= freq_bands[0][1])
+        idx_theta = np.logical_and(frequencies_filt[0] >= freq_bands[1][0], frequencies_filt[0] <= freq_bands[1][1])
+        idx_alpha = np.logical_and(frequencies_filt[0] >= freq_bands[2][0], frequencies_filt[0] <= freq_bands[2][1])
+        idx_beta = np.logical_and(frequencies_filt[0] >= freq_bands[3][0], frequencies_filt[0] <= freq_bands[3][1])
+        idx_gamma = np.logical_and(frequencies_filt[0] >= freq_bands[4][0], frequencies_filt[0] <= freq_bands[4][1])
+
+        #seperate out the power spectral density for each frequency band
+        delta_psd = power_spectral_density_filt[:, idx_delta]
+        theta_psd = power_spectral_density_filt[:, idx_theta]
+        alpha_psd = power_spectral_density_filt[:, idx_alpha]
+        beta_psd = power_spectral_density_filt[:, idx_beta]
+        gamma_psd = power_spectral_density_filt[:, idx_gamma]
+        #calculate abosulte power for each frequency band
+        from scipy.integrate import simps
+        delta_freq_res = frequencies_filt[0][1] - frequencies_filt[0][0]
+        delta_power = simps(delta_psd, dx=delta_freq_res)
+
+        theta_freq_res = frequencies_filt[0][1] - frequencies_filt[0][0]
+        theta_power = simps(theta_psd, dx=theta_freq_res)
+
+        alpha_freq_res = frequencies_filt[0][1] - frequencies_filt[0][0]
+        alpha_power = simps(alpha_psd, dx=alpha_freq_res)
+
+        beta_freq_res = frequencies_filt[0][1] - frequencies_filt[0][0]
+        beta_power = simps(beta_psd, dx=beta_freq_res)
+
+        gamma_freq_res = frequencies_filt[0][1] - frequencies_filt[0][0]
+        gamma_power = simps(gamma_psd, dx=gamma_freq_res)
+        #Match channels to their respective depths
+        table = ephys.ProbeInsertion * probe.ProbeType.Electrode & lfp_key
+        site, depths = table.fetch("shank_row", "y_coord", order_by="shank_row")
+        depths = [depths[i] for i in lfp_channels]
+        #map depths to each frequency band power in a dataframe
+        power_df = pd.DataFrame({"depth": depths, "delta_power": delta_power, "theta_power": theta_power, "alpha_power": alpha_power, "beta_power": beta_power, "gamma_power": gamma_power})
+        power_df.sort_values(by="depth", inplace=True)
+        fig6 = ephys_plots.plot_power_spectrum(power_df)
+        fig6.savefig(report_dir / f"{session_id}_power_spectrum_plot.png")
+        power_spectrum_plot = os.path.join(report_dir, f"{session_id}_power_spectrum_plot.png")
+        # End power spectra plot
+
+        self.insert1({**lfp_key, "summary_plot": summary_plot, "driftmap_plot": driftmap_plot, "raster_plot": raster_plot,
+                      "peak_waveforms_plot": peak_waveforms_plot, "periodogram_plot": periodogram_plot,
+                      "power_spectrum_plot": power_spectrum_plot})
+        
 
 # ---- Helper functions ----
 

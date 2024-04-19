@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import matplotlib
 from scipy.stats import sem
 import plotly.graph_objects as go
 
@@ -76,5 +77,84 @@ def plot_driftmap(
     ax_spkcount.set_yticks([])
     ax_spkcount.set_ylim(depth_edges[0], depth_edges[-1])
     sns.despine()
+
+    return fig
+
+def plot_peak_waveforms(unit_data, probe_key):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    n_units = len(unit_data)
+    n_cols = 5
+    n_rows = int(np.ceil(n_units / n_cols))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 3 * n_rows))
+
+    for i, (ax, waveform) in enumerate(zip(axes.flat, unit_data["peak_electrode_waveform"])):
+        ax.plot(waveform)
+        ax.set_title(f"Unit {i+1}")
+        ax.set_ylabel("Voltage (uV)")
+
+    # Hide the empty subplots
+    for i in range(n_units, n_rows * n_cols):
+        axes.flat[i].axis("off")
+
+    #add master title
+    fig.suptitle(f"Peak Waveforms for Good Units {probe_key['subject'], probe_key['session_id']}",
+                fontsize=20, y=1.0)
+    plt.tight_layout()
+
+    return fig
+
+def plot_counts(good_units, noise_units, probe_key):
+    #Create pie chart for good and noise units
+    good_units = len(good_units)
+    noise_units = len(noise_units)
+    labels = ['Good', 'Noise']
+    sizes = [good_units, noise_units]
+    colors = ['lightcoral', 'lightskyblue']
+    explode = (0.1, 0)  # explode 1st slice
+
+    fig1, ax1 = plt.subplots()
+    ax1.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow=True, startangle=140)
+    plt.text(-1, 1, f"Total Units: {good_units + noise_units}", fontsize=12, color='black')
+    ax1.axis('equal')
+    plt.title(f"Quality labels for {probe_key['subject'], probe_key['session_id']}")
+
+    return fig1
+
+def plot_raster(units, unit_spiketimes, probe_key):
+    plt.figure(figsize=(20, 20))
+
+    # Plot all units on the same raster plot
+    for unit, spiketimes in zip(units, unit_spiketimes):
+        plt.plot(spiketimes, np.full_like(spiketimes, unit), '|', color='steelblue')  # Use a single color for all units
+
+    plt.xlabel('Time (s)', fontsize=22)
+    plt.ylabel('Unit', fontsize=22)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    plt.title(f'Raster Plot for {probe_key["subject"], probe_key["session_id"]}', fontsize=26)
+    plt.tight_layout()
+    
+    return plt
+
+def plot_power_spectrum(df):
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    #find min and max values for color scaling
+    power_data = df.drop(columns=['depth'])
+
+    fig, axs = plt.subplots(1, 5, figsize=(20, 10), sharey='row')
+
+    # Iterate through each column and create a heatmap with its own color bar
+    for i, col in enumerate(power_data.columns):
+        sns.heatmap(np.log(df[[col, 'depth']].set_index('depth')), cmap='magma', ax=axs[i], cbar=True)
+        axs[i].set_title(f'{col}')
+        axs[i].set_ylabel('Depth (\u03bcM)')  
+        cbar = axs[i].collections[0].colorbar  
+        cbar.set_label('log(\u03bc$V^2$/Hz)')  
+
+    plt.subplots_adjust(wspace=1, hspace=1, top=0.9, bottom=0.1)
 
     return fig
